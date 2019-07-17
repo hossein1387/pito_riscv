@@ -1,0 +1,56 @@
+
+class rv32i(object):
+    def __init__(self, type):
+        super(riscv_i, self).__init__(type)
+
+    def get_inst_str(inst):
+        switcher = {
+            55  : 'LUI',
+            23  : 'AUIPC',
+            111 : 'JAL',
+            103 : 'JALR',
+            99  : 'BEQ',
+            99  : 'BNE',
+            99  : 'BLT',
+            99  : 'BGE',
+            99  : 'BLTU',
+            99  : 'BGEU',
+            3   : 'LB',
+            3   : 'LH',
+            3   : 'LW',
+            3   : 'LBU',
+            3   : 'LHU',
+            35  : 'SB',
+            35  : 'SH',
+            35  : 'SW',
+            19  : 'ADDI',
+            19  : 'SLTI',
+            19  : 'SLTIU',
+            19  : 'XORI',
+            19  : 'ORI',
+            19  : 'ANDI',
+            19  : 'SLLI',
+            19  : 'SRLI',
+            19  : 'SRAI',
+            51  : 'ADD',
+            51  : 'SUB',
+            51  : 'SLL',
+            51  : 'SLT',
+            51  : 'SLTU',
+            51  : 'XOR',
+            51  : 'SRL',
+            51  : 'SRA',
+            51  : 'OR',
+            51  : 'AND',
+            15  : 'FENCE',
+            15  : 'FENCE.I',
+            115 : 'ECALL',
+            115 : 'EBREAK',
+            115 : 'CSRRW',
+            115 : 'CSRRS',
+            115 : 'CSRRC',
+            115 : 'CSRRWI',
+            115 : 'CSRRSI',
+            115 : 'CSRRCI'
+        }
+        return switcher.get(argument, "Invalid instruction for RV32I")
