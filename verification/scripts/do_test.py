@@ -118,7 +118,7 @@ if __name__ == '__main__':
 
 
         util.print_banner("Creating snapshot", verbosity=verbosity)
-        cmd_to_run = "xelab -debug typical -L secureip -L unisims_ver -L unimacro_ver {0} glbl ".format(top_level)
+        cmd_to_run = "xelab -debug typical -L secureip -L unisims_ver -L unimacro_ver {0} ".format(top_level)
         if waveform:
             cmd_to_run += "--debug all "
         if silence:
@@ -127,9 +127,9 @@ if __name__ == '__main__':
 
         util.print_banner("Running simulation", verbosity=verbosity)
         if gui:
-            cmd_to_run = "xsim --g {0}#work.glbl ".format(top_level)
+            cmd_to_run = "xsim --g {0} ".format(top_level)
         else:
-            cmd_to_run = "xsim -R {0}#work.glbl ".format(top_level)
+            cmd_to_run = "xsim -R {0} ".format(top_level)
         if svseed:
             cmd_to_run += "-sv_seed {0} ".format(svseed)
         if silence:
