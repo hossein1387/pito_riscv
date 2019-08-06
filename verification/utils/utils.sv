@@ -32,8 +32,7 @@ typedef struct packed
 // Defines a macro to print 
 `define test_print(ID,MSG,VERBOSITY) \
    begin \
-        if (VERBOSITY<VERB_MEDIUM) \
-            $display("[%5s]  %s ", ID, MSG); \
+            $sformatf("[%5s]  %s ", ID, MSG); \
    end
 
 //==================================================================================================
@@ -89,5 +88,25 @@ function void print_matrix_from_array(inout integer array, integer row_len, inte
         array_shape_str = "";
     end
 endfunction : print_matrix_from_array
+
+//==================================================================================================
+// Logger class, logs test string to a file
+class Logger;  /* base class*/;
+    static int fd;
+
+    function new (string file_name);
+          this.fd = $fopen(file_name,"w");
+    endfunction
+
+    function print (string msg, string id="INFO", print_verbosity verbosity=VERB_LOW);
+        string log = $sformatf("[%5s]  %s ", id, msg);
+        if (verbosity<VERB_MEDIUM) begin
+            $display("%s", log);
+        end
+        $fwrite(this.fd, log);
+    endfunction
+
+endclass
+
 
 endpackage : utils

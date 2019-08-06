@@ -25,11 +25,11 @@ module rv32_decoder (
     output rv_zimm_t           rv_zimm,
 
     output rv32_opcode_enum_t  rv_opcode,
+    output rv32_type_enum_t    rv_imm_decoded_type,
     output logic               instr_trap
 
 );
 
-    rv32_type_enum_t rv_imm_decoded_type;
     rv_imm_t         rv_imm_decoded;
 
     always @(posedge clk) begin
