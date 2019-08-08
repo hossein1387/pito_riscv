@@ -1,4 +1,4 @@
-![alt text](https://github.com/hossein1387/Fixed-Point-U-Net-Quantization-for-Medical-Image-Segmentation/blob/master/Figs/nih.png)
+![alt text](https://github.com/hossein1387/pito_riscv/blob/master/doc/pics/pito_rv32i.pdf)
 
 # pito_riscv
 A pito version of rv32i 
