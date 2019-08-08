@@ -4,9 +4,6 @@
 
 module rv32_decoder (
     input                      clk,
-    input                      rst,
-    input                      flush,
-    input                      halt, 
     input rv32_instr_t         instr, // input instruction
     input rv_pc_cnt_t          pc,
 
