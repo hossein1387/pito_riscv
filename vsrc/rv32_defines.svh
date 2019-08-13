@@ -1,32 +1,27 @@
 //-------------------------------------------------------------------
 //                           Width-related constants
 //-------------------------------------------------------------------
-`define INST_WIDTH     32
-`define REG_ADDR_WIDTH  5
-`define XPR_LEN        32
-`define OPCODE_LEN     7
+`define INST_WIDTH       32
+`define REG_ADDR_WIDTH   5
+`define XPR_LEN          32
+`define OPCODE_LEN       7
+`define ALU_OPCODE_WIDTH 4
 //-------------------------------------------------------------------
 //                          ALU opcodes
 //-------------------------------------------------------------------
-// custom mapping alu opcodes taken from:
-// https://github.com/ucb-bar/vscale/blob/master/src/main/verilog/vscale_alu_ops.vh
+// custom mapping alu opcodes
 
-`define ALU_OP_WIDTH 4
-`define ALU_OP_ADD  `ALU_OP_WIDTH'd0
-`define ALU_OP_SLL  `ALU_OP_WIDTH'd1
-`define ALU_OP_XOR  `ALU_OP_WIDTH'd4
-`define ALU_OP_OR   `ALU_OP_WIDTH'd6
-`define ALU_OP_AND  `ALU_OP_WIDTH'd7
-`define ALU_OP_SRL  `ALU_OP_WIDTH'd5
-`define ALU_OP_SEQ  `ALU_OP_WIDTH'd8
-`define ALU_OP_SNE  `ALU_OP_WIDTH'd9
-`define ALU_OP_SUB  `ALU_OP_WIDTH'd10
-`define ALU_OP_SRA  `ALU_OP_WIDTH'd11
-`define ALU_OP_SLT  `ALU_OP_WIDTH'd12
-`define ALU_OP_SGE  `ALU_OP_WIDTH'd13
-`define ALU_OP_SLTU `ALU_OP_WIDTH'd14
-`define ALU_OP_SGEU `ALU_OP_WIDTH'd15
-
-
+`define ALU_SLL   `ALU_OPCODE_WIDTH'd0
+`define ALU_SRL   `ALU_OPCODE_WIDTH'd1
+`define ALU_SRA   `ALU_OPCODE_WIDTH'd2
+`define ALU_ADD   `ALU_OPCODE_WIDTH'd3
+`define ALU_SUB   `ALU_OPCODE_WIDTH'd4
+`define ALU_XOR   `ALU_OPCODE_WIDTH'd5
+`define ALU_OR    `ALU_OPCODE_WIDTH'd6
+`define ALU_AND   `ALU_OPCODE_WIDTH'd7
+`define ALU_SLT   `ALU_OPCODE_WIDTH'd8
+`define ALU_SLTU  `ALU_OPCODE_WIDTH'd9
+`define ALU_EQ    `ALU_OPCODE_WIDTH'd10
+`define ALU_NOP   `ALU_OPCODE_WIDTH'd15
 
 
