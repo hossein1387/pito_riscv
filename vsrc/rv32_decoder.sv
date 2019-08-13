@@ -3,9 +3,7 @@
 // `include "rv32_defines.svh"
 
 module rv32_decoder (
-    input                      clk,
     input rv32_instr_t         instr, // input instruction
-    input rv_pc_cnt_t          pc,
 
     output rv_register_t       rv_rs1,
     output rv_register_t       rv_rs2,
@@ -29,7 +27,7 @@ module rv32_decoder (
 
     rv_imm_t         rv_imm_decoded;
 
-    always @(posedge clk) begin
+    always @(*) begin
         rv_imm_decoded_type <= RV32_TYPE_UNKNOWN;
         case (instr[6:0])
             7'b0110111: begin // LUI
