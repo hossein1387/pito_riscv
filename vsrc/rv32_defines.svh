@@ -1,4 +1,11 @@
 //-------------------------------------------------------------------
+//                          pito specific consts
+//-------------------------------------------------------------------
+`define PITO_INSTR_MEM_SIZE  (16*1024)
+`define PITO_INSTR_MEM_WIDTH $clog2(`PITO_INSTR_MEM_SIZE)
+`define PITO_DATA_MEM_SIZE   (16*1024)
+`define PITO_DATA_MEM_WIDTH  $clog2(`PITO_DATA_MEM_SIZE)
+//-------------------------------------------------------------------
 //                           Width-related constants
 //-------------------------------------------------------------------
 `define INST_WIDTH       32
@@ -21,7 +28,10 @@
 `define ALU_AND   `ALU_OPCODE_WIDTH'd7
 `define ALU_SLT   `ALU_OPCODE_WIDTH'd8
 `define ALU_SLTU  `ALU_OPCODE_WIDTH'd9
-`define ALU_EQ    `ALU_OPCODE_WIDTH'd10
+`define ALU_SBT   `ALU_OPCODE_WIDTH'd10
+`define ALU_SBTU  `ALU_OPCODE_WIDTH'd11
+`define ALU_EQ    `ALU_OPCODE_WIDTH'd12
+`define ALU_NEQ   `ALU_OPCODE_WIDTH'd13
 `define ALU_NOP   `ALU_OPCODE_WIDTH'd15
 
 

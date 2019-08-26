@@ -12,6 +12,7 @@ module rv32_decoder (
     output rv_shamt_t          rv_shamt,
 
     output rv_imm_t            rv_imm,
+    output rv_alu_op_t         rv_alu_op,
 
     output logic[3:0]          rv_fence_succ,
     output logic[3:0]          rv_fence_pred,
@@ -20,7 +21,7 @@ module rv32_decoder (
     output rv_zimm_t           rv_zimm,
 
     output rv32_opcode_enum_t  rv_opcode,
-    output rv32_type_enum_t    rv_imm_decoded_type,
+    output rv32_type_enum_t    rv_inst_type,
     output logic               instr_trap
 
 );
@@ -28,98 +29,99 @@ module rv32_decoder (
     rv_imm_t         rv_imm_decoded;
 
     always @(*) begin
-        rv_imm_decoded_type <= RV32_TYPE_UNKNOWN;
+        rv_inst_type <= RV32_TYPE_UNKNOWN;
+        rv_alu_op    <= `ALU_NOP;
         case (instr[6:0])
             7'b0110111: begin // LUI
-                rv_imm_decoded_type <= RV32_TYPE_U;
+                rv_inst_type <= RV32_TYPE_U;
                 rv_opcode           <= RV32_LUI;
             end
             7'b0010111: begin // AUIPC
-                rv_imm_decoded_type <= RV32_TYPE_U;
-                rv_opcode           <= RV32_AUIPC;
+                rv_inst_type <= RV32_TYPE_U;
+                rv_opcode    <= RV32_AUIPC;
             end
             7'b1101111: begin // JAL
-                rv_imm_decoded_type <= RV32_TYPE_J;
-                rv_opcode           <= RV32_JAL;
+                rv_inst_type <= RV32_TYPE_J;
+                rv_opcode    <= RV32_JAL;
             end
             7'b1100111: begin // JALR
                 if (instr[14:12] == 3'b000) begin
-                    rv_imm_decoded_type <= RV32_TYPE_I;
-                    rv_opcode           <= RV32_JALR;
+                    rv_inst_type <= RV32_TYPE_I;
+                    rv_opcode    <= RV32_JALR;
                 end else begin
                     rv_opcode <= RV32_UNKNOWN;
                 end
             end
             7'b1100011: begin // BEQ, BNE, BLT, BGE, BLTU, BGEU
-                rv_imm_decoded_type <= RV32_TYPE_B;
+                rv_inst_type <= RV32_TYPE_B;
                 case (instr[14:12])
-                    3'b000        : rv_opcode <= RV32_BEQ;
-                    3'b001        : rv_opcode <= RV32_BNE;
-                    3'b100        : rv_opcode <= RV32_BLT;
-                    3'b101        : rv_opcode <= RV32_BGE;
-                    3'b110        : rv_opcode <= RV32_BLTU;
-                    3'b111        : rv_opcode <= RV32_BGEU;
+                    3'b000        : begin rv_opcode <= RV32_BEQ;  rv_alu_op <= `ALU_EQ;   end
+                    3'b001        : begin rv_opcode <= RV32_BNE;  rv_alu_op <= `ALU_NEQ;  end
+                    3'b100        : begin rv_opcode <= RV32_BLT;  rv_alu_op <= `ALU_SLT;  end
+                    3'b101        : begin rv_opcode <= RV32_BGE;  rv_alu_op <= `ALU_SBT;  end
+                    3'b110        : begin rv_opcode <= RV32_BLTU; rv_alu_op <= `ALU_SLTU; end
+                    3'b111        : begin rv_opcode <= RV32_BGEU; rv_alu_op <= `ALU_SBTU; end
                     default       : rv_opcode <= RV32_UNKNOWN;
                 endcase
             end
             7'b0000011: begin // LB, LH, LW, LBU, LHU
-                rv_imm_decoded_type <= RV32_TYPE_I;
+                rv_inst_type <= RV32_TYPE_I;
                 case (instr[14:12])
-                    3'b000                 : rv_opcode <= RV32_LB;
-                    3'b001                 : rv_opcode <= RV32_LH;
-                    3'b010                 : rv_opcode <= RV32_LW;
-                    3'b100                 : rv_opcode <= RV32_LBU;
-                    3'b101                 : rv_opcode <= RV32_LHU;
+                    3'b000                 : begin rv_opcode <= RV32_LB ; rv_alu_op <= `ALU_ADD; end
+                    3'b001                 : begin rv_opcode <= RV32_LH ; rv_alu_op <= `ALU_ADD; end
+                    3'b010                 : begin rv_opcode <= RV32_LW ; rv_alu_op <= `ALU_ADD; end
+                    3'b100                 : begin rv_opcode <= RV32_LBU; rv_alu_op <= `ALU_ADD; end
+                    3'b101                 : begin rv_opcode <= RV32_LHU; rv_alu_op <= `ALU_ADD; end
                     default                : rv_opcode <= RV32_UNKNOWN;
                 endcase
             end
             7'b0100011: begin // SB, SH, SW
-                rv_imm_decoded_type <= RV32_TYPE_S;
+                rv_inst_type <= RV32_TYPE_S;
                 case (instr[14:12])
-                    3'b000                 : rv_opcode <= RV32_SB;
-                    3'b001                 : rv_opcode <= RV32_SH;
-                    3'b010                 : rv_opcode <= RV32_SW;
+                    3'b000                 : begin rv_opcode <= RV32_SB; rv_alu_op <= `ALU_ADD; end
+                    3'b001                 : begin rv_opcode <= RV32_SH; rv_alu_op <= `ALU_ADD; end
+                    3'b010                 : begin rv_opcode <= RV32_SW; rv_alu_op <= `ALU_ADD; end
                     default                : rv_opcode <= RV32_UNKNOWN;
                 endcase
             end
             7'b0010011: begin // ADDI, SLTI, SLTIU, XORI, ORI, ANDI, SLLI, SRLI, SRAI
-                rv_imm_decoded_type <= RV32_TYPE_I;
+                rv_inst_type <= RV32_TYPE_I;
                 case (instr[14:12])
-                    3'b000                 : rv_opcode <= RV32_ADDI;
-                    3'b001                 : if (instr[31:25]==7'b0) rv_opcode <= RV32_SLLI; else rv_opcode <= RV32_UNKNOWN;
-                    3'b010                 : rv_opcode <= RV32_SLTI;
-                    3'b011                 : rv_opcode <= RV32_SLTIU;
-                    3'b100                 : rv_opcode <= RV32_XORI;
+                    3'b000                 : begin rv_opcode <= RV32_ADDI; rv_alu_op <= `ALU_ADD; end
+                    3'b001                 : if (instr[31:25]==7'b0) begin rv_opcode <= RV32_SLLI; rv_alu_op <= `ALU_SLL; end else rv_opcode <= RV32_UNKNOWN;
+                    3'b010                 : begin rv_opcode <= RV32_SLTI;  rv_alu_op <= `ALU_SLT; end 
+                    3'b011                 : begin rv_opcode <= RV32_SLTIU; rv_alu_op <= `ALU_SLTU;end 
+                    3'b100                 : begin rv_opcode <= RV32_XORI;  rv_alu_op <= `ALU_XOR; end 
                     3'b101                 :begin
                                                 case (instr[31:25])
-                                                    7'b0000000: rv_opcode <= RV32_SRLI;
-                                                    7'b0100000: rv_opcode <= RV32_SRAI;
+                                                    7'b0000000: begin rv_opcode <= RV32_SRLI; rv_alu_op <= `ALU_SLL; end
+                                                    7'b0100000: begin rv_opcode <= RV32_SRAI; rv_alu_op <= `ALU_SRA; end
                                                     default   : rv_opcode <= RV32_UNKNOWN;
                                                 endcase
                                             end
-                    3'b110                 : rv_opcode <= RV32_ORI;
-                    3'b111                 : rv_opcode <= RV32_ANDI;
+                    3'b110                 : begin rv_opcode <= RV32_ORI;  rv_alu_op <= `ALU_OR;  end
+                    3'b111                 : begin rv_opcode <= RV32_ANDI; rv_alu_op <= `ALU_AND; end
                     default                : rv_opcode <= RV32_UNKNOWN;
                 endcase
             end
             7'b0110011: begin // ADD, SUB, SLL, SLT, SLTU, XOR, SRL, SRA, OR, AND
-                rv_imm_decoded_type <= RV32_TYPE_R;
+                rv_inst_type <= RV32_TYPE_R;
                 case ({instr[31:25], instr[14:12]})
-                    {7'b0000000, 3'b000}    : rv_opcode <= RV32_ADD;
-                    {7'b0100000, 3'b000}    : rv_opcode <= RV32_SUB;
-                    {7'b0000000, 3'b001}    : rv_opcode <= RV32_SLL;
-                    {7'b0000000, 3'b010}    : rv_opcode <= RV32_SLT;
-                    {7'b0000000, 3'b011}    : rv_opcode <= RV32_SLTU;
-                    {7'b0000000, 3'b100}    : rv_opcode <= RV32_XOR;
-                    {7'b0000000, 3'b101}    : rv_opcode <= RV32_SRA;
-                    {7'b0100000, 3'b101}    : rv_opcode <= RV32_SRL;
-                    {7'b0000000, 3'b110}    : rv_opcode <= RV32_OR;
-                    {7'b0000000, 3'b111}    : rv_opcode <= RV32_AND;
+                    {7'b0000000, 3'b000}    : begin rv_opcode <= RV32_ADD;  rv_alu_op <= `ALU_ADD; end
+                    {7'b0100000, 3'b000}    : begin rv_opcode <= RV32_SUB;  rv_alu_op <= `ALU_SUB; end
+                    {7'b0000000, 3'b001}    : begin rv_opcode <= RV32_SLL;  rv_alu_op <= `ALU_SLL; end
+                    {7'b0000000, 3'b010}    : begin rv_opcode <= RV32_SLT;  rv_alu_op <= `ALU_SLT; end
+                    {7'b0000000, 3'b011}    : begin rv_opcode <= RV32_SLTU; rv_alu_op <= `ALU_SLTU;end
+                    {7'b0000000, 3'b100}    : begin rv_opcode <= RV32_XOR;  rv_alu_op <= `ALU_XOR; end
+                    {7'b0000000, 3'b101}    : begin rv_opcode <= RV32_SRA;  rv_alu_op <= `ALU_SRA; end
+                    {7'b0100000, 3'b101}    : begin rv_opcode <= RV32_SRL;  rv_alu_op <= `ALU_SLL; end
+                    {7'b0000000, 3'b110}    : begin rv_opcode <= RV32_OR;   rv_alu_op <= `ALU_OR;  end
+                    {7'b0000000, 3'b111}    : begin rv_opcode <= RV32_AND;  rv_alu_op <= `ALU_AND; end
                     default                 : rv_opcode <= RV32_UNKNOWN;
                 endcase
             end
             7'b0001111: begin // FENCE, FENCEI
-                rv_imm_decoded_type <= RV32_TYPE_I;
+                rv_inst_type <= RV32_TYPE_I;
                 case (instr[14:12])
                     3'b000                 :begin
                                                 case({instr[31:28], instr[19:15], instr[11:7]})
@@ -143,7 +145,7 @@ module rv32_decoder (
                 endcase
             end
             7'b1110011: begin // ECALL, EBREAK, CSRRW, CSRRS, CSRRC, CSRRWI, CSRRSI, CSRRCI
-                rv_imm_decoded_type <= RV32_TYPE_I;
+                rv_inst_type <= RV32_TYPE_I;
                 case (instr[14:12])
                     3'b000                 :begin
                                                 case({instr[31:20], instr[19:15], instr[11:7]})
@@ -162,20 +164,20 @@ module rv32_decoder (
                 endcase
             end
             default   : begin
-                rv_imm_decoded_type <= RV32_TYPE_UNKNOWN;
+                rv_inst_type <= RV32_TYPE_UNKNOWN;
             end /* default */
         endcase
     end
 
 
     rv32_imm_gen rv32_imm_gen_inst(.rv_instr     (instr),
-                                   .rv_imm_type  (rv_imm_decoded_type),
+                                   .rv_imm_type  (rv_inst_type),
                                    .rv_imm       (rv_imm_decoded)
                                   );
 
 
     assign rv_imm     = rv_imm_decoded;
-    assign instr_trap = (rv_imm_decoded_type == RV32_TYPE_UNKNOWN) ? 1'b1 : 1'b0;
+    assign instr_trap = (rv_inst_type == RV32_TYPE_UNKNOWN) ? 1'b1 : 1'b0;
     assign rv_rs2     = instr[24:20];
     assign rv_rs1     = instr[19:15];
     assign rv_rd      = instr[11: 7];

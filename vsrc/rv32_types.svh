@@ -1,17 +1,20 @@
 // `include "rv32_defines.svh"
 
-typedef logic [`XPR_LEN-1          : 0 ] rv_pc_cnt_t;
-typedef logic [4                   : 0 ] rv_register_t;
-typedef logic [`ALU_OP_WIDTH-1     : 0 ] alu_opcode_t;
-typedef logic [`XPR_LEN-1          : 0 ] rv_imm_t;
-typedef logic [2                   : 0 ] fnct3_t;
-typedef logic [6                   : 0 ] fnct7_t;
-typedef logic [`OPCODE_LEN-1       : 0 ] rv_opcode_t;
-typedef logic [12                  : 0 ] rv_csr_t;
-typedef logic [4                   : 0 ] rv_zimm_t;
-typedef logic [4                   : 0 ] rv_shamt_t;
-typedef logic [`REG_ADDR_WIDTH-1   : 0 ] rv_regfile_addr_t;
-typedef logic [`ALU_OPCODE_WIDTH-1 : 0 ] rv_alu_op_t;
+typedef logic [`XPR_LEN-1              : 0 ] rv_pc_cnt_t;
+typedef logic [4                       : 0 ] rv_register_t;
+typedef logic [`ALU_OPCODE_WIDTH-1     : 0 ] alu_opcode_t;
+typedef logic [`XPR_LEN-1              : 0 ] rv_imm_t;
+typedef logic [2                       : 0 ] fnct3_t;
+typedef logic [6                       : 0 ] fnct7_t;
+typedef logic [`OPCODE_LEN-1           : 0 ] rv_opcode_t;
+typedef logic [12                      : 0 ] rv_csr_t;
+typedef logic [4                       : 0 ] rv_zimm_t;
+typedef logic [4                       : 0 ] rv_shamt_t;
+typedef logic [`REG_ADDR_WIDTH-1       : 0 ] rv_regfile_addr_t;
+typedef logic [`ALU_OPCODE_WIDTH-1     : 0 ] rv_alu_op_t;
+typedef logic [`XPR_LEN-1              : 0 ] rv32_data_t;
+typedef logic [`PITO_INSTR_MEM_WIDTH-1 : 0 ] rv_imem_addr_t;
+typedef logic [`PITO_DATA_MEM_WIDTH-1  : 0 ] rv_dmem_addr_t;
 
 //-------------------------------------------------------------------
 //                          RV32 Insrtuction Types Decoding

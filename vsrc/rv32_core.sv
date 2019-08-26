@@ -1,66 +1,112 @@
 module rv32_core (
-    input  rv32_clk,    // Clock
-    input  rv32_rst_n,  // Asynchronous reset active low
-    input  rv32_i_data,
-    output rv32_i_addr,
-    input  rv32_d_data,
-    output rv32_d_addr,
-    output rv32_o_data,
-    output rv32_wr_en,
-    output rv32_rd_en
+    input  logic          rv32_io_clk,    // Clock
+    input  logic          rv32_io_rst_n,  // Asynchronous reset active low
+    input  rv_imem_addr_t rv32_io_imem_addr,
+    input  rv32_instr_t   rv32_io_imem_data,
+    input  rv_dmem_addr_t rv32_io_dmem_addr,
+    input  rv32_data_t    rv32_io_dmem_data,
+    input  logic          rv32_io_imem_w_en,
+    input  logic          rv32_io_dmem_w_en,
+    input  logic          rv32_io_program
 );
 
 //====================================================================
 // General Wires and registers
 //====================================================================
 
-logic [`XPR_LEN-1 : 0] rv32_pc;
-logic [`XPR_LEN-1 : 0] rv32_decode_pc;
-logic [`XPR_LEN-1 : 0] rv32_execute_pc;
-logic [`XPR_LEN-1 : 0] rv32_plus_4_pc;
+// General signals
+logic              clk;
+logic              rst_n;
+rv_pc_cnt_t        rv32_pc;
+rv_pc_cnt_t        rv32_plus_4_pc;
 
-
-// register file wires
+//====================================================================
+// DEC stage wires
+//====================================================================
+// Register file wires
 rv_regfile_addr_t rv32_regf_ra1;
 rv_register_t     rv32_regf_rd1;
-rv_regfile_addr_t rv32_regf_rd2;
+rv_regfile_addr_t rv32_regf_ra2;
 rv_register_t     rv32_regf_rd2;
 logic             rv32_regf_wen;
 rv_regfile_addr_t rv32_regf_wa ;
 rv_regfile_addr_t rv32_regf_wd ;
 
 // decoder wires
-rv_register_t       dec_rs1;
-rv_register_t       dec_rs2;
-rv_register_t       dec_rd;
-rv_shamt_t          dec_shamt;
-rv_imm_t            dec_imm;
-logic[3:0]          dec_fence_succ;
-logic[3:0]          dec_fence_pred;
-rv_csr_t            dec_csr;
-rv_zimm_t           dec_zimm;
-rv32_opcode_enum_t  dec_opcode;
-rv32_type_enum_t    dec_imm_decoded_type;
-logic               dec_instr_trap;
+rv_pc_cnt_t        rv32_dec_pc;
+rv_register_t      rv32_dec_rs1;
+rv_register_t      rv32_dec_rd;
+rv_register_t      rv32_dec_rs2;
+rv_shamt_t         rv32_dec_shamt;
+rv_imm_t           rv32_dec_imm;
+logic[3:0]         rv32_dec_fence_succ;
+logic[3:0]         rv32_dec_fence_pred;
+rv_csr_t           rv32_dec_csr;
+rv_zimm_t          rv32_dec_zimm;
+rv32_type_enum_t   rv32_dec_inst_type;
+logic              rv32_dec_instr_trap;
+rv_alu_op_t        rv32_dec_alu_op;
+rv32_opcode_enum_t rv32_dec_opcode;
 
 // raw un-decoded rv32 instruction
-rv32_instr_t      rv32_instr;
+rv32_instr_t        rv32_instr;
 
+//====================================================================
+// EX stage wires
+//====================================================================
 // alu wires
-rv_register_t       alu_rs1;
-rv_register_t       alu_rs2;
-rv_register_t       alu_res;
-rv_alu_op_t         alu_op;
-logic               alu_z;
+rv_register_t      rv32_alu_rs1;
+rv_register_t      rv32_alu_rs2;
+rv_register_t      rv32_ex_rd;
+rv_register_t      rv32_alu_res;
+rv_alu_op_t        rv32_alu_op;
+logic              rv32_alu_z;
+rv32_type_enum_t   rv32_ex_inst_type;
+rv32_opcode_enum_t rv32_ex_opcode;
+rv_pc_cnt_t        rv32_ex_pc;
 
+//====================================================================
+// WB stage wires
+//====================================================================
+rv32_opcode_enum_t rv32_wb_opcode;
+rv_register_t      rv32_wb_rd;
+rv_register_t      rv32_wb_out;
+rv_register_t      rv32_wb_rs2_skip;
+rv32_type_enum_t   rv32_wb_inst_type;
+
+//====================================================================
+// WF stage wires
+//====================================================================
+// write regfile stage
+rv32_opcode_enum_t rv32_wf_opcode;
 
 // Control Signals
 logic pc_sel;
 logic alu_src;
+logic wb_skip;
+
+// Instruction Memory signals
+// The rest are control by io and internal lofgic
+rv_dmem_addr_t  rv32_i_addr;
+
+// Data Memory control
+rv_dmem_addr_t rv32_dmem_addr_ctrl;
+rv32_data_t    rv32_dmem_data_ctrl;
+logic          rv32_dmem_w_en_ctrl;
+
+// Data Memory signals
+rv_dmem_addr_t  rv32_dw_addr;
+rv32_data_t     rv32_dw_data;
+logic           rv32_dw_en  ;
+
+// connect io clock and reset to internal logic
+assign clk   = rv32_io_clk;
+assign rst_n = rv32_io_rst_n;
 
 //====================================================================
 //                   Module instansiation
 //====================================================================
+
 rv32_regfile regfile(
                         .clk(clk          ),
                         .ra1(rv32_regf_ra1),
@@ -73,111 +119,144 @@ rv32_regfile regfile(
                     );
 
 rv32_decoder decoder (
-                        .instr              (rv32_instr           ),
-                        .rv_rs1             (rv32_rs1             ),
-                        .rv_rs2             (rv32_rs2             ),
-                        .rv_rd              (rv32_rd              ),
-                        .rv_shamt           (rv32_shamt           ),
-                        .rv_imm             (rv32_imm             ),
-                        .rv_fence_succ      (rv32_fence_succ      ),
-                        .rv_fence_pred      (rv32_fence_pred      ),
-                        .rv_csr             (rv32_csr             ),
-                        .rv_zimm            (rv32_zimm            ),
-                        .rv_opcode          (rv32_opcode          ),
-                        .rv_imm_decoded_type(rv32_imm_decoded_type),
-                        .instr_trap         (rv32_instr_trap      )
+                        .instr         (rv32_instr         ),
+                        .rv_rs1        (rv32_dec_rs1       ),
+                        .rv_rs2        (rv32_dec_rs2       ),
+                        .rv_rd         (rv32_dec_rd        ),
+                        .rv_shamt      (rv32_dec_shamt     ),
+                        .rv_imm        (rv32_dec_imm       ),
+                        .rv_dec_op     (rv32_dec_alu_op    ),
+                        .rv_fence_succ (rv32_dec_fence_succ),
+                        .rv_fence_pred (rv32_dec_fence_pred),
+                        .rv_csr        (rv32_dec_csr       ),
+                        .rv_zimm       (rv32_dec_zimm      ),
+                        .rv_opcode     (rv32_dec_opcode    ),
+                        .rv_inst_type  (rv32_dec_inst_type ),
+                        .instr_trap    (rv32_dec_instr_trap)
 );
 
 rv32_alu alu (
-                        .rs1       (alu_rs1),
-                        .rs2       (alu_rs2),
-                        .alu_opcode(alu_op ),
-                        .res       (alu_res),
-                        .z         (alu_z  )
+                        .rs1       (rv32_alu_rs1),
+                        .rs2       (rv32_alu_rs2),
+                        .alu_opcode(rv32_alu_op ),
+                        .res       (rv32_alu_res),
+                        .z         (rv32_alu_z  )
 );
 
+// pito uses seperate memory for instructions and data.
+// The instruction memory can be written to from io ports
+// The data memory can be read from internal logic but can
+// be written by io or internal logic. To program the data
+// one should use rv32_io_program signal so that the write 
+// control signals can passed to io ports. Note, for instruction 
+// memory, one can program (write into) instruction memory 
+// just by using rv32_io_imem_w_en since all the write 
+// operations are done by io ports and all the reads are 
+// done by internal logic.
+
+bram16k i_mem(
+                        .clock     (clk               ),
+                        .data      (rv32_io_imem_data ),
+                        .rdaddress (rv32_i_addr       ),
+                        .wraddress (rv32_io_imem_addr ),
+                        .wren      (rv32_io_imem_w_en ),
+                        .q         (rv32_instr        )
+    );
+
+assign rv32_dw_addr = (rv32_io_program) ? rv32_io_dmem_addr : rv32_dmem_addr_ctrl;
+assign rv32_dw_data = (rv32_io_program) ? rv32_io_dmem_data : rv32_dmem_data_ctrl;
+assign rv32_dw_en   = (rv32_io_program) ? rv32_io_dmem_w_en : rv32_dmem_w_en_ctrl;
+
+bram16k d_mem(
+                        .clock     (clk         ),
+                        .data      (rv32_dw_data),
+                        .rdaddress (rv32_dr_addr),
+                        .wraddress (rv32_dw_addr),
+                        .wren      (rv32_dw_en  ),
+                        .q         (rv32_dr_data)
+    );
+
 //====================================================================
-//                   Fetch stage
+//                   Fetch Stage
 //====================================================================
 
     assign rv32_plus_4_pc = rv32_plus_4_pc + 4;
 // pipeline
     always @(posedge clk) begin
-        rv32_pc        <= (pc_sel == 0) ? rv32_plus_4_pc : rv32_execute_pc;
-        rv32_i_addr    <= rv32_pc;
+        rv32_regf_wen <= 1'b0;
+        rv32_pc       <= (pc_sel == 0) ? rv32_plus_4_pc : rv32_ex_pc;
+        rv32_i_addr   <= rv32_pc;
     end
 
 //====================================================================
-//                   Decode stage
+//                   Decode Stage
 //====================================================================
 
     always @(posedge clk) begin
-        rv32_decode_pc <= rv32_pc;
-        rv32_instr     <= rv32_i_data;
+        rv32_regf_wen <= 1'b1;
+        rv32_dec_pc   <= rv32_pc;
+        rv32_instr    <= rv32_i_data;
+        rv32_regf_ra1 <= rv32_dec_rs1;
+        rv32_regf_ra2 <= rv32_dec_rs2;
+    end
+//====================================================================
+//                   Execute Stage
+//====================================================================
+    always @(posedge clk) begin
+        rv32_regf_wen    <= 1'b0;
+        rv32_alu_op      <= rv32_dec_alu_op;
+        rv32_dec_pc      <= rv32_pc;
+        rv32_alu_rs1     <= rv32_regf_rd1;
+        rv32_wb_rs2_skip <= rv32_regf_rd2;
+        rv32_ex_opcode   <= rv32_dec_opcode;
+        rv32_ex_inst_type<= rv32_dec_inst_type;
+        rv32_ex_rd       <= rv32_dec_rd;
+        if (alu_src == 0 ) begin
+            rv32_alu_rs2 <= rv32_regf_rd2;
+        end else begin
+            if ((rv32_dec_alu_op == `ALU_SLL ) || (rv32_dec_alu_op == `ALU_SRL ) || (rv32_dec_alu_op == `ALU_SRA )) begin
+                rv32_alu_rs2 <= {27'b0, rv32_dec_shamt};
+            end else begin
+                rv32_alu_rs2 <= rv32_dec_imm;
+            end
+        end
+        rv32_ex_pc   <= rv32_dec_pc + rv32_imm<<1;
+        wb_skip      <= (rv_opcode == RV32_SB) || (rv_opcode == RV32_SH) || (rv_opcode == RV32_SW);
     end
 
-    case (rv32_opcode)
-            RV32_LB     : alu_op = `ALU_NOP;
-            RV32_LH     : alu_op = `ALU_NOP;
-            RV32_LW     : alu_op = `ALU_NOP;
-            RV32_LBU    : alu_op = `ALU_NOP;
-            RV32_LHU    : alu_op = `ALU_NOP;
-            RV32_SB     : alu_op = `ALU_NOP;
-            RV32_SH     : alu_op = `ALU_NOP;
-            RV32_SW     : alu_op = `ALU_NOP;
-            RV32_SLL    : alu_op = `ALU_NOP;
-            RV32_SLLI   : alu_op = `ALU_NOP;
-            RV32_SRL    : alu_op = `ALU_NOP;
-            RV32_SRLI   : alu_op = `ALU_NOP;
-            RV32_SRA    : alu_op = `ALU_NOP;
-            RV32_SRAI   : alu_op = `ALU_NOP;
-            RV32_ADD    : alu_op = `ALU_NOP;
-            RV32_ADDI   : alu_op = `ALU_NOP;
-            RV32_SUB    : alu_op = `ALU_NOP;
-            RV32_LUI    : alu_op = `ALU_NOP;
-            RV32_AUIPC  : alu_op = `ALU_NOP;
-            RV32_XOR    : alu_op = `ALU_NOP;
-            RV32_XORI   : alu_op = `ALU_NOP;
-            RV32_OR     : alu_op = `ALU_NOP;
-            RV32_ORI    : alu_op = `ALU_NOP;
-            RV32_AND    : alu_op = `ALU_NOP;
-            RV32_ANDI   : alu_op = `ALU_NOP;
-            RV32_SLT    : alu_op = `ALU_NOP;
-            RV32_SLTI   : alu_op = `ALU_NOP;
-            RV32_SLTU   : alu_op = `ALU_NOP;
-            RV32_SLTIU  : alu_op = `ALU_NOP;
-            RV32_BEQ    : alu_op = `ALU_NOP;
-            RV32_BNE    : alu_op = `ALU_NOP;
-            RV32_BLT    : alu_op = `ALU_NOP;
-            RV32_BGE    : alu_op = `ALU_NOP;
-            RV32_BLTU   : alu_op = `ALU_NOP;
-            RV32_BGEU   : alu_op = `ALU_NOP;
-            RV32_JAL    : alu_op = `ALU_NOP;
-            RV32_JALR   : alu_op = `ALU_NOP;
-            RV32_FENCE  : alu_op = `ALU_NOP;
-            RV32_FENCEI : alu_op = `ALU_NOP;
-            RV32_CSRRW  : alu_op = `ALU_NOP;
-            RV32_CSRRS  : alu_op = `ALU_NOP;
-            RV32_CSRRC  : alu_op = `ALU_NOP;
-            RV32_CSRRWI : alu_op = `ALU_NOP;
-            RV32_CSRRSI : alu_op = `ALU_NOP;
-            RV32_CSRRCI : alu_op = `ALU_NOP;
-            RV32_ECALL  : alu_op = `ALU_NOP;
-            RV32_EBREAK : alu_op = `ALU_NOP;
-            RV32_ERET   : alu_op = `ALU_NOP;
-            RV32_WFI    : alu_op = `ALU_NOP;
-            RV32_NOP    : alu_op = `ALU_NOP;
-            default     : alu_op = `ALU_NOP;
-    endcase
+//====================================================================
+//                   Write Back Stage
+//====================================================================
 
-//====================================================================
-//                   Execute stage
-//====================================================================
     always @(posedge clk) begin
-        rv32_decode_pc <= rv32_pc;
-        alu_rs1        <= rv32_regf_ra1;
-        alu_rs2        <= (alu_src == 0 ) ? (rv32_regf_ra2) : rv32_imm;
-        rv32_execute_pc<= rv32_decode_pc + rv32_imm<<1;
+        rv32_wb_opcode   <= rv32_ex_opcode;
+        rv32_wb_inst_type<= rv32_ex_inst_type;
+        rv32_wb_rd       <= rv32_ex_rd;
+        if (wb_skip) begin
+            rv32_wb_out <= rv32_alu_res;
+        end else begin
+            rv32_dw_data <= rv32_wb_rs2_skip;
+        end
+    end
+//====================================================================
+//                   RegFile Write Stage
+//====================================================================
+     
+
+    always @(posedge clk) begin
+        rv32_wf_opcode <= rv32_wb_opcode;
+        if ((rv32_wb_inst_type == RV32_TYPE_R) ||
+            (rv32_wb_inst_type == RV32_TYPE_I) ||
+            (rv32_wb_inst_type == RV32_TYPE_U) ||
+            (rv32_wb_inst_type == RV32_TYPE_J)) begin
+            rv32_regf_wa <= rv32_wb_rd;
+            rv32_regf_wen<= 1'b1;
+            if (rv32_wb_inst_type == RV32_TYPE_I) begin
+                rv32_regf_wd <= rv32_dr_data;
+            end else begin
+                rv32_regf_wd <= rv32_wb_out;
+            end
+        end
     end
 
 endmodule
