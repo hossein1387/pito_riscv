@@ -12,7 +12,7 @@ simulator = None
 result_dir = "../results"
 # Use / to indicate that you are deleting a directory and not a file.
 # Everything else is intrepreted as a file type.
-files_to_clean = ["jou", "vcd", "pb", ".Xil/", "xsim.dir/", "log", "wdb"]
+files_to_clean = ["jou", "vcd", "pb", ".Xil/", "xsim.dir/", "log", "wdb", "str"]
 #=======================================================================
 # Utility Funcs
 #=======================================================================
