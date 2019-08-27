@@ -1,9 +1,18 @@
 //-------------------------------------------------------------------
+//                          System Macros
+//-------------------------------------------------------------------
+`define DEBUG 1
+
+//-------------------------------------------------------------------
+//                          Reset Macros
+//-------------------------------------------------------------------
+`define RESET_ADDRESS        32'hFFFF_FFFF
+//-------------------------------------------------------------------
 //                          pito specific consts
 //-------------------------------------------------------------------
-`define PITO_INSTR_MEM_SIZE  (16*1024)
+`define PITO_INSTR_MEM_SIZE  (512)
 `define PITO_INSTR_MEM_WIDTH $clog2(`PITO_INSTR_MEM_SIZE)
-`define PITO_DATA_MEM_SIZE   (16*1024)
+`define PITO_DATA_MEM_SIZE   (512)
 `define PITO_DATA_MEM_WIDTH  $clog2(`PITO_DATA_MEM_SIZE)
 //-------------------------------------------------------------------
 //                           Width-related constants

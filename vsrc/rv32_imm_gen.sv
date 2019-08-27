@@ -1,6 +1,7 @@
 // `include "rv32_defines.svh"
 // `include "rv32_types.svh"
 
+`timescale 1 ps / 1 ps
 
 module rv32_imm_gen (
     input  rv32_instr_t    rv_instr,    // riscv 32 instruction

@@ -1,7 +1,8 @@
 // `include "rv32_defines.svh"
 
 typedef logic [`XPR_LEN-1              : 0 ] rv_pc_cnt_t;
-typedef logic [4                       : 0 ] rv_register_t;
+typedef logic [4                       : 0 ] rv_register_field_t;
+typedef logic [`XPR_LEN-1              : 0 ] rv_register_t;
 typedef logic [`ALU_OPCODE_WIDTH-1     : 0 ] alu_opcode_t;
 typedef logic [`XPR_LEN-1              : 0 ] rv_imm_t;
 typedef logic [2                       : 0 ] fnct3_t;
@@ -21,55 +22,55 @@ typedef logic [`PITO_DATA_MEM_WIDTH-1  : 0 ] rv_dmem_addr_t;
 //-------------------------------------------------------------------
 
 typedef struct packed {
-    fnct7_t       funct7;
-    rv_register_t rs2;   
-    rv_register_t rs1;   
-    fnct3_t       funct3;
-    rv_register_t rd;    
-    rv_opcode_t   opcode;
+    fnct7_t             funct7;
+    rv_register_field_t rs2;
+    rv_register_field_t rs1;
+    fnct3_t             funct3;
+    rv_register_field_t rd;
+    rv_opcode_t         opcode;
 } rv32_type_r_t;
 
 typedef struct packed {
-    logic [11:0]  imm;
-    rv_register_t rs1;
-    fnct3_t       funct3;
-    rv_register_t rd;
-    rv_opcode_t   opcode;
+    logic [11:0]        imm;
+    rv_register_field_t rs1;
+    fnct3_t             funct3;
+    rv_register_field_t rd;
+    rv_opcode_t         opcode;
 } rv32_type_i_t;
 
 typedef struct packed {
-    logic [6:0]   imm_u;
-    rv_register_t rs2;
-    rv_register_t rs1;
-    fnct3_t       funct3;
-    logic [4:0]   imm_l;
-    rv_opcode_t   opcode;
+    logic [6:0]         imm_u;
+    rv_register_field_t rs2;
+    rv_register_field_t rs1;
+    fnct3_t             funct3;
+    logic [4:0]         imm_l;
+    rv_opcode_t         opcode;
 } rv32_type_s_t;
 
 typedef struct packed {
-    logic [0:0]   imm12;
-    logic [5:0]   immu;
-    rv_register_t rs2;
-    rv_register_t rs1;
-    fnct3_t       funct3;
-    logic [3:0]   imm_l;
-    logic [0:0]   imm_11;
-    rv_opcode_t   opcode;
+    logic [0:0]         imm12;
+    logic [5:0]         immu;
+    rv_register_field_t rs2;
+    rv_register_field_t rs1;
+    fnct3_t             funct3;
+    logic [3:0]         imm_l;
+    logic [0:0]         imm_11;
+    rv_opcode_t         opcode;
 } rv32_type_b_t;
 
 typedef struct packed {
-    logic [19:0]  imm;
-    rv_register_t rd;
-    rv_opcode_t   opcode;
+    logic [19:0]        imm;
+    rv_register_field_t rd;
+    rv_opcode_t         opcode;
 } rv32_type_u_t;
 
 typedef struct packed {
-    logic [0:0]   imm20;
-    logic [9:0]   imm_10_1;
-    logic [0:0]   imm11;
-    logic [7:0]   imm_19_12;
-    rv_register_t rd;
-    rv_opcode_t   opcode;
+    logic [0:0]         imm20;
+    logic [9:0]         imm_10_1;
+    logic [0:0]         imm11;
+    logic [7:0]         imm_19_12;
+    rv_register_field_t rd;
+    rv_opcode_t         opcode;
 } rv32_type_j_t;
 
 typedef struct packed {

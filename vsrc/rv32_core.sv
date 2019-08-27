@@ -1,13 +1,19 @@
+`timescale 1 ps / 1 ps
+
 module rv32_core (
-    input  logic          rv32_io_clk,    // Clock
-    input  logic          rv32_io_rst_n,  // Asynchronous reset active low
-    input  rv_imem_addr_t rv32_io_imem_addr,
-    input  rv32_instr_t   rv32_io_imem_data,
-    input  rv_dmem_addr_t rv32_io_dmem_addr,
-    input  rv32_data_t    rv32_io_dmem_data,
-    input  logic          rv32_io_imem_w_en,
-    input  logic          rv32_io_dmem_w_en,
-    input  logic          rv32_io_program
+`ifdef DEBUG
+    output rv32_opcode_enum_t rv32_dec_opcode,
+    output rv_pc_cnt_t        rv32_pc,
+`endif
+    input  logic              rv32_io_clk,    // Clock
+    input  logic              rv32_io_rst_n,  // Asynchronous reset active low
+    input  rv_imem_addr_t     rv32_io_imem_addr,
+    input  rv32_instr_t       rv32_io_imem_data,
+    input  rv_dmem_addr_t     rv32_io_dmem_addr,
+    input  rv32_data_t        rv32_io_dmem_data,
+    input  logic              rv32_io_imem_w_en,
+    input  logic              rv32_io_dmem_w_en,
+    input  logic              rv32_io_program
 );
 
 //====================================================================
@@ -17,7 +23,9 @@ module rv32_core (
 // General signals
 logic              clk;
 logic              rst_n;
+`ifndef DEBUG
 rv_pc_cnt_t        rv32_pc;
+`endif
 rv_pc_cnt_t        rv32_plus_4_pc;
 
 //====================================================================
@@ -30,7 +38,7 @@ rv_regfile_addr_t rv32_regf_ra2;
 rv_register_t     rv32_regf_rd2;
 logic             rv32_regf_wen;
 rv_regfile_addr_t rv32_regf_wa ;
-rv_regfile_addr_t rv32_regf_wd ;
+rv_register_t     rv32_regf_wd ;
 
 // decoder wires
 rv_pc_cnt_t        rv32_dec_pc;
@@ -46,7 +54,9 @@ rv_zimm_t          rv32_dec_zimm;
 rv32_type_enum_t   rv32_dec_inst_type;
 logic              rv32_dec_instr_trap;
 rv_alu_op_t        rv32_dec_alu_op;
+`ifndef DEBUG
 rv32_opcode_enum_t rv32_dec_opcode;
+`endif
 
 // raw un-decoded rv32 instruction
 rv32_instr_t        rv32_instr;
@@ -98,6 +108,8 @@ logic          rv32_dmem_w_en_ctrl;
 rv_dmem_addr_t  rv32_dw_addr;
 rv32_data_t     rv32_dw_data;
 logic           rv32_dw_en  ;
+rv_dmem_addr_t  rv32_dr_addr;
+rv32_data_t     rv32_dr_data;
 
 // connect io clock and reset to internal logic
 assign clk   = rv32_io_clk;
@@ -125,7 +137,7 @@ rv32_decoder decoder (
                         .rv_rd         (rv32_dec_rd        ),
                         .rv_shamt      (rv32_dec_shamt     ),
                         .rv_imm        (rv32_dec_imm       ),
-                        .rv_dec_op     (rv32_dec_alu_op    ),
+                        .rv_alu_op     (rv32_dec_alu_op    ),
                         .rv_fence_succ (rv32_dec_fence_succ),
                         .rv_fence_pred (rv32_dec_fence_pred),
                         .rv_csr        (rv32_dec_csr       ),
@@ -179,13 +191,17 @@ bram16k d_mem(
 //====================================================================
 //                   Fetch Stage
 //====================================================================
-
-    assign rv32_plus_4_pc = rv32_plus_4_pc + 4;
 // pipeline
     always @(posedge clk) begin
-        rv32_regf_wen <= 1'b0;
-        rv32_pc       <= (pc_sel == 0) ? rv32_plus_4_pc : rv32_ex_pc;
-        rv32_i_addr   <= rv32_pc;
+        if(rv32_io_rst_n == 1'b0) begin
+            rv32_pc         <= `RESET_ADDRESS;
+            rv32_plus_4_pc  <= `RESET_ADDRESS;
+            pc_sel          <= 1;
+        end else begin
+            rv32_plus_4_pc<=  (rv32_plus_4_pc == `RESET_ADDRESS) ? 0 : rv32_plus_4_pc + 4;
+            rv32_pc       <= (pc_sel == 1) ? rv32_plus_4_pc : rv32_ex_pc;
+            rv32_i_addr   <= rv32_pc>>2; // for now, we access 32 bit at a time
+        end
     end
 
 //====================================================================
@@ -193,9 +209,7 @@ bram16k d_mem(
 //====================================================================
 
     always @(posedge clk) begin
-        rv32_regf_wen <= 1'b1;
         rv32_dec_pc   <= rv32_pc;
-        rv32_instr    <= rv32_i_data;
         rv32_regf_ra1 <= rv32_dec_rs1;
         rv32_regf_ra2 <= rv32_dec_rs2;
     end
@@ -220,8 +234,8 @@ bram16k d_mem(
                 rv32_alu_rs2 <= rv32_dec_imm;
             end
         end
-        rv32_ex_pc   <= rv32_dec_pc + rv32_imm<<1;
-        wb_skip      <= (rv_opcode == RV32_SB) || (rv_opcode == RV32_SH) || (rv_opcode == RV32_SW);
+        rv32_ex_pc   <= rv32_dec_pc + rv32_dec_imm<<1;
+        wb_skip      <= (rv32_dec_opcode == RV32_SB) || (rv32_dec_opcode == RV32_SH) || (rv32_dec_opcode == RV32_SW);
     end
 
 //====================================================================
@@ -235,7 +249,16 @@ bram16k d_mem(
         if (wb_skip) begin
             rv32_wb_out <= rv32_alu_res;
         end else begin
-            rv32_dw_data <= rv32_wb_rs2_skip;
+            if ((rv32_ex_opcode == RV32_LB ) ||
+                (rv32_ex_opcode == RV32_LH ) ||
+                (rv32_ex_opcode == RV32_LW ) ||
+                (rv32_ex_opcode == RV32_LBU) ) begin
+                rv32_dr_addr <= rv32_alu_res;
+            end else begin
+                rv32_dmem_addr_ctrl <= rv32_alu_res;
+                rv32_dmem_data_ctrl <= rv32_wb_rs2_skip;
+                rv32_dmem_w_en_ctrl <= 1'b1;
+            end
         end
     end
 //====================================================================
@@ -244,7 +267,8 @@ bram16k d_mem(
      
 
     always @(posedge clk) begin
-        rv32_wf_opcode <= rv32_wb_opcode;
+        rv32_wf_opcode      <= rv32_wb_opcode;
+        rv32_dmem_w_en_ctrl <= 1'b0;
         if ((rv32_wb_inst_type == RV32_TYPE_R) ||
             (rv32_wb_inst_type == RV32_TYPE_I) ||
             (rv32_wb_inst_type == RV32_TYPE_U) ||

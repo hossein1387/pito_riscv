@@ -1,3 +1,4 @@
+`timescale 1 ps / 1 ps
 
 module rv32_alu (
     input  rv_register_t       rs1,

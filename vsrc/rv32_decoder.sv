@@ -1,6 +1,7 @@
 // `include "rv32_types.svh"
 // `include "rv32_instr.svh"
 // `include "rv32_defines.svh"
+`timescale 1 ps / 1 ps
 
 module rv32_decoder (
     input rv32_instr_t         instr, // input instruction

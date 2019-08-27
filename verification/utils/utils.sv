@@ -32,7 +32,7 @@ typedef struct packed
 // Defines a macro to print 
 `define test_print(ID,MSG,VERBOSITY) \
    begin \
-            $sformatf("[%5s]  %s ", ID, MSG); \
+            $display($sformatf("[%5s]  %s ", ID, MSG)); \
    end
 
 //==================================================================================================
@@ -98,15 +98,13 @@ class Logger;  /* base class*/;
           this.fd = $fopen(file_name,"w");
     endfunction
 
-    function print (string msg, string id="INFO", print_verbosity verbosity=VERB_LOW);
+    function void print (string msg, string id="INFO", print_verbosity verbosity=VERB_LOW);
         string log = $sformatf("[%5s]  %s ", id, msg);
         if (verbosity<VERB_MEDIUM) begin
             $display("%s", log);
         end
         $fwrite(this.fd, log);
     endfunction
-
 endclass
-
 
 endpackage : utils
