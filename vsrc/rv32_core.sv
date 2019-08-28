@@ -120,14 +120,14 @@ assign rst_n = rv32_io_rst_n;
 //====================================================================
 
 rv32_regfile regfile(
-                        .clk(clk          ),
-                        .ra1(rv32_regf_ra1),
-                        .rd1(rv32_regf_rd1),
-                        .ra2(rv32_regf_ra2),
-                        .rd2(rv32_regf_rd2),
-                        .wen(rv32_regf_wen),
-                        .wa (rv32_regf_wa ),
-                        .wd (rv32_regf_wd )
+                        .clk(clk              ),
+                        .ra1(rv32_dec_rs1[4:0]),
+                        .rd1(rv32_regf_rd1    ),
+                        .ra2(rv32_dec_rs2[4:0]),
+                        .rd2(rv32_regf_rd2    ),
+                        .wen(rv32_regf_wen    ),
+                        .wa (rv32_regf_wa     ),
+                        .wd (rv32_regf_wd     )
                     );
 
 rv32_decoder decoder (
@@ -210,8 +210,6 @@ bram16k d_mem(
 
     always @(posedge clk) begin
         rv32_dec_pc   <= rv32_pc;
-        rv32_regf_ra1 <= rv32_dec_rs1;
-        rv32_regf_ra2 <= rv32_dec_rs2;
     end
 //====================================================================
 //                   Execute Stage
@@ -235,7 +233,7 @@ bram16k d_mem(
             end
         end
         rv32_ex_pc   <= rv32_dec_pc + rv32_dec_imm<<1;
-        wb_skip      <= (rv32_dec_opcode == RV32_SB) || (rv32_dec_opcode == RV32_SH) || (rv32_dec_opcode == RV32_SW);
+        wb_skip      <= ~((rv32_dec_opcode == RV32_SB) || (rv32_dec_opcode == RV32_SH) || (rv32_dec_opcode == RV32_SW));
     end
 
 //====================================================================

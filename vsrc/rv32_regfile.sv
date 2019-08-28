@@ -28,4 +28,11 @@ module rv32_regfile(
       end
    end
 
+`ifdef DEBUG
+    initial begin
+        $display("Loading rom.");
+        $readmemh("regfile.mem", data);
+    end
+`endif
+
 endmodule
