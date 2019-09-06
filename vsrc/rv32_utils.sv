@@ -2,7 +2,9 @@ package rv32_utils;
 
 `include "rv32_types.svh"
 //==================================================================================================
-// Logger class, logs test string to a file
+// RV32IDecoder class used for verification and simulation purposes 
+//==================================================================================================
+    
 class RV32IDecoder;
 
     function string dec_nop_type (rv32_instr_t instr);
