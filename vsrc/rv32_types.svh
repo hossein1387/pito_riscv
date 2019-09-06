@@ -101,6 +101,7 @@ typedef enum {
     RV32_TYPE_B       = {26'b0, 6'b000100},
     RV32_TYPE_U       = {26'b0, 6'b000010},
     RV32_TYPE_J       = {26'b0, 6'b000001},
+    RV32_TYPE_NOP     = 32'b0,
     RV32_TYPE_UNKNOWN = {26'b0, 6'b111111}
 } rv32_type_enum_t;
 

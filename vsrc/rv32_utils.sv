@@ -5,6 +5,18 @@ package rv32_utils;
 // Logger class, logs test string to a file
 class RV32IDecoder;
 
+    function string dec_nop_type (rv32_instr_t instr);
+        string decode_ins_str;
+        string inst_type = "NOP-Type";
+        if ((instr[6:0] == 7'b0010011) && (instr[31:7] == {25{1'b0}})) begin
+            decode_ins_str = $sformatf("%8s.%7s                              ", inst_type, "nop");
+        end else                           begin
+            decode_ins_str = "!unknown instruction!";
+        end
+        return decode_ins_str;
+    endfunction
+
+
     function string dec_u_type (rv32_instr_t instr);
         string decode_ins_str;
         string inst_type = "U-Type";
@@ -12,9 +24,9 @@ class RV32IDecoder;
         int imm = {{12{instr[31]}}, instr[31:12]};
         rv_register_field_t rd = instr[11:7]; 
         if          (opcode == 7'b0110111) begin
-        decode_ins_str = $sformatf("%6s.%7s: rd=%2d                imm=%4d", inst_type, "lui", rd, imm);
+        decode_ins_str = $sformatf("%8s.%7s: rd=%2d                imm=%4d", inst_type, "lui", rd, imm);
         end else if (opcode == 7'b0010111) begin
-        decode_ins_str = $sformatf("%6s.%7s: rd=%2d                imm=%4d", inst_type, "auipc", rd, imm);
+        decode_ins_str = $sformatf("%8s.%7s: rd=%2d                imm=%4d", inst_type, "auipc", rd, imm);
         end else                           begin
             decode_ins_str = "!unknown instruction!";
         end
@@ -29,7 +41,7 @@ class RV32IDecoder;
         int imm = {{12{pre_imm[19]}}, {pre_imm[19], pre_imm[9:0], pre_imm[10], pre_imm[18:11]}};
         rv_register_field_t rd = instr[11:7]; 
         if          (opcode == 7'b0110111) begin
-        decode_ins_str = $sformatf("%6s.%7s: rd=%2d                imm=%4d", inst_type, "jal", rd, imm);
+        decode_ins_str = $sformatf("%8s.%7s: rd=%2d                imm=%4d", inst_type, "jal", rd, imm);
         end else                           begin
             decode_ins_str = "!unknown instruction!";
         end
@@ -45,7 +57,7 @@ class RV32IDecoder;
         rv_register_field_t rs1 = instr[19:15]; 
         fnct3_t             funct3 = instr[14:12];
         if          (opcode == 7'b1100111) begin
-            decode_ins_str = $sformatf("%6s.%7s: rd=%2d rs1=%2d           imm=%4d", inst_type, "jalr", rd, rs1, imm);
+            decode_ins_str = $sformatf("%8s.%7s: rd=%2d rs1=%2d           imm=%4d", inst_type, "jalr", rd, rs1, imm);
         end else if (opcode == 7'b0000011) begin
             string funct3_str;
             case (funct3)
@@ -56,7 +68,7 @@ class RV32IDecoder;
                 3'b101  : funct3_str = "lhu";
                 default : funct3_str = "unknown";/* default */
             endcase
-            decode_ins_str = $sformatf("%6s.%7s: rd=%2d rs1=%2d           imm=%4d", inst_type, funct3_str, rd, rs1, imm);
+            decode_ins_str = $sformatf("%8s.%7s: rd=%2d rs1=%2d           imm=%4d", inst_type, funct3_str, rd, rs1, imm);
         end else if (opcode == 7'b0010011) begin
             string funct3_str;
             case (funct3)
@@ -70,7 +82,7 @@ class RV32IDecoder;
                 3'b111  : funct3_str = "andi";
                 default : funct3_str = "unknown";/* default */
             endcase
-            decode_ins_str = $sformatf("%6s.%7s: rd=%2d rs1=%2d           imm=%4d", inst_type, funct3_str, rd, rs1, imm);
+            decode_ins_str = $sformatf("%8s.%7s: rd=%2d rs1=%2d           imm=%4d", inst_type, funct3_str, rd, rs1, imm);
         end else if (opcode == 7'b0001111) begin
             decode_ins_str = "fence instruction";
         end else if (opcode == 7'b1110011) begin
@@ -101,7 +113,7 @@ class RV32IDecoder;
                 3'b111  : funct3_str = "bgeu";
                 default : funct3_str = "unknown";
             endcase
-            decode_ins_str = $sformatf("%6s.%7s:       rs1=%2d rs2=  %2d  imm=%4d", inst_type, funct3_str, rs1, rs2, imm);
+            decode_ins_str = $sformatf("%8s.%7s:       rs1=%2d rs2=  %2d  imm=%4d", inst_type, funct3_str, rs1, rs2, imm);
         end else                           begin
             decode_ins_str = "!unknown instruction!";
         end
@@ -124,7 +136,7 @@ class RV32IDecoder;
                 3'b010  : funct3_str = "sw";
                 default : funct3_str = "unknown";
             endcase
-            decode_ins_str = $sformatf("%6s.%7s:       rs1=%2d rs2=  %2d  imm=%4d", inst_type, funct3_str, rs1, rs2, imm);
+            decode_ins_str = $sformatf("%8s.%7s:       rs1=%2d rs2=  %2d  imm=%4d", inst_type, funct3_str, rs1, rs2, imm);
         end else                           begin
             decode_ins_str = "!unknown instruction!";
         end
@@ -152,7 +164,7 @@ class RV32IDecoder;
                 3'b111  : funct3_str = "and";
                 default : funct3_str = "unknown";
             endcase
-            decode_ins_str = $sformatf("%6s.%7s: rd=%2d rs1=%2d rs2=  %2d          ", inst_type, funct3_str, rd, rs1, rs2);
+            decode_ins_str = $sformatf("%8s.%7s: rd=%2d rs1=%2d rs2=  %2d          ", inst_type, funct3_str, rd, rs1, rs2);
         end else                           begin
             decode_ins_str = "!unknown instruction!";
         end

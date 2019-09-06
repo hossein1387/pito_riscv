@@ -85,25 +85,30 @@ module rv32_decoder (
                     default                : rv_opcode <= RV32_UNKNOWN;
                 endcase
             end
-            7'b0010011: begin // ADDI, SLTI, SLTIU, XORI, ORI, ANDI, SLLI, SRLI, SRAI
-                rv_inst_type <= RV32_TYPE_I;
-                case (instr[14:12])
-                    3'b000                 : begin rv_opcode <= RV32_ADDI; rv_alu_op <= `ALU_ADD; end
-                    3'b001                 : if (instr[31:25]==7'b0) begin rv_opcode <= RV32_SLLI; rv_alu_op <= `ALU_SLL; end else rv_opcode <= RV32_UNKNOWN;
-                    3'b010                 : begin rv_opcode <= RV32_SLTI;  rv_alu_op <= `ALU_SLT; end 
-                    3'b011                 : begin rv_opcode <= RV32_SLTIU; rv_alu_op <= `ALU_SLTU;end 
-                    3'b100                 : begin rv_opcode <= RV32_XORI;  rv_alu_op <= `ALU_XOR; end 
-                    3'b101                 :begin
-                                                case (instr[31:25])
-                                                    7'b0000000: begin rv_opcode <= RV32_SRLI; rv_alu_op <= `ALU_SLL; end
-                                                    7'b0100000: begin rv_opcode <= RV32_SRAI; rv_alu_op <= `ALU_SRA; end
-                                                    default   : rv_opcode <= RV32_UNKNOWN;
-                                                endcase
-                                            end
-                    3'b110                 : begin rv_opcode <= RV32_ORI;  rv_alu_op <= `ALU_OR;  end
-                    3'b111                 : begin rv_opcode <= RV32_ANDI; rv_alu_op <= `ALU_AND; end
-                    default                : rv_opcode <= RV32_UNKNOWN;
-                endcase
+            7'b0010011: begin // ADDI, SLTI, SLTIU, XORI, ORI, ANDI, SLLI, SRLI, SRAI, NOP
+                if (instr[31:7] == {25{1'b0}}) begin
+                    rv_inst_type <= RV32_TYPE_NOP;
+                    rv_opcode    <= RV32_NOP;
+                end else begin
+                    rv_inst_type <= RV32_TYPE_I;
+                    case (instr[14:12])
+                        3'b000                 : begin rv_opcode <= RV32_ADDI; rv_alu_op <= `ALU_ADD; end
+                        3'b001                 : if (instr[31:25]==7'b0) begin rv_opcode <= RV32_SLLI; rv_alu_op <= `ALU_SLL; end else rv_opcode <= RV32_UNKNOWN;
+                        3'b010                 : begin rv_opcode <= RV32_SLTI;  rv_alu_op <= `ALU_SLT; end 
+                        3'b011                 : begin rv_opcode <= RV32_SLTIU; rv_alu_op <= `ALU_SLTU;end 
+                        3'b100                 : begin rv_opcode <= RV32_XORI;  rv_alu_op <= `ALU_XOR; end 
+                        3'b101                 :begin
+                                                    case (instr[31:25])
+                                                        7'b0000000: begin rv_opcode <= RV32_SRLI; rv_alu_op <= `ALU_SLL; end
+                                                        7'b0100000: begin rv_opcode <= RV32_SRAI; rv_alu_op <= `ALU_SRA; end
+                                                        default   : rv_opcode <= RV32_UNKNOWN;
+                                                    endcase
+                                                end
+                        3'b110                 : begin rv_opcode <= RV32_ORI;  rv_alu_op <= `ALU_OR;  end
+                        3'b111                 : begin rv_opcode <= RV32_ANDI; rv_alu_op <= `ALU_AND; end
+                        default                : rv_opcode <= RV32_UNKNOWN;
+                    endcase
+                end
             end
             7'b0110011: begin // ADD, SUB, SLL, SLT, SLTU, XOR, SRL, SRA, OR, AND
                 rv_inst_type <= RV32_TYPE_R;
@@ -166,6 +171,7 @@ module rv32_decoder (
             end
             default   : begin
                 rv_inst_type <= RV32_TYPE_UNKNOWN;
+                rv_opcode    <= RV32_UNKNOWN;
             end /* default */
         endcase
     end

@@ -215,25 +215,27 @@ bram16k d_mem(
 //                   Execute Stage
 //====================================================================
     always @(posedge clk) begin
-        rv32_regf_wen    <= 1'b0;
-        rv32_alu_op      <= rv32_dec_alu_op;
         rv32_dec_pc      <= rv32_pc;
-        rv32_alu_rs1     <= rv32_regf_rd1;
-        rv32_wb_rs2_skip <= rv32_regf_rd2;
+        // rv32_regf_wen    <= 1'b0;
         rv32_ex_opcode   <= rv32_dec_opcode;
         rv32_ex_inst_type<= rv32_dec_inst_type;
-        rv32_ex_rd       <= rv32_dec_rd;
-        if (alu_src == 0 ) begin
-            rv32_alu_rs2 <= rv32_regf_rd2;
-        end else begin
-            if ((rv32_dec_alu_op == `ALU_SLL ) || (rv32_dec_alu_op == `ALU_SRL ) || (rv32_dec_alu_op == `ALU_SRA )) begin
-                rv32_alu_rs2 <= {27'b0, rv32_dec_shamt};
+        if (rv32_dec_opcode != RV32_NOP) begin
+            rv32_alu_op      <= rv32_dec_alu_op;
+            rv32_alu_rs1     <= rv32_regf_rd1;
+            rv32_wb_rs2_skip <= rv32_regf_rd2;
+            rv32_ex_rd       <= rv32_dec_rd;
+            if (alu_src == 0 ) begin
+                rv32_alu_rs2 <= rv32_regf_rd2;
             end else begin
-                rv32_alu_rs2 <= rv32_dec_imm;
+                if ((rv32_dec_alu_op == `ALU_SLL ) || (rv32_dec_alu_op == `ALU_SRL ) || (rv32_dec_alu_op == `ALU_SRA )) begin
+                    rv32_alu_rs2 <= {27'b0, rv32_dec_shamt};
+                end else begin
+                    rv32_alu_rs2 <= rv32_dec_imm;
+                end
             end
+            rv32_ex_pc   <= rv32_dec_pc + rv32_dec_imm<<1;
+            wb_skip      <= ~((rv32_dec_opcode == RV32_SB) || (rv32_dec_opcode == RV32_SH) || (rv32_dec_opcode == RV32_SW));
         end
-        rv32_ex_pc   <= rv32_dec_pc + rv32_dec_imm<<1;
-        wb_skip      <= ~((rv32_dec_opcode == RV32_SB) || (rv32_dec_opcode == RV32_SH) || (rv32_dec_opcode == RV32_SW));
     end
 
 //====================================================================
@@ -243,19 +245,21 @@ bram16k d_mem(
     always @(posedge clk) begin
         rv32_wb_opcode   <= rv32_ex_opcode;
         rv32_wb_inst_type<= rv32_ex_inst_type;
-        rv32_wb_rd       <= rv32_ex_rd;
-        if (wb_skip) begin
-            rv32_wb_out <= rv32_alu_res;
-        end else begin
-            if ((rv32_ex_opcode == RV32_LB ) ||
-                (rv32_ex_opcode == RV32_LH ) ||
-                (rv32_ex_opcode == RV32_LW ) ||
-                (rv32_ex_opcode == RV32_LBU) ) begin
-                rv32_dr_addr <= rv32_alu_res;
+        if (rv32_dec_opcode != RV32_NOP) begin
+            rv32_wb_rd       <= rv32_ex_rd;
+            if (wb_skip) begin
+                rv32_wb_out <= rv32_alu_res;
             end else begin
-                rv32_dmem_addr_ctrl <= rv32_alu_res;
-                rv32_dmem_data_ctrl <= rv32_wb_rs2_skip;
-                rv32_dmem_w_en_ctrl <= 1'b1;
+                if ((rv32_ex_opcode == RV32_LB ) ||
+                    (rv32_ex_opcode == RV32_LH ) ||
+                    (rv32_ex_opcode == RV32_LW ) ||
+                    (rv32_ex_opcode == RV32_LBU) ) begin
+                    rv32_dr_addr <= rv32_alu_res;
+                end else begin
+                    rv32_dmem_addr_ctrl <= rv32_alu_res;
+                    rv32_dmem_data_ctrl <= rv32_wb_rs2_skip;
+                    rv32_dmem_w_en_ctrl <= 1'b1;
+                end
             end
         end
     end
@@ -265,20 +269,27 @@ bram16k d_mem(
      
 
     always @(posedge clk) begin
-        rv32_wf_opcode      <= rv32_wb_opcode;
-        rv32_dmem_w_en_ctrl <= 1'b0;
-        if ((rv32_wb_inst_type == RV32_TYPE_R) ||
-            (rv32_wb_inst_type == RV32_TYPE_I) ||
-            (rv32_wb_inst_type == RV32_TYPE_U) ||
-            (rv32_wb_inst_type == RV32_TYPE_J)) begin
-            rv32_regf_wa <= rv32_wb_rd;
-            rv32_regf_wen<= 1'b1;
-            if (rv32_wb_inst_type == RV32_TYPE_I) begin
-                rv32_regf_wd <= rv32_dr_data;
-            end else begin
-                rv32_regf_wd <= rv32_wb_out;
+        if(rv32_io_rst_n == 1'b0) begin
+            rv32_regf_wa <= 0;
+        end else begin
+            rv32_wf_opcode      <= rv32_wb_opcode;
+            rv32_dmem_w_en_ctrl <= 1'b0;
+            if (rv32_dec_opcode != RV32_NOP) begin
+                if ((rv32_wb_inst_type == RV32_TYPE_R) ||
+                    (rv32_wb_inst_type == RV32_TYPE_I) ||
+                    (rv32_wb_inst_type == RV32_TYPE_U) ||
+                    (rv32_wb_inst_type == RV32_TYPE_J)) begin
+                    rv32_regf_wa <= rv32_wb_rd;
+                    if (rv32_wb_inst_type == RV32_TYPE_I) begin
+                        rv32_regf_wd <= rv32_dr_data;
+                    end else begin
+                        rv32_regf_wd <= rv32_wb_out;
+                    end
+                end
             end
         end
     end
+
+    assign rv32_regf_wen = 1'b1;
 
 endmodule

@@ -48,7 +48,11 @@ module core_tester ();
                      (opcode == 7'b0010011) || 
                      (opcode == 7'b0001111) || 
                      (opcode == 7'b1110011)) begin // I-Type
-            decode_ins_str = rv32i_dec.dec_i_type(instr);
+            if (instr[31:7] == {25{1'b0}}) begin
+                decode_ins_str = rv32i_dec.dec_nop_type(instr);
+            end else begin
+                decode_ins_str = rv32i_dec.dec_i_type(instr);
+            end
         end else if (opcode == 7'b1100011) begin // B-Type
             decode_ins_str = rv32i_dec.dec_b_type(instr);
         end else if (opcode == 7'b0100011) begin // S-Type
