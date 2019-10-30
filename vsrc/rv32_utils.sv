@@ -42,7 +42,7 @@ class RV32IDecoder;
         logic [19:0] pre_imm = instr[31:12];
         int imm = {{12{pre_imm[19]}}, {pre_imm[19], pre_imm[9:0], pre_imm[10], pre_imm[18:11]}};
         rv_register_field_t rd = instr[11:7]; 
-        if          (opcode == 7'b0110111) begin
+        if          (opcode == 7'b1101111) begin
         decode_ins_str = $sformatf("%8s.%7s: rd=%2d                imm=%4d", inst_type, "jal", rd, imm);
         end else                           begin
             decode_ins_str = "!unknown instruction!";
