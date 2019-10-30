@@ -76,8 +76,8 @@ module core_tester ();
         static int fd = $fopen ("code.txt", "r");
         logger = new("core_tester.log");
         rv32i_dec = new;
-        if (fd)  begin $display("File was opened successfully : %0d", fd); end
-        else     begin $display("File was NOT opened successfully : %0d", fd); $finish(); end
+        if (fd)  begin logger.print($sformatf("File was opened successfully : %0d", fd)); end
+        else     begin logger.print($sformatf("File was NOT opened successfully : %0d", fd)); $finish(); end
         @(posedge clk);
         imem_w_en = 1'b1;
         @(posedge clk);
