@@ -19,7 +19,7 @@ module core_tester ();
     logic              dmem_w_en;
     logic              pito_program;
     rv32_opcode_enum_t rv32_dec_opcode;
-    rv_pc_cnt_t        rv32_pc;
+    rv_pc_cnt_t        rv32_dec_pc;
 
     rv32_core core(
                     .rv32_io_clk       (clk            ),
@@ -32,7 +32,7 @@ module core_tester ();
                     .rv32_io_dmem_w_en (dmem_w_en      ),
                     .rv32_io_program   (pito_program   ),
                     .rv32_dec_opcode   (rv32_dec_opcode),
-                    .rv32_pc           (rv32_pc        )
+                    .rv32_dec_pc       (rv32_dec_pc    )
     );
 
     function string decode_instr (rv32_instr_t instr);
@@ -101,7 +101,7 @@ module core_tester ();
 
     task monitor_pito();
         for (int i=0; i<100; i++) begin
-            logger.print($sformatf("pc=%d       decode:%s", rv32_pc,  rv32_dec_opcode.name));
+            logger.print($sformatf("pc=%d       decode:%s", rv32_dec_pc,  rv32_dec_opcode.name));
             @(posedge clk);
         end
     endtask
