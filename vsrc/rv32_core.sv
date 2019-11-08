@@ -6,7 +6,7 @@ module rv32_core (
     output rv_pc_cnt_t        rv32_dec_pc,
 `endif
     input  logic              rv32_io_clk,    // Clock
-    input  logic              rv32_io_rst_n,  // Asynchronous reset active low
+    input  logic              rv32_io_rst_n,  // Synchronous reset active low
     input  rv_imem_addr_t     rv32_io_imem_addr,
     input  rv32_instr_t       rv32_io_imem_data,
     input  rv_dmem_addr_t     rv32_io_dmem_addr,
