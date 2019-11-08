@@ -25,6 +25,9 @@ logic              clk;
 logic              rst_n;
 rv_pc_cnt_t        rv32_pc;
 
+// raw un-decoded rv32 instruction
+rv32_instr_t        rv32_instr;
+
 //====================================================================
 // DEC stage wires
 //====================================================================
@@ -56,9 +59,6 @@ rv_alu_op_t        rv32_dec_alu_op;
 `ifndef DEBUG
 rv32_opcode_enum_t rv32_dec_opcode;
 `endif
-
-// raw un-decoded rv32 instruction
-rv32_instr_t        rv32_instr;
 
 //====================================================================
 // EX stage wires
@@ -250,7 +250,7 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
                     end
                 end
                 // Compute the next PC
-                rv32_ex_pc   <= rv32_dec_pc + rv32_dec_imm;
+                rv32_ex_pc   <= rv32_dec_pc + rv32_dec_imm - 4 ;
                 wb_skip      <= ~((rv32_dec_opcode == RV32_SB) || (rv32_dec_opcode == RV32_SH) || (rv32_dec_opcode == RV32_SW));
             end else begin
                 rv32_ex_pc   <= rv32_dec_pc;
