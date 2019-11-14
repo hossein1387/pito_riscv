@@ -10,6 +10,7 @@ add_wave_group core
         add_wave -into FetchStage {{/core_tester/core/rv32_io_imem_w_en}}
         add_wave -into FetchStage {{/core_tester/core/rv32_io_dmem_w_en}}
         add_wave -into FetchStage {{/core_tester/core/rv32_io_program}}
+        add_wave -into FetchStage {{/core_tester/core/rv32_instr}}
     add_wave_group -into core DecStage
         add_wave_group -into DecStage RegFile
             add_wave -into RegFile {{/core_tester/core/rv32_regf_ra1}}
