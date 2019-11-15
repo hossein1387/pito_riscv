@@ -212,6 +212,7 @@ bram16k d_mem(
             end
         end
     end
+
 assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
 
 //====================================================================
@@ -228,19 +229,22 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
 //====================================================================
 //                   Execute Stage
 //====================================================================
+    assign alu_src = ((RV32_SRLI ) || (RV32_SRAI  ) || (RV32_ADDI ) ||
+                      (RV32_XORI ) || (RV32_ORI   ) || (RV32_ANDI ) ||
+                      (RV32_SLTI ) || (RV32_SLTIU ) || (RV32_SLLI ) ) ? `PITO_ALU_SRC_IMM : `PITO_ALU_SRC_RS2;
     always @(posedge clk) begin
         if(rv32_io_rst_n == 1'b0) begin
             rv32_ex_pc <= 0;
         end else begin
             // rv32_regf_wen    <= 1'b0;
-            rv32_ex_opcode   <= rv32_dec_opcode;
-            rv32_ex_inst_type<= rv32_dec_inst_type;
+            rv32_ex_opcode    <= rv32_dec_opcode;
+            rv32_ex_inst_type <= rv32_dec_inst_type;
             if (rv32_dec_opcode != RV32_NOP) begin
                 rv32_alu_op      <= rv32_dec_alu_op;
                 rv32_alu_rs1     <= rv32_regf_rd1;
                 rv32_wb_rs2_skip <= rv32_regf_rd2;
                 rv32_ex_rd       <= rv32_dec_rd;
-                if (alu_src == 0 ) begin
+                if (alu_src == `PITO_ALU_SRC_RS2 ) begin
                     rv32_alu_rs2 <= rv32_regf_rd2;
                 end else begin
                     if ((rv32_dec_alu_op == `ALU_SLL ) || (rv32_dec_alu_op == `ALU_SRL ) || (rv32_dec_alu_op == `ALU_SRA )) begin
@@ -250,10 +254,18 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
                     end
                 end
                 // Compute the next PC
-                rv32_ex_pc   <= rv32_dec_pc + rv32_dec_imm - 4 ;
+                if ((rv32_dec_opcode == RV32_LUI) || (RV32_AUIPC)) begin
+                    rv32_ex_pc   <= rv32_dec_pc + rv32_dec_imm - 4;
+                end else if (rv32_dec_opcode == RV32_JAL) begin
+                    rv32_ex_pc   <= rv32_dec_pc + rv32_dec_imm - 4;
+                end else if (rv32_dec_opcode == RV32_JALR) begin
+                    rv32_ex_pc   <= rv32_dec_pc + rv32_dec_imm - 4;
+                end
                 wb_skip      <= ~((rv32_dec_opcode == RV32_SB) || (rv32_dec_opcode == RV32_SH) || (rv32_dec_opcode == RV32_SW));
             end else begin
                 rv32_ex_pc   <= rv32_dec_pc;
+                // make sure for nop we are not writing to memory
+                wb_skip      <= 1'b1;
             end
         end
     end

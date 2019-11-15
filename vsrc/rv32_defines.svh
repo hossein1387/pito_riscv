@@ -15,6 +15,8 @@
 `define PITO_DATA_MEM_WIDTH  $clog2(`PITO_DATA_MEM_SIZE)
 `define PITO_PC_SEL_PLUS_4   (1'b1)
 `define PITO_PC_SEL_COMPUTED (1'b0)
+`define PITO_ALU_SRC_RS2     (1'b1)
+`define PITO_ALU_SRC_IMM     (1'b0)
 //-------------------------------------------------------------------
 //                           Width-related constants
 //-------------------------------------------------------------------
