@@ -1,10 +1,6 @@
 `timescale 1 ps / 1 ps
 
 module rv32_core (
-`ifdef DEBUG
-    output rv32_opcode_enum_t rv32_dec_opcode,
-    output rv_pc_cnt_t        rv32_dec_pc,
-`endif
     input  logic              rv32_io_clk,    // Clock
     input  logic              rv32_io_rst_n,  // Synchronous reset active low
     input  rv_imem_addr_t     rv32_io_imem_addr,
@@ -20,6 +16,14 @@ module rv32_core (
 // General Wires and registers
 //====================================================================
 
+`ifdef DEBUG
+// Captureing original pc counter witout altering during pc related 
+// instructions
+rv_pc_cnt_t        rv32_org_ex_pc;
+rv_pc_cnt_t        rv32_org_wb_pc;
+rv_pc_cnt_t        rv32_org_wf_pc;
+rv_pc_cnt_t        rv32_org_cap_pc;
+`endif
 // General signals
 logic              clk;
 logic              rst_n;
@@ -27,6 +31,10 @@ rv_pc_cnt_t        rv32_pc;
 
 // raw un-decoded rv32 instruction
 rv32_instr_t        rv32_instr;
+rv32_instr_t        rv32_instr_dec;
+rv32_instr_t        rv32_instr_ex;
+rv32_instr_t        rv32_instr_wb;
+rv32_instr_t        rv32_instr_wf;
 
 //====================================================================
 // DEC stage wires
@@ -41,9 +49,7 @@ rv_regfile_addr_t rv32_regf_wa ;
 rv_register_t     rv32_regf_wd ;
 
 // decoder wires
-`ifndef DEBUG
 rv_pc_cnt_t        rv32_dec_pc;
-`endif
 rv_register_t      rv32_dec_rs1;
 rv_register_t      rv32_dec_rd;
 rv_register_t      rv32_dec_rs2;
@@ -56,9 +62,7 @@ rv_zimm_t          rv32_dec_zimm;
 rv32_type_enum_t   rv32_dec_inst_type;
 logic              rv32_dec_instr_trap;
 rv_alu_op_t        rv32_dec_alu_op;
-`ifndef DEBUG
 rv32_opcode_enum_t rv32_dec_opcode;
-`endif
 
 //====================================================================
 // EX stage wires
@@ -224,6 +228,7 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
             rv32_dec_pc <= 0;
         end else begin
             rv32_dec_pc <= rv32_pc;
+            rv32_instr_dec <= rv32_instr;
         end
     end
 //====================================================================
@@ -239,6 +244,7 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
             // rv32_regf_wen    <= 1'b0;
             rv32_ex_opcode    <= rv32_dec_opcode;
             rv32_ex_inst_type <= rv32_dec_inst_type;
+            rv32_instr_ex     <= rv32_instr_dec;
             if (rv32_dec_opcode != RV32_NOP) begin
                 rv32_alu_op      <= rv32_dec_alu_op;
                 rv32_alu_rs1     <= rv32_regf_rd1;
@@ -267,6 +273,9 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
                 // make sure for nop we are not writing to memory
                 wb_skip      <= 1'b1;
             end
+            `ifdef DEBUG
+                rv32_org_ex_pc <= rv32_dec_pc;
+            `endif
         end
     end
 
@@ -281,6 +290,7 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
             rv32_wb_pc       <= rv32_ex_pc;
             rv32_wb_opcode   <= rv32_ex_opcode;
             rv32_wb_inst_type<= rv32_ex_inst_type;
+            rv32_instr_wb    <= rv32_instr_ex;
             if (rv32_ex_opcode != RV32_NOP) begin
                 rv32_wb_rd       <= rv32_ex_rd;
                 if (wb_skip) begin
@@ -298,6 +308,9 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
                     end
                 end
             end
+            `ifdef DEBUG
+                rv32_org_wb_pc <= rv32_org_ex_pc;
+            `endif
         end
     end
 //====================================================================
@@ -313,6 +326,7 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
             rv32_wf_pc          <= rv32_wb_pc;
             rv32_wf_opcode      <= rv32_wb_opcode;
             rv32_dmem_w_en_ctrl <= 1'b0;
+            rv32_instr_wf       <= rv32_instr_wb;
             if (rv32_wb_opcode != RV32_NOP) begin
                 //                     == RV32_TYPE_B
                 if ((rv32_wb_inst_type == RV32_TYPE_R) ||
@@ -333,9 +347,32 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
             end else begin
                 pc_sel <= `PITO_PC_SEL_PLUS_4;
             end
+            `ifdef DEBUG
+                rv32_org_wf_pc <= rv32_org_wb_pc;
+            `endif
         end
     end
 
     assign rv32_regf_wen = 1'b1;
 
+
+//====================================================================
+// Capture Stage
+//====================================================================
+`ifdef DEBUG
+rv32_opcode_enum_t rv32_cap_opcode;
+rv_pc_cnt_t        rv32_cap_pc;
+rv32_instr_t       rv32_instr_cap;
+
+    always @(posedge clk) begin
+        if(rv32_io_rst_n == 1'b0) begin
+            rv32_cap_pc     <= 0;
+        end else begin
+            rv32_cap_pc     <= rv32_wf_pc;
+            rv32_cap_opcode <= rv32_wf_opcode;
+            rv32_instr_cap  <= rv32_instr_wf;
+            rv32_org_cap_pc <= rv32_org_wf_pc;
+        end
+    end
+`endif
 endmodule

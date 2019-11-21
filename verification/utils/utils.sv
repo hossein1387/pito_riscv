@@ -1,7 +1,7 @@
 
 package utils;
 //==================================================================================================
-// Enum: print_verbosity
+// Enum: print_verbosity_t
 // Defines standard verbosity levels for reports.
 //
 //  VERB_NONE    Report is always printed. Verbosity level setting cannot disable it.
@@ -16,16 +16,44 @@ typedef enum {
     VERB_HIGH   = 300,
     VERB_FULL   = 400,
     VERB_DEBUG  = 500
-} print_verbosity;
+} print_verbosity_t;
+
 //==================================================================================================
-// Struct test_stats
+// Logger class, logs test string to a file
+class Logger;  /* base class*/;
+    static int fd;
+
+    function new (string file_name);
+          this.fd = $fopen(file_name,"w");
+    endfunction
+
+    function void print (string msg, string id="INFO", print_verbosity_t verbosity=VERB_LOW);
+        string log = $sformatf("[%5s]  %s ", id, msg);
+        if (verbosity<VERB_MEDIUM) begin
+            $display("%s", log);
+        end
+        $fwrite(this.fd, log);
+    endfunction
+
+    function void print_banner (string msg, string id="INFO", print_verbosity_t verbosity=VERB_LOW);
+        string sep = "=======================================================================";
+        string log = $sformatf("%s\n[%5s]  %s \n%s", sep, id, msg, sep);
+        if (verbosity<VERB_MEDIUM) begin
+            $display("%s", log);
+        end
+        $fwrite(this.fd, log);
+    endfunction
+
+endclass
+//==================================================================================================
+// Struct test_stats_t
 // Defines a struct that holds test statistics 
 
 typedef struct packed
 {
     int unsigned pass_cnt;
     int unsigned fail_cnt;
-} test_stats;
+} test_stats_t;
 
 //==================================================================================================
 // Test print macro
@@ -67,11 +95,18 @@ typedef struct packed
 
 //==================================================================================================
 // A function to report results
-function void print_result(test_stats test_stat, print_verbosity verbosity);
-    `print_banner("INFO", "Test results", verbosity)
-    `test_print("INFO", $sformatf("Number of passed tests = %0d", test_stat.pass_cnt), verbosity)
-    `test_print("INFO", $sformatf("Number of failed tests = %0d\n", test_stat.fail_cnt), verbosity)
-
+function void print_result(test_stats_t test_stat, print_verbosity_t verbosity=VERB_LOW, Logger logger=null);
+    if (logger == null) begin
+        `print_banner("INFO", "Test results", verbosity)
+        `test_print("INFO", $sformatf("Total Number of tests  = %0d\n", test_stat.pass_cnt+test_stat.fail_cnt), verbosity)
+        `test_print("INFO", $sformatf("Number of passed tests = %0d", test_stat.pass_cnt), verbosity)
+        `test_print("INFO", $sformatf("Number of failed tests = %0d\n", test_stat.fail_cnt), verbosity)
+    end else begin
+        logger.print_banner("Test results");
+        logger.print($sformatf("Total Number of tests  = %0d", test_stat.pass_cnt+test_stat.fail_cnt));
+        logger.print($sformatf("Number of passed tests = %0d", test_stat.pass_cnt));
+        logger.print($sformatf("Number of failed tests = %0d", test_stat.fail_cnt));
+    end
 endfunction : print_result
 
 //==================================================================================================
@@ -88,23 +123,5 @@ function void print_matrix_from_array(inout integer array, integer row_len, inte
         array_shape_str = "";
     end
 endfunction : print_matrix_from_array
-
-//==================================================================================================
-// Logger class, logs test string to a file
-class Logger;  /* base class*/;
-    static int fd;
-
-    function new (string file_name);
-          this.fd = $fopen(file_name,"w");
-    endfunction
-
-    function void print (string msg, string id="INFO", print_verbosity verbosity=VERB_LOW);
-        string log = $sformatf("[%5s]  %s ", id, msg);
-        if (verbosity<VERB_MEDIUM) begin
-            $display("%s", log);
-        end
-        $fwrite(this.fd, log);
-    endfunction
-endclass
 
 endpackage : utils
