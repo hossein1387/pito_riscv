@@ -1,3 +1,4 @@
+./utils.sv
 ../../vsrc/rv32_defines.svh
 ../../vsrc/rv32_types.svh
 ../../vsrc/rv32_instr.svh
@@ -9,5 +10,4 @@
 ../../vsrc/rv32_regfile.sv
 ../../vsrc/rv32_core.sv
 ../../vsrc/rv32_utils.sv
-./utils.sv
 ./core_tester.sv
