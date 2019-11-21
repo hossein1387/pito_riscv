@@ -30,6 +30,7 @@ def parse_args():
     parser.add_argument('-clean', '--clean', action='store_true', help='clean project', required= False)
     parser.add_argument('-silence', '--silence', action='store_true', help=' Silence mode (no log will be printed)', required= False, default=False)
     parser.add_argument('-verbosity', '--verbosity', help='Print log verbosity: VERB_NONE, VERB_LOW, VERB_MEDIUM, VERB_HIGH, VERB_FULL, VERB_DEBUG', required=False)
+    parser.add_argument('-timescale', '--timescale', help='Simulation timescale', required=False, default='1ps/1ps')
     args = parser.parse_args()
     return vars(args)
 
@@ -90,6 +91,9 @@ if __name__ == '__main__':
     if simulator.lower() == "xilinx":
         # For Xilinx tools we need to specify top level for creating snapshots which is needed
         # by simulator and synthesis tools
+        if not('XILINX_VIVADO' in os.environ):
+            util.print_log("Xilinx Vivado simulator was not found, forgot to source it?", "ERROR", verbosity="VERB_LOW")
+            sys.exit()
         if top_level == None:
             util.print_log("Top level was not specified", "ERROR", verbosity="VERB_LOW")
             sys.exit()
@@ -118,7 +122,7 @@ if __name__ == '__main__':
 
 
         util.print_banner("Creating snapshot", verbosity=verbosity)
-        cmd_to_run = "xelab -debug typical -L secureip -L unisims_ver -L unimacro_ver {0} ".format(top_level)
+        cmd_to_run = "xelab -debug typical -L secureip -L unisims_ver -L unimacro_ver {0} --timescale {1}".format(top_level, args['timescale'])
         if waveform:
             cmd_to_run += "--debug all "
         if silence:
