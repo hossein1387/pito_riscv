@@ -14,9 +14,9 @@ module core_tester ();
 // DUT Signals
     logic              clk;
     logic              rst_n;  // Asynchronous reset active low
-    rv_imem_addr_t     imem_addr;
+    rv32_imem_addr_t     imem_addr;
     rv32_instr_t       imem_data;
-    rv_dmem_addr_t     dmem_addr;
+    rv32_dmem_addr_t     dmem_addr;
     rv32_data_t        dmem_data;
     logic              imem_w_en;
     logic              dmem_w_en;
@@ -60,7 +60,7 @@ module core_tester ();
     task monitor_pito(rv32_instr_q instr_q);
         rv32_inst_dec_t instr;
         rv32_regfile_t  regs;
-        rv_pc_cnt_t     pc_cnt, pc_orig_cnt;
+        rv32_pc_cnt_t     pc_cnt, pc_orig_cnt;
         logger.print_banner("Starting Monitor Task");
         @(posedge clk);
         for (int i=0; i<100; i++) begin
@@ -68,7 +68,7 @@ module core_tester ();
             // logger.print($sformatf("%s",read_regs()));
             pc_cnt      = core.rv32_cap_pc;
             pc_orig_cnt = core.rv32_org_cap_pc;
-            instr       = rv32i_dec.decode_instr(core.rv32_instr_cap);
+            instr       = rv32i_dec.decode_instr(core.rv32_cap_instr);
             regs        = read_regs();
             rv32i_pred.predict(instr, regs, pc_cnt, pc_orig_cnt);
             @(posedge clk);

@@ -4,30 +4,30 @@
 `timescale 1 ps / 1 ps
 
 module rv32_decoder (
-    input rv32_instr_t         instr, // input instruction
+    input rv32_instr_t           instr, // input instruction
 
-    output rv_register_t       rv_rs1,
-    output rv_register_t       rv_rs2,
-    output rv_register_t       rv_rd,
+    output rv32_register_t       rv_rs1,
+    output rv32_register_t       rv_rs2,
+    output rv32_register_t       rv_rd,
 
-    output rv_shamt_t          rv_shamt,
+    output rv32_shamt_t          rv_shamt,
 
-    output rv_imm_t            rv_imm,
-    output rv_alu_op_t         rv_alu_op,
+    output rv32_imm_t            rv_imm,
+    output rv32_alu_op_t         rv_alu_op,
 
-    output logic[3:0]          rv_fence_succ,
-    output logic[3:0]          rv_fence_pred,
+    output logic[3:0]            rv_fence_succ,
+    output logic[3:0]            rv_fence_pred,
 
-    output rv_csr_t            rv_csr,
-    output rv_zimm_t           rv_zimm,
+    output rv32_csr_t            rv_csr,
+    output rv32_zimm_t           rv_zimm,
 
-    output rv32_opcode_enum_t  rv_opcode,
-    output rv32_type_enum_t    rv_inst_type,
-    output logic               instr_trap
+    output rv32_opcode_enum_t    rv_opcode,
+    output rv32_type_enum_t      rv_inst_type,
+    output logic                 instr_trap
 
 );
 
-    rv_imm_t         rv_imm_decoded;
+    rv32_imm_t         rv_imm_decoded;
 
     always @(*) begin
         rv_inst_type <= RV32_TYPE_UNKNOWN;
@@ -178,7 +178,7 @@ module rv32_decoder (
 
 
     rv32_imm_gen rv32_imm_gen_inst(.rv_instr     (instr),
-                                   .rv_imm_type  (rv_inst_type),
+                                   .rv32_imm_type  (rv_inst_type),
                                    .rv_imm       (rv_imm_decoded)
                                   );
 

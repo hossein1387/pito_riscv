@@ -7,22 +7,22 @@ typedef rv32_instr_t;
 //-------------------------------------------------------------------
 //                        None-Structured data types
 //-------------------------------------------------------------------
-typedef logic [`XPR_LEN-1              : 0 ] rv_pc_cnt_t;
-typedef logic [4                       : 0 ] rv_register_field_t;
-typedef logic [`XPR_LEN-1              : 0 ] rv_register_t;
+typedef logic [`XPR_LEN-1              : 0 ] rv32_pc_cnt_t;
+typedef logic [4                       : 0 ] rv32_register_field_t;
+typedef logic [`XPR_LEN-1              : 0 ] rv32_register_t;
 typedef logic [`ALU_OPCODE_WIDTH-1     : 0 ] alu_opcode_t;
-typedef logic [`XPR_LEN-1              : 0 ] rv_imm_t;
+typedef logic [`XPR_LEN-1              : 0 ] rv32_imm_t;
 typedef logic [2                       : 0 ] fnct3_t;
 typedef logic [6                       : 0 ] fnct7_t;
-typedef logic [`OPCODE_LEN-1           : 0 ] rv_opcode_t;
-typedef logic [12                      : 0 ] rv_csr_t;
-typedef logic [4                       : 0 ] rv_zimm_t;
-typedef logic [4                       : 0 ] rv_shamt_t;
-typedef logic [`REG_ADDR_WIDTH-1       : 0 ] rv_regfile_addr_t;
-typedef logic [`ALU_OPCODE_WIDTH-1     : 0 ] rv_alu_op_t;
+typedef logic [`OPCODE_LEN-1           : 0 ] rv32_opcode_t;
+typedef logic [12                      : 0 ] rv32_csr_t;
+typedef logic [4                       : 0 ] rv32_zimm_t;
+typedef logic [4                       : 0 ] rv32_shamt_t;
+typedef logic [`REG_ADDR_WIDTH-1       : 0 ] rv32_regfile_addr_t;
+typedef logic [`ALU_OPCODE_WIDTH-1     : 0 ] rv32_alu_op_t;
 typedef logic [`XPR_LEN-1              : 0 ] rv32_data_t;
-typedef logic [`PITO_INSTR_MEM_WIDTH-1 : 0 ] rv_imem_addr_t;
-typedef logic [`PITO_DATA_MEM_WIDTH-1  : 0 ] rv_dmem_addr_t;
+typedef logic [`PITO_INSTR_MEM_WIDTH-1 : 0 ] rv32_imem_addr_t;
+typedef logic [`PITO_DATA_MEM_WIDTH-1  : 0 ] rv32_dmem_addr_t;
 typedef logic [`NUM_REGS-1:0 ][`XPR_LEN-1:0] rv32_regfile_t;
 typedef rv32_instr_t                         rv32_instr_q[$];
 
@@ -32,45 +32,45 @@ typedef rv32_instr_t                         rv32_instr_q[$];
 
 typedef struct packed {
     fnct7_t             funct7;
-    rv_register_field_t rs2;
-    rv_register_field_t rs1;
+    rv32_register_field_t rs2;
+    rv32_register_field_t rs1;
     fnct3_t             funct3;
-    rv_register_field_t rd;
-    rv_opcode_t         opcode;
+    rv32_register_field_t rd;
+    rv32_opcode_t         opcode;
 } rv32_type_r_t;
 
 typedef struct packed {
     logic [11:0]        imm;
-    rv_register_field_t rs1;
+    rv32_register_field_t rs1;
     fnct3_t             funct3;
-    rv_register_field_t rd;
-    rv_opcode_t         opcode;
+    rv32_register_field_t rd;
+    rv32_opcode_t         opcode;
 } rv32_type_i_t;
 
 typedef struct packed {
     logic [6:0]         imm_u;
-    rv_register_field_t rs2;
-    rv_register_field_t rs1;
+    rv32_register_field_t rs2;
+    rv32_register_field_t rs1;
     fnct3_t             funct3;
     logic [4:0]         imm_l;
-    rv_opcode_t         opcode;
+    rv32_opcode_t         opcode;
 } rv32_type_s_t;
 
 typedef struct packed {
     logic [0:0]         imm12;
     logic [5:0]         immu;
-    rv_register_field_t rs2;
-    rv_register_field_t rs1;
+    rv32_register_field_t rs2;
+    rv32_register_field_t rs1;
     fnct3_t             funct3;
     logic [3:0]         imm_l;
     logic [0:0]         imm_11;
-    rv_opcode_t         opcode;
+    rv32_opcode_t         opcode;
 } rv32_type_b_t;
 
 typedef struct packed {
     logic [19:0]        imm;
-    rv_register_field_t rd;
-    rv_opcode_t         opcode;
+    rv32_register_field_t rd;
+    rv32_opcode_t         opcode;
 } rv32_type_u_t;
 
 typedef struct packed {
@@ -78,13 +78,13 @@ typedef struct packed {
     logic [9:0]         imm_10_1;
     logic [0:0]         imm11;
     logic [7:0]         imm_19_12;
-    rv_register_field_t rd;
-    rv_opcode_t         opcode;
+    rv32_register_field_t rd;
+    rv32_opcode_t         opcode;
 } rv32_type_j_t;
 
 typedef struct packed {
     logic [24:0]  rst_instr;
-    rv_opcode_t   opcode;
+    rv32_opcode_t   opcode;
 } rv32_dec_op_t;
 
 
@@ -175,11 +175,11 @@ typedef enum {
 //-------------------------------------------------------------------
 typedef struct packed{ 
     rv32_opcode_enum_t    opcode;
-    rv_imm_t              imm;
-    rv_csr_t              csr;
-    rv_register_field_t   rs1;
-    rv_register_field_t   rs2;
-    rv_register_field_t   rd;
+    rv32_imm_t              imm;
+    rv32_csr_t              csr;
+    rv32_register_field_t   rs1;
+    rv32_register_field_t   rs2;
+    rv32_register_field_t   rd;
     rv32_type_enum_t      inst_type;
 } rv32_inst_dec_t;
 

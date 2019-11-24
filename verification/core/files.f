@@ -10,4 +10,5 @@
 ../../vsrc/rv32_regfile.sv
 ../../vsrc/rv32_core.sv
 ../../vsrc/rv32_utils.sv
+../../vsrc/rv32_next_pc.sv
 ./core_tester.sv

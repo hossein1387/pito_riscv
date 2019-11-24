@@ -3,9 +3,9 @@
 module rv32_core (
     input  logic              rv32_io_clk,    // Clock
     input  logic              rv32_io_rst_n,  // Synchronous reset active low
-    input  rv_imem_addr_t     rv32_io_imem_addr,
+    input  rv32_imem_addr_t     rv32_io_imem_addr,
     input  rv32_instr_t       rv32_io_imem_data,
-    input  rv_dmem_addr_t     rv32_io_dmem_addr,
+    input  rv32_dmem_addr_t     rv32_io_dmem_addr,
     input  rv32_data_t        rv32_io_dmem_data,
     input  logic              rv32_io_imem_w_en,
     input  logic              rv32_io_dmem_w_en,
@@ -19,81 +19,90 @@ module rv32_core (
 `ifdef DEBUG
 // Captureing original pc counter witout altering during pc related 
 // instructions
-rv_pc_cnt_t        rv32_org_ex_pc;
-rv_pc_cnt_t        rv32_org_wb_pc;
-rv_pc_cnt_t        rv32_org_wf_pc;
-rv_pc_cnt_t        rv32_org_cap_pc;
+rv32_pc_cnt_t        rv32_org_ex_pc;
+rv32_pc_cnt_t        rv32_org_wb_pc;
+rv32_pc_cnt_t        rv32_org_wf_pc;
+rv32_pc_cnt_t        rv32_org_cap_pc;
 `endif
 // General signals
 logic              clk;
 logic              rst_n;
-rv_pc_cnt_t        rv32_pc;
+rv32_pc_cnt_t        rv32_pc;
 
 // raw un-decoded rv32 instruction
 rv32_instr_t        rv32_instr;
-rv32_instr_t        rv32_instr_dec;
-rv32_instr_t        rv32_instr_ex;
-rv32_instr_t        rv32_instr_wb;
-rv32_instr_t        rv32_instr_wf;
+rv32_instr_t        rv32_dec_instr;
+rv32_instr_t        rv32_ex_instr;
+rv32_instr_t        rv32_wb_instr;
+rv32_instr_t        rv32_wf_instr;
 
 //====================================================================
 // DEC stage wires
 //====================================================================
 // Register file wires
-rv_regfile_addr_t rv32_regf_ra1;
-rv_register_t     rv32_regf_rd1;
-rv_regfile_addr_t rv32_regf_ra2;
-rv_register_t     rv32_regf_rd2;
-logic             rv32_regf_wen;
-rv_regfile_addr_t rv32_regf_wa ;
-rv_register_t     rv32_regf_wd ;
+rv32_regfile_addr_t rv32_regf_ra1;
+rv32_register_t     rv32_regf_rd1;
+rv32_regfile_addr_t rv32_regf_ra2;
+rv32_register_t     rv32_regf_rd2;
+logic               rv32_regf_wen;
+rv32_regfile_addr_t rv32_regf_wa ;
+rv32_register_t     rv32_regf_wd ;
 
 // decoder wires
-rv_pc_cnt_t        rv32_dec_pc;
-rv_register_t      rv32_dec_rs1;
-rv_register_t      rv32_dec_rd;
-rv_register_t      rv32_dec_rs2;
-rv_shamt_t         rv32_dec_shamt;
-rv_imm_t           rv32_dec_imm;
+rv32_pc_cnt_t      rv32_dec_pc;
+rv32_register_t    rv32_dec_rs1;
+rv32_register_t    rv32_dec_rd;
+rv32_register_t    rv32_dec_rs2;
+rv32_shamt_t       rv32_dec_shamt;
+rv32_imm_t         rv32_dec_imm;
 logic[3:0]         rv32_dec_fence_succ;
 logic[3:0]         rv32_dec_fence_pred;
-rv_csr_t           rv32_dec_csr;
-rv_zimm_t          rv32_dec_zimm;
+rv32_csr_t         rv32_dec_csr;
+rv32_zimm_t        rv32_dec_zimm;
 rv32_type_enum_t   rv32_dec_inst_type;
 logic              rv32_dec_instr_trap;
-rv_alu_op_t        rv32_dec_alu_op;
+rv32_alu_op_t      rv32_dec_alu_op;
 rv32_opcode_enum_t rv32_dec_opcode;
 
 //====================================================================
 // EX stage wires
 //====================================================================
 // alu wires
-rv_register_t      rv32_alu_rs1;
-rv_register_t      rv32_alu_rs2;
-rv_register_t      rv32_ex_rd;
-rv_register_t      rv32_alu_res;
-rv_alu_op_t        rv32_alu_op;
+rv32_register_t    rv32_alu_rs1;
+rv32_register_t    rv32_alu_rs2;
+rv32_register_t    rv32_ex_rd;
+rv32_register_t    rv32_ex_rs1;
+rv32_register_t    rv32_alu_res;
+rv32_alu_op_t      rv32_alu_op;
 logic              rv32_alu_z;
 rv32_type_enum_t   rv32_ex_inst_type;
 rv32_opcode_enum_t rv32_ex_opcode;
-rv_pc_cnt_t        rv32_ex_pc;
+rv32_pc_cnt_t      rv32_ex_pc;
+rv32_imm_t         rv32_ex_imm;
 
 //====================================================================
 // WB stage wires
 //====================================================================
 rv32_opcode_enum_t rv32_wb_opcode;
-rv_register_t      rv32_wb_rd;
-rv_register_t      rv32_wb_out;
-rv_register_t      rv32_wb_rs2_skip;
+rv32_register_t    rv32_wb_rd;
+rv32_register_t    rv32_wb_rs1;
+rv32_register_t    rv32_wb_out;
+rv32_register_t    rv32_wb_rs2_skip;
 rv32_type_enum_t   rv32_wb_inst_type;
-rv_pc_cnt_t        rv32_wb_pc;
+rv32_pc_cnt_t      rv32_wb_pc;
+rv32_imm_t         rv32_wb_imm;
+logic              rv32_wb_save_pc;
+logic              rv32_wb_has_new_pc;
+rv32_register_t    rv32_wb_reg_pc;
+rv32_pc_cnt_t      rv32_wb_next_pc_val;
 
 //====================================================================
 // WF stage wires
 //====================================================================
 // write regfile stage
 rv32_opcode_enum_t rv32_wf_opcode;
-rv_pc_cnt_t        rv32_wf_pc;
+rv32_pc_cnt_t      rv32_wf_pc;
+logic              rv32_wf_skip;
 // Control Signals
 logic pc_sel;
 logic alu_src;
@@ -101,18 +110,18 @@ logic wb_skip;
 
 // Instruction Memory signals
 // The rest are control by io and internal lofgic
-rv_dmem_addr_t  rv32_i_addr;
+rv32_dmem_addr_t  rv32_i_addr;
 
 // Data Memory control
-rv_dmem_addr_t rv32_dmem_addr_ctrl;
-rv32_data_t    rv32_dmem_data_ctrl;
-logic          rv32_dmem_w_en_ctrl;
+rv32_dmem_addr_t rv32_dmem_addr_ctrl;
+rv32_data_t      rv32_dmem_data_ctrl;
+logic            rv32_dmem_w_en_ctrl;
 
 // Data Memory signals
-rv_dmem_addr_t  rv32_dw_addr;
+rv32_dmem_addr_t  rv32_dw_addr;
 rv32_data_t     rv32_dw_data;
 logic           rv32_dw_en  ;
-rv_dmem_addr_t  rv32_dr_addr;
+rv32_dmem_addr_t  rv32_dr_addr;
 rv32_data_t     rv32_dr_data;
 
 // connect io clock and reset to internal logic
@@ -157,6 +166,18 @@ rv32_alu alu (
                         .alu_opcode(rv32_alu_op ),
                         .res       (rv32_alu_res),
                         .z         (rv32_alu_z  )
+);
+
+rv32_next_pc rv32_next_pc_cal(
+                        .rv32_alu_res     (rv32_wb_out         ),
+                        .rv32_rs1         (rv32_wb_rs1         ),
+                        .rv32_imm         (rv32_wb_imm         ),
+                        .rv32_instr_opcode(rv32_wb_opcode      ),
+                        .rv32_cur_pc      (rv32_wb_pc          ),
+                        .rv32_save_pc     (rv32_wb_save_pc     ),
+                        .rv32_has_new_pc  (rv32_wb_has_new_pc  ),
+                        .rv32_reg_pc      (rv32_wb_reg_pc      ),
+                        .rv32_next_pc_val (rv32_wb_next_pc_val )
 );
 
 // pito uses seperate memory for instructions and data.
@@ -228,15 +249,15 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
             rv32_dec_pc <= 0;
         end else begin
             rv32_dec_pc <= rv32_pc;
-            rv32_instr_dec <= rv32_instr;
+            rv32_dec_instr <= rv32_instr;
         end
     end
 //====================================================================
 //                   Execute Stage
 //====================================================================
-    assign alu_src = ((RV32_SRLI ) || (RV32_SRAI  ) || (RV32_ADDI ) ||
-                      (RV32_XORI ) || (RV32_ORI   ) || (RV32_ANDI ) ||
-                      (RV32_SLTI ) || (RV32_SLTIU ) || (RV32_SLLI ) ) ? `PITO_ALU_SRC_IMM : `PITO_ALU_SRC_RS2;
+    assign alu_src   = ((rv32_dec_opcode == RV32_SRL ) || (rv32_dec_opcode == RV32_SRA  ) || (rv32_dec_opcode == RV32_ADD ) ||
+                        (rv32_dec_opcode == RV32_XOR ) || (rv32_dec_opcode == RV32_OR   ) || (rv32_dec_opcode == RV32_AND ) ||
+                        (rv32_dec_opcode == RV32_SLT ) || (rv32_dec_opcode == RV32_SLTU ) || (rv32_dec_opcode == RV32_SLL ) ) ? `PITO_ALU_SRC_RS2 : `PITO_ALU_SRC_IMM ;
     always @(posedge clk) begin
         if(rv32_io_rst_n == 1'b0) begin
             rv32_ex_pc <= 0;
@@ -244,7 +265,10 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
             // rv32_regf_wen    <= 1'b0;
             rv32_ex_opcode    <= rv32_dec_opcode;
             rv32_ex_inst_type <= rv32_dec_inst_type;
-            rv32_instr_ex     <= rv32_instr_dec;
+            rv32_ex_instr     <= rv32_dec_instr;
+            rv32_ex_imm       <= rv32_dec_imm;
+            rv32_ex_pc        <= rv32_dec_pc;
+            rv32_ex_rs1       <= rv32_dec_rs1; // copy for auipc calculation in wf stage
             if (rv32_dec_opcode != RV32_NOP) begin
                 rv32_alu_op      <= rv32_dec_alu_op;
                 rv32_alu_rs1     <= rv32_regf_rd1;
@@ -258,14 +282,6 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
                     end else begin
                         rv32_alu_rs2 <= rv32_dec_imm;
                     end
-                end
-                // Compute the next PC
-                if ((rv32_dec_opcode == RV32_LUI) || (RV32_AUIPC)) begin
-                    rv32_ex_pc   <= rv32_dec_pc + rv32_dec_imm - 4;
-                end else if (rv32_dec_opcode == RV32_JAL) begin
-                    rv32_ex_pc   <= rv32_dec_pc + rv32_dec_imm - 4;
-                end else if (rv32_dec_opcode == RV32_JALR) begin
-                    rv32_ex_pc   <= rv32_dec_pc + rv32_dec_imm - 4;
                 end
                 wb_skip      <= ~((rv32_dec_opcode == RV32_SB) || (rv32_dec_opcode == RV32_SH) || (rv32_dec_opcode == RV32_SW));
             end else begin
@@ -290,9 +306,11 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
             rv32_wb_pc       <= rv32_ex_pc;
             rv32_wb_opcode   <= rv32_ex_opcode;
             rv32_wb_inst_type<= rv32_ex_inst_type;
-            rv32_instr_wb    <= rv32_instr_ex;
+            rv32_wb_instr    <= rv32_ex_instr;
+            rv32_wb_imm      <= rv32_ex_imm;
+            rv32_wb_rs1      <= rv32_ex_rs1;
+            rv32_wb_rd       <= rv32_ex_rd;
             if (rv32_ex_opcode != RV32_NOP) begin
-                rv32_wb_rd       <= rv32_ex_rd;
                 if (wb_skip) begin
                     rv32_wb_out <= rv32_alu_res;
                 end else begin
@@ -317,35 +335,57 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
 //                   RegFile Write Stage
 //====================================================================
 
+    assign rv32_wf_skip = ((rv32_wb_opcode == RV32_BEQ ) || (rv32_wb_opcode == RV32_BNE ) || (rv32_wb_opcode == RV32_BLT ) || 
+                           (rv32_wb_opcode == RV32_BGE ) || (rv32_wb_opcode == RV32_BLTU) || (rv32_wb_opcode == RV32_BGEU) ||
+                           (rv32_wb_opcode == RV32_SB  ) || (rv32_wb_opcode == RV32_SH  ) || (rv32_wb_opcode == RV32_SW  )) ? 1'b1 : 1'b0;
     always @(posedge clk) begin
         if(rv32_io_rst_n == 1'b0) begin
             rv32_regf_wa <= 0;
             rv32_wf_pc   <= 0;
             pc_sel       <= `PITO_PC_SEL_PLUS_4;
         end else begin
-            rv32_wf_pc          <= rv32_wb_pc;
             rv32_wf_opcode      <= rv32_wb_opcode;
             rv32_dmem_w_en_ctrl <= 1'b0;
-            rv32_instr_wf       <= rv32_instr_wb;
+            rv32_wf_instr       <= rv32_wb_instr;
             if (rv32_wb_opcode != RV32_NOP) begin
-                //                     == RV32_TYPE_B
-                if ((rv32_wb_inst_type == RV32_TYPE_R) ||
-                    (rv32_wb_inst_type == RV32_TYPE_I) ||
-                    (rv32_wb_inst_type == RV32_TYPE_U) ) begin
+                //=================================================================================
+                // Register File
+                //=================================================================================
+                // Decide if we need to write anything to RF. This is decided by rv32_wf_skip signal.
+                // Most instructions (except the one in rv32_wf_skip) have to write results to RF.
+                // They can be devided into these three types:
+                // 1- Immediates: Only LUI instruction is in this cat. Load Immediate to RF.
+                // 2- Return Add: For JAL and JALR, we need to save the return address into RF.
+                // 3- ALU Res: For all other types, store ALU output to the RF.
+                if (!rv32_wf_skip) begin
                     rv32_regf_wa <= rv32_wb_rd;
-                    if (rv32_wb_inst_type == RV32_TYPE_I) begin
-                        rv32_regf_wd <= rv32_dr_data;
-                    end else begin
+                    if (rv32_wb_opcode == RV32_LUI) begin // 1- Immediates: Load Upper Immediate to RF
+                        rv32_regf_wd <= rv32_wb_imm;
+                    end else if (rv32_wb_save_pc) begin // 2- Return Add: PC has to be written to RF
+                        rv32_regf_wd <= rv32_wb_reg_pc;
+                    end else begin // 3- ALU Res: All other instructions except rv32_wf_skip have to write ALU res into RF 
                         rv32_regf_wd <= rv32_wb_out;
                     end
-                    pc_sel <= `PITO_PC_SEL_PLUS_4;
-                end else if (rv32_wb_inst_type == RV32_TYPE_J) begin
-                    rv32_regf_wd <= rv32_wb_pc + 4;
-                    pc_sel       <= `PITO_PC_SEL_COMPUTED;
-                    rv32_regf_wa <= rv32_wb_rd;
+                end
+
+                //=================================================================================
+                // Next PC Counter
+                //=================================================================================
+                // Decide if we need to update PC or not. Upto this point, we have been pipelining 
+                // the PC. For jump and branch instructions, we need to update the PC. For other 
+                // instructions, we need to use the current (in Fetch stage) PC + 4. The rv32_next_pc_cal 
+                // has already calculated the next PC value. With rv32_wb_has_new_pc we know if we 
+                // need to use the calculated PC counter or just the current (in Fetch stage) PC + 4.
+                if (rv32_wb_has_new_pc) begin
+                    pc_sel     <= `PITO_PC_SEL_COMPUTED;
+                    rv32_wf_pc <= rv32_wb_next_pc_val;
+                end else begin
+                    pc_sel     <= `PITO_PC_SEL_PLUS_4;
+                    rv32_wf_pc <= rv32_wb_pc;
                 end
             end else begin
-                pc_sel <= `PITO_PC_SEL_PLUS_4;
+                pc_sel     <= `PITO_PC_SEL_PLUS_4;
+                rv32_wf_pc <= rv32_wb_pc;
             end
             `ifdef DEBUG
                 rv32_org_wf_pc <= rv32_org_wb_pc;
@@ -361,8 +401,8 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
 //====================================================================
 `ifdef DEBUG
 rv32_opcode_enum_t rv32_cap_opcode;
-rv_pc_cnt_t        rv32_cap_pc;
-rv32_instr_t       rv32_instr_cap;
+rv32_pc_cnt_t      rv32_cap_pc;
+rv32_instr_t       rv32_cap_instr;
 
     always @(posedge clk) begin
         if(rv32_io_rst_n == 1'b0) begin
@@ -370,7 +410,7 @@ rv32_instr_t       rv32_instr_cap;
         end else begin
             rv32_cap_pc     <= rv32_wf_pc;
             rv32_cap_opcode <= rv32_wf_opcode;
-            rv32_instr_cap  <= rv32_instr_wf;
+            rv32_cap_instr  <= rv32_wf_instr;
             rv32_org_cap_pc <= rv32_org_wf_pc;
         end
     end

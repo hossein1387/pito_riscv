@@ -1,10 +1,10 @@
 `timescale 1 ps / 1 ps
 
 module rv32_alu (
-    input  rv_register_t       rs1,
-    input  rv_register_t       rs2,
-    input  rv_alu_op_t         alu_opcode,
-    output rv_register_t       res,
+    input  rv32_register_t       rs1,
+    input  rv32_register_t       rs2,
+    input  rv32_alu_op_t         alu_opcode,
+    output rv32_register_t       res,
     output logic               z
 );
 

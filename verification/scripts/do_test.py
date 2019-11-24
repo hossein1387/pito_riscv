@@ -107,28 +107,29 @@ if __name__ == '__main__':
         if sv_rtl != "":
             cmd_to_run = "xvlog --sv {0} ".format(sv_rtl)
             if silence:
-                cmd_to_run += "> /dev/null"
+                cmd_to_run += " > /dev/null "
             util.run_command(cmd_to_run, split=False, verbosity=verbosity)
         if v_rtl != "":
-            cmd_to_run = "xvlog {0} ".format(v_rtl)
+            cmd_to_run = " xvlog {0} ".format(v_rtl)
             if silence:
-                cmd_to_run += "> /dev/null"
+                cmd_to_run += " > /dev/null "
             util.run_command(cmd_to_run, split=False, verbosity=verbosity)
         if vhdl_rtl != "":
             cmd_to_run = "xvhdl {0} ".format(vhdl_rtl)
             if silence:
-                cmd_to_run += "> /dev/null"
+                cmd_to_run += " > /dev/null "
             util.run_command(cmd_to_run, split=False, verbosity=verbosity)
 
 
         util.print_banner("Creating snapshot", verbosity=verbosity)
-        cmd_to_run = "xelab -debug typical -L secureip -L unisims_ver -L unimacro_ver {0} --timescale {1}".format(top_level, args['timescale'])
+        cmd_to_run = "xelab -debug typical -L secureip -L unisims_ver -L unimacro_ver {0} ".format(top_level)
         if waveform:
-            cmd_to_run += "--debug all "
+            cmd_to_run += " --debug all "
         if silence:
-            cmd_to_run += "> /dev/null"
+            cmd_to_run += " > /dev/null "
+        if args['timescale'] != None:
+            cmd_to_run += "--timescale {} ".format(args['timescale'])
         util.run_command(cmd_to_run, split=False, verbosity=verbosity)
-
         util.print_banner("Running simulation", verbosity=verbosity)
         if gui:
             cmd_to_run = "xsim --g {0} ".format(top_level)
