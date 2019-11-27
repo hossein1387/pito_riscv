@@ -18,19 +18,27 @@ typedef enum {
     VERB_DEBUG  = 500
 } print_verbosity_t;
 
+
 //==================================================================================================
 // Logger class, logs test string to a file
 class Logger;  /* base class*/;
-    static int fd;
+    int fd;
+    bit log_time;
+    bit log_to_std_out;
 
-    function new (string file_name);
+    function new (string file_name, bit log_time=1, bit log_to_std_out=1);
           this.fd = $fopen(file_name,"w");
+          this.log_time = log_time;
+          this.log_to_std_out = log_to_std_out;
     endfunction
 
     function void print (string msg, string id="INFO", print_verbosity_t verbosity=VERB_LOW);
-        string log = $sformatf("[%5s]  %s ", id, msg);
+        string time_stamp = this.log_time ? $sformatf("%t",$time()) : "";
+        string log = $sformatf("[%5s] %s %s ", id, time_stamp, msg);
         if (verbosity<VERB_MEDIUM) begin
-            $display("%s", log);
+            if (log_to_std_out == 1) begin
+                $display("%s", log);
+            end
         end
         $fwrite(this.fd, log);
     endfunction
@@ -39,7 +47,9 @@ class Logger;  /* base class*/;
         string sep = "=======================================================================";
         string log = $sformatf("%s\n[%5s]  %s \n%s", sep, id, msg, sep);
         if (verbosity<VERB_MEDIUM) begin
-            $display("%s", log);
+            if (log_to_std_out == 1) begin
+                $display("%s", log);
+            end
         end
         $fwrite(this.fd, log);
     endfunction

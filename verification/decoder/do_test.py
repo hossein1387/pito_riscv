@@ -1,1 +1,0 @@
-../scripts/do_test.py

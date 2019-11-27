@@ -39,11 +39,12 @@ module core_tester ();
         imem_w_en = 1'b1;
         @(posedge clk);
         logger.print_banner($sformatf("Writing %6d instructions to the RAM", instr_q.size()));
+        logger.print($sformatf(" ADDR         INSTR TYPE       OPCODE          DECODING"));
         for (int i=0; i<instr_q.size(); i++) begin
             @(posedge clk);
             imem_data = instr_q[i];
             imem_addr = i;
-            logger.print($sformatf("%s", get_instr_str(rv32i_dec.decode_instr(instr_q[i]))));
+            logger.print($sformatf("[%4d]: %s", i, get_instr_str(rv32i_dec.decode_instr(instr_q[i]))));
         end
         @(posedge clk);
         imem_w_en = 1'b0;
@@ -57,20 +58,74 @@ module core_tester ();
         return regs;
     endfunction : read_regs
 
-    task monitor_pito(rv32_instr_q instr_q);
+    function show_pipeline ();
+            logger.print($sformatf("DECODE :  %s", core.rv32_dec_opcode.name ));
+            logger.print($sformatf("EXECUTE:  %s", core.rv32_ex_opcode.name  ));
+            logger.print($sformatf("WRITEB :  %s", core.rv32_wb_opcode.name  ));
+            logger.print($sformatf("WRITEF :  %s", core.rv32_wf_opcode.name  ));
+            logger.print($sformatf("CAP    :  %s", core.rv32_cap_opcode.name  ));
+            logger.print("\n");
+    endfunction 
+    // The dut takes 5 clock cycle to process an instruction.
+    // Before analysing the output, we first make sure we are 
+    // in-sync with the processor. 
+    task automatic sync_with_dut(rv32_instr_q instr_q);
+        bit time_out = 1;
+        int NUM_WAIT_CYCELS = 100;
+        rv32_inst_dec_t exp_instr = rv32i_dec.decode_instr(instr_q[0]);
+        rv32_inst_dec_t act_instr; 
+        logger.print("Attempt to Sync with DUT...");
+        for (int cycle=0; cycle<NUM_WAIT_CYCELS; cycle++) begin
+            act_instr       = rv32i_dec.decode_instr(core.rv32_wf_instr);
+            logger.print($sformatf("exp:%s        actual=%s", exp_instr.opcode.name, act_instr.opcode.name));
+            if (core.rv32_cap_opcode == exp_instr.opcode) begin
+                time_out = 0;
+                break;
+            end
+            @(posedge clk);
+        end
+        if (time_out) begin
+            logger.print($sformatf("Failed to sync with DUT after %4d cycles.", NUM_WAIT_CYCELS), "ERROR");
+            $finish;
+        end else begin
+            logger.print("Sync with DUT completed...");
+        end
+    endtask
+
+    task automatic monitor_pito(rv32_instr_q instr_q);
+        bit all_instr_processed = 0;
+        int time_out = 0;
         rv32_inst_dec_t instr;
-        rv32_regfile_t  regs;
-        rv32_pc_cnt_t     pc_cnt, pc_orig_cnt;
+        rv32_instr_t    exp_instr;
+        rv32_pc_cnt_t   pc_cnt, pc_orig_cnt;
         logger.print_banner("Starting Monitor Task");
-        @(posedge clk);
-        for (int i=0; i<100; i++) begin
+        sync_with_dut(instr_q);
+        while(all_instr_processed!=1 && time_out<100) begin
             // logger.print($sformatf("pc=%d       decode:%s", core.rv32_dec_pc, core.rv32_dec_opcode.name));
             // logger.print($sformatf("%s",read_regs()));
-            pc_cnt      = core.rv32_cap_pc;
-            pc_orig_cnt = core.rv32_org_cap_pc;
-            instr       = rv32i_dec.decode_instr(core.rv32_cap_instr);
-            regs        = read_regs();
-            rv32i_pred.predict(instr, regs, pc_cnt, pc_orig_cnt);
+            exp_instr   = instr_q.pop_front();
+            all_instr_processed = (instr_q.size()==0) ? 1 : 0;
+            pc_cnt      = core.rv32_wf_pc;
+            pc_orig_cnt = core.rv32_org_wf_pc;
+            logger.print($sformatf("Decoding %h", core.rv32_wf_instr));
+            instr       = rv32i_dec.decode_instr(core.rv32_wf_instr);
+            @(posedge clk);
+            rv32i_pred.predict(instr, pc_cnt, pc_orig_cnt, read_regs());
+            time_out+= 1;
+            @(negedge clk);
+        end
+        if (all_instr_processed) begin
+            logger.print_banner("All instructions were processed.");
+        end else begin
+            logger.print_banner("Failed to process all instructions.");
+        end
+    endtask
+
+    task monitor_regs();
+        Logger reg_logger = new("reg_logs.log", 1, 0);
+        @(posedge clk);
+        while(1) begin
+            reg_logger.print($sformatf("\n%s\n", reg_file_to_str(read_regs())));
             @(posedge clk);
         end
     endtask
@@ -86,7 +141,7 @@ module core_tester ();
 
         logger = new(sim_log_file);
         rv32i_dec = new(logger);
-        rv32i_pred = new(logger);
+        rv32i_pred = new(logger, read_regs());
 
         instr_q = process_hex_file(program_hex_file, logger);
 
@@ -97,7 +152,10 @@ module core_tester ();
         @(posedge clk);
         rst_n     = 1'b1;
         @(posedge clk);
-        monitor_pito(instr_q);
+        fork
+            monitor_pito(instr_q);
+            monitor_regs();
+        join_any
         rv32i_pred.report_result();
         $finish();
     end
@@ -106,6 +164,7 @@ module core_tester ();
 // Simulation specific Threads
 
     initial begin 
+        $timeformat(-9, 2, " ns", 12);
         clk   = 0;
         forever begin
             #((CLOCK_SPEED)*1ns) clk = !clk;
