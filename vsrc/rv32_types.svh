@@ -40,30 +40,30 @@ typedef struct packed {
 } rv32_type_r_t;
 
 typedef struct packed {
-    logic [11:0]        imm;
+    logic [11:0]          imm;
     rv32_register_field_t rs1;
-    fnct3_t             funct3;
+    fnct3_t               funct3;
     rv32_register_field_t rd;
     rv32_opcode_t         opcode;
 } rv32_type_i_t;
 
 typedef struct packed {
-    logic [6:0]         imm_u;
+    logic [6:0]           imm_u;
     rv32_register_field_t rs2;
     rv32_register_field_t rs1;
-    fnct3_t             funct3;
-    logic [4:0]         imm_l;
+    fnct3_t               funct3;
+    logic [4:0]           imm_l;
     rv32_opcode_t         opcode;
 } rv32_type_s_t;
 
 typedef struct packed {
-    logic [0:0]         imm12;
-    logic [5:0]         immu;
+    logic [0:0]           imm12;
+    logic [5:0]           immu;
     rv32_register_field_t rs2;
     rv32_register_field_t rs1;
-    fnct3_t             funct3;
-    logic [3:0]         imm_l;
-    logic [0:0]         imm_11;
+    fnct3_t               funct3;
+    logic [3:0]           imm_l;
+    logic [0:0]           imm_11;
     rv32_opcode_t         opcode;
 } rv32_type_b_t;
 
@@ -91,12 +91,12 @@ typedef struct packed {
 typedef union packed {
     logic [`XPR_LEN-1:0] rv32_instr;
     rv32_dec_op_t        rv32_dec_op;
-    rv32_type_r_t        rv32_type_r;
-    rv32_type_i_t        rv32_type_i;
-    rv32_type_s_t        rv32_type_s;
-    rv32_type_b_t        rv32_type_b;
-    rv32_type_u_t        rv32_type_u;
-    rv32_type_j_t        rv32_type_j;
+    // rv32_type_r_t        rv32_type_r;
+    // rv32_type_i_t        rv32_type_i;
+    // rv32_type_s_t        rv32_type_s;
+    // rv32_type_b_t        rv32_type_b;
+    // rv32_type_u_t        rv32_type_u;
+    // rv32_type_j_t        rv32_type_j;
 } rv32_instr_t;
 
 //-------------------------------------------------------------------

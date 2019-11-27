@@ -3,9 +3,9 @@
 module rv32_core (
     input  logic              rv32_io_clk,    // Clock
     input  logic              rv32_io_rst_n,  // Synchronous reset active low
-    input  rv32_imem_addr_t     rv32_io_imem_addr,
+    input  rv32_imem_addr_t   rv32_io_imem_addr,
     input  rv32_instr_t       rv32_io_imem_data,
-    input  rv32_dmem_addr_t     rv32_io_dmem_addr,
+    input  rv32_dmem_addr_t   rv32_io_dmem_addr,
     input  rv32_data_t        rv32_io_dmem_data,
     input  logic              rv32_io_imem_w_en,
     input  logic              rv32_io_dmem_w_en,
@@ -27,7 +27,7 @@ rv32_pc_cnt_t        rv32_org_cap_pc;
 // General signals
 logic              clk;
 logic              rst_n;
-rv32_pc_cnt_t        rv32_pc;
+rv32_pc_cnt_t      rv32_pc;
 
 // raw un-decoded rv32 instruction
 rv32_instr_t        rv32_instr;
@@ -248,7 +248,7 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
         if(rv32_io_rst_n == 1'b0) begin
             rv32_dec_pc <= 0;
         end else begin
-            rv32_dec_pc <= rv32_pc;
+            rv32_dec_pc    <= rv32_pc;
             rv32_dec_instr <= rv32_instr;
         end
     end
@@ -260,7 +260,8 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
                         (rv32_dec_opcode == RV32_SLT ) || (rv32_dec_opcode == RV32_SLTU ) || (rv32_dec_opcode == RV32_SLL ) ) ? `PITO_ALU_SRC_RS2 : `PITO_ALU_SRC_IMM ;
     always @(posedge clk) begin
         if(rv32_io_rst_n == 1'b0) begin
-            rv32_ex_pc <= 0;
+            rv32_ex_pc    <= 0;
+            rv32_dec_instr<= {32{1'b0}};
         end else begin
             // rv32_regf_wen    <= 1'b0;
             rv32_ex_opcode    <= rv32_dec_opcode;
@@ -301,7 +302,8 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
 
     always @(posedge clk) begin
         if(rv32_io_rst_n == 1'b0) begin
-            rv32_wb_pc <= 0;
+            rv32_wb_pc   <= 0;
+            rv32_wb_instr<= {32{1'b0}};
         end else begin
             rv32_wb_pc       <= rv32_ex_pc;
             rv32_wb_opcode   <= rv32_ex_opcode;
@@ -322,7 +324,7 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
                     end else begin
                         rv32_dmem_addr_ctrl <= rv32_alu_res;
                         rv32_dmem_data_ctrl <= rv32_wb_rs2_skip;
-                        rv32_dmem_w_en_ctrl <= 1'b1;
+                        rv32_dmem_w_en_ctrl <= 1'b1; // -------------------------------> BUG1
                     end
                 end
             end
@@ -343,9 +345,10 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
             rv32_regf_wa <= 0;
             rv32_wf_pc   <= 0;
             pc_sel       <= `PITO_PC_SEL_PLUS_4;
+            rv32_wf_instr<= {32{1'b0}};
         end else begin
             rv32_wf_opcode      <= rv32_wb_opcode;
-            rv32_dmem_w_en_ctrl <= 1'b0;
+            rv32_dmem_w_en_ctrl <= 1'b0; // -------------------------------> BUG1
             rv32_wf_instr       <= rv32_wb_instr;
             if (rv32_wb_opcode != RV32_NOP) begin
                 //=================================================================================
