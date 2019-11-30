@@ -1,1 +1,1 @@
-/Users/Hossein/MyRepos/pito_riscv/csrc/common/link.ld
+../common/link.ld

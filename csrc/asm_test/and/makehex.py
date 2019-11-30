@@ -1,1 +1,1 @@
-/Users/Hossein/MyRepos/pito_riscv/csrc/common/makehex.py
+../common/makehex.py

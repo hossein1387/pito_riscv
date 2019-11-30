@@ -1,1 +1,1 @@
-/Users/Hossein/MyRepos/pito_riscv/csrc/common/riscv_test.h
+../common/riscv_test.h
