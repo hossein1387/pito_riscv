@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+
 import os
 import sys
 import argparse
@@ -25,6 +26,7 @@ def hex_to_bin(hex_file, mode, bin_file):
                 if mode == 'str':
                     bin_vals += str(val)
                 elif mode == 'bytecode':
+                    print(val)
                     fw.write(bitstring_to_bytes(val))
     fw.close()
 
