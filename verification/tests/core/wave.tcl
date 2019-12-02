@@ -72,6 +72,16 @@ add_wave_group core
         add_wave -into WFStage {{/core_tester/core/rv32_dr_addr}}
         add_wave -into WFStage {{/core_tester/core/rv32_dr_data}}
         add_wave -into WFStage {{/core_tester/core/rv32_wf_instr}}
+    add_wave_group -into WFStage Next_PC
+            add_wave -into Next_PC {{/core_tester/core/rv32_next_pc_cal/rv32_alu_res}}
+            add_wave -into Next_PC {{/core_tester/core/rv32_next_pc_cal/rv32_rs1}}
+            add_wave -into Next_PC {{/core_tester/core/rv32_next_pc_cal/rv32_imm}}
+            add_wave -into Next_PC {{/core_tester/core/rv32_next_pc_cal/rv32_instr_opcode}}
+            add_wave -into Next_PC {{/core_tester/core/rv32_next_pc_cal/rv32_cur_pc}}
+            add_wave -into Next_PC {{/core_tester/core/rv32_next_pc_cal/rv32_save_pc}}
+            add_wave -into Next_PC {{/core_tester/core/rv32_next_pc_cal/rv32_has_new_pc}}
+            add_wave -into Next_PC {{/core_tester/core/rv32_next_pc_cal/rv32_reg_pc}}
+            add_wave -into Next_PC {{/core_tester/core/rv32_next_pc_cal/rv32_next_pc_val}}
 add_wave_group i_mem
     add_wave -into i_mem {{/core_tester/core/i_mem}} 
 add_wave_group decoder
