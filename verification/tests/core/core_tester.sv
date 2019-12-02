@@ -8,7 +8,7 @@ module core_tester ();
     Logger logger;
     rv32_utils::RV32IDecoder rv32i_dec;
     rv32_utils::RV32IPredictor rv32i_pred;
-    string program_hex_file = "lui.hex";
+    string program_hex_file = "test.hex";
     string sim_log_file     = "core_tester.log";
 //==================================================================================================
 // DUT Signals
@@ -39,12 +39,12 @@ module core_tester ();
         imem_w_en = 1'b1;
         @(posedge clk);
         logger.print_banner($sformatf("Writing %6d instructions to the RAM", instr_q.size()));
-        logger.print($sformatf(" ADDR         INSTR TYPE       OPCODE          DECODING"));
+        logger.print($sformatf(" ADDR  INSTRUCTION          INSTR TYPE       OPCODE          DECODING"));
         for (int i=0; i<instr_q.size(); i++) begin
             @(posedge clk);
             imem_data = instr_q[i];
             imem_addr = i;
-            logger.print($sformatf("[%4d]: %s", i, get_instr_str(rv32i_dec.decode_instr(instr_q[i]))));
+            logger.print($sformatf("[%4d]: 0x%8h     %s", i, instr_q[i], get_instr_str(rv32i_dec.decode_instr(instr_q[i]))));
         end
         @(posedge clk);
         imem_w_en = 1'b0;
@@ -77,7 +77,7 @@ module core_tester ();
         logger.print("Attempt to Sync with DUT...");
         for (int cycle=0; cycle<NUM_WAIT_CYCELS; cycle++) begin
             act_instr       = rv32i_dec.decode_instr(core.rv32_wf_instr);
-            logger.print($sformatf("exp:%s        actual=%s", exp_instr.opcode.name, act_instr.opcode.name));
+            logger.print($sformatf("exp=0x%8h: %s        actual=0x%8h: %s", instr_q[0], exp_instr.opcode.name, core.rv32_wf_instr, act_instr.opcode.name));
             if (core.rv32_cap_opcode == exp_instr.opcode) begin
                 time_out = 0;
                 break;
@@ -94,24 +94,24 @@ module core_tester ();
 
     task automatic monitor_pito(rv32_instr_q instr_q);
         bit all_instr_processed = 0;
-        int time_out = 0;
         rv32_inst_dec_t instr;
         rv32_instr_t    exp_instr;
+        rv32_instr_t    act_instr;
         rv32_pc_cnt_t   pc_cnt, pc_orig_cnt;
         logger.print_banner("Starting Monitor Task");
         sync_with_dut(instr_q);
-        while(all_instr_processed!=1 && time_out<100) begin
+        while(all_instr_processed!=1) begin
             // logger.print($sformatf("pc=%d       decode:%s", core.rv32_dec_pc, core.rv32_dec_opcode.name));
             // logger.print($sformatf("%s",read_regs()));
             exp_instr   = instr_q.pop_front();
             all_instr_processed = (instr_q.size()==0) ? 1 : 0;
             pc_cnt      = core.rv32_wf_pc;
             pc_orig_cnt = core.rv32_org_wf_pc;
-            logger.print($sformatf("Decoding %h", core.rv32_wf_instr));
-            instr       = rv32i_dec.decode_instr(core.rv32_wf_instr);
+            act_instr   = core.rv32_wf_instr;
+            // logger.print($sformatf("Decoding %h", core.rv32_wf_instr));
+            instr       = rv32i_dec.decode_instr(act_instr);
             @(posedge clk);
-            rv32i_pred.predict(instr, pc_cnt, pc_orig_cnt, read_regs());
-            time_out+= 1;
+            rv32i_pred.predict(act_instr, instr, pc_cnt, pc_orig_cnt, read_regs());
             @(negedge clk);
         end
         if (all_instr_processed) begin
@@ -143,7 +143,7 @@ module core_tester ();
         rv32i_dec = new(logger);
         rv32i_pred = new(logger, read_regs());
 
-        instr_q = process_hex_file(program_hex_file, logger);
+        instr_q = process_hex_file(program_hex_file, logger, 100); // read hex file and store the first 100 words to the ram
 
         @(posedge clk);
         rst_n     = 1'b0;

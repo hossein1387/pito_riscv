@@ -12,28 +12,31 @@ module rv32_next_pc (
     output rv32_pc_cnt_t      rv32_next_pc_val // calculated pc
 );
 
-    assign rv32_has_new_pc = ((rv32_instr_opcode == RV32_AUIPC) ||
-                              (rv32_instr_opcode == RV32_BEQ  ) ||
-                              (rv32_instr_opcode == RV32_BNE  ) ||
-                              (rv32_instr_opcode == RV32_BLT  ) ||
-                              (rv32_instr_opcode == RV32_BGE  ) ||
-                              (rv32_instr_opcode == RV32_BLTU ) ||
-                              (rv32_instr_opcode == RV32_BGEU ) ||
-                              (rv32_instr_opcode == RV32_JAL  ) ||
-                              (rv32_instr_opcode == RV32_JALR ) );
-
     always_comb begin
-        if (rv32_has_new_pc) begin
-            case (rv32_instr_opcode)
-                RV32_AUIPC: rv32_next_pc_val = rv32_cur_pc + rv32_imm; 
-                RV32_BEQ , RV32_BNE , RV32_BLT , RV32_BGE , RV32_BLTU, RV32_BGEU : rv32_next_pc_val = (rv32_alu_res == 1) ? rv32_cur_pc + rv32_imm : rv32_cur_pc; 
-                RV32_JAL  : begin rv32_next_pc_val = rv32_cur_pc + rv32_imm; rv32_reg_pc = rv32_cur_pc + 4; end
-                RV32_JALR : begin rv32_next_pc_val = rv32_rs1 + rv32_imm; rv32_reg_pc = rv32_cur_pc + 4; end
-                default : rv32_next_pc_val = rv32_cur_pc;
-            endcase
-        end else begin
-            rv32_next_pc_val = rv32_cur_pc;
-        end
+        case (rv32_instr_opcode)
+            RV32_AUIPC: begin
+                rv32_next_pc_val = rv32_cur_pc + rv32_imm; 
+                rv32_has_new_pc  = 1'b1; 
+            end
+            RV32_BEQ , RV32_BNE , RV32_BLT , RV32_BGE , RV32_BLTU, RV32_BGEU : begin
+                rv32_next_pc_val = (rv32_alu_res == 1) ? rv32_cur_pc + rv32_imm : rv32_cur_pc; 
+                rv32_has_new_pc  = (rv32_alu_res == 1) ? 1'b1 : 1'b0; 
+            end
+            RV32_JAL  : begin 
+                rv32_next_pc_val = rv32_cur_pc + rv32_imm; 
+                rv32_reg_pc      = rv32_cur_pc + 4; 
+                rv32_has_new_pc  = 1'b1; 
+            end
+            RV32_JALR : begin 
+                rv32_next_pc_val = rv32_rs1 + rv32_imm; 
+                rv32_reg_pc = rv32_cur_pc + 4; 
+                rv32_has_new_pc  = 1'b1; 
+            end
+            default : begin
+                rv32_next_pc_val = rv32_cur_pc;
+                rv32_has_new_pc  = 1'b0; 
+            end
+        endcase
     end
 
     assign rv32_save_pc = (rv32_has_new_pc && ((rv32_instr_opcode == RV32_JAL) || (rv32_instr_opcode == RV32_JALR))) ? 1'b1 : 1'b0;

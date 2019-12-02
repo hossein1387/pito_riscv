@@ -23,6 +23,10 @@ rv32_pc_cnt_t        rv32_org_ex_pc;
 rv32_pc_cnt_t        rv32_org_wb_pc;
 rv32_pc_cnt_t        rv32_org_wf_pc;
 rv32_pc_cnt_t        rv32_org_cap_pc;
+rv32_regfile_t       rv32_ex_regf;
+rv32_regfile_t       rv32_wb_regf;
+rv32_regfile_t       rv32_wf_regf;
+rv32_regfile_t       rv32_cap_regf;
 `endif
 // General signals
 logic              clk;
@@ -118,11 +122,11 @@ rv32_data_t      rv32_dmem_data_ctrl;
 logic            rv32_dmem_w_en_ctrl;
 
 // Data Memory signals
-rv32_dmem_addr_t  rv32_dw_addr;
-rv32_data_t     rv32_dw_data;
-logic           rv32_dw_en  ;
-rv32_dmem_addr_t  rv32_dr_addr;
-rv32_data_t     rv32_dr_data;
+rv32_dmem_addr_t rv32_dw_addr;
+rv32_data_t      rv32_dw_data;
+logic            rv32_dw_en  ;
+rv32_dmem_addr_t rv32_dr_addr;
+rv32_data_t      rv32_dr_data;
 
 // connect io clock and reset to internal logic
 assign clk   = rv32_io_clk;
@@ -292,6 +296,9 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
             end
             `ifdef DEBUG
                 rv32_org_ex_pc <= rv32_dec_pc;
+                for (int i = 0; i < 32; i++) begin
+                    rv32_ex_regf[i]   <= regfile.data[i];
+                end
             `endif
         end
     end
@@ -330,6 +337,7 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
             end
             `ifdef DEBUG
                 rv32_org_wb_pc <= rv32_org_ex_pc;
+                rv32_wb_regf   <= rv32_ex_regf;
             `endif
         end
     end
@@ -392,6 +400,7 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
             end
             `ifdef DEBUG
                 rv32_org_wf_pc <= rv32_org_wb_pc;
+                rv32_wf_regf   <= rv32_wb_regf;
             `endif
         end
     end
@@ -415,6 +424,7 @@ rv32_instr_t       rv32_cap_instr;
             rv32_cap_opcode <= rv32_wf_opcode;
             rv32_cap_instr  <= rv32_wf_instr;
             rv32_org_cap_pc <= rv32_org_wf_pc;
+            rv32_cap_regf   <= rv32_wf_regf;
         end
     end
 `endif
