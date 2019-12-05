@@ -4,6 +4,7 @@
 `define DEBUG 1
 `define PITO_NULL  0
 `define NUM_REGS 32
+`define REG_FILE_INIT "regfile.mem"
 //-------------------------------------------------------------------
 //                          Reset Macros
 //-------------------------------------------------------------------

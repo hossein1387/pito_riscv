@@ -75,9 +75,9 @@ class RV32IDecoder extends BaseObj;
         //string ins_str;
         string inst_type = "J-Type";
         logic [6:0] opcode = instr[6:0];
-        logic [19:0] pre_imm = instr[31:12];
-        int imm = {{12{pre_imm[19]}}, {pre_imm[19], pre_imm[9:0], pre_imm[10], pre_imm[18:11]}};
-        rv32_register_field_t rd = instr[11:7]; 
+        int imm = { {12{instr[31]}}, instr[31], instr[19:12], instr[20], instr[30:21]};
+
+        rv32_register_field_t rd = instr[11:7];
         if          (opcode == 7'b1101111) begin
             //rv32_inst_dec.ins_str = $sformatf("%8s.%7s: rd=%2d                imm=%4d", inst_type, "jal", rd, imm);
             rv32_inst_dec.opcode      = RV32_JAL;
@@ -342,18 +342,32 @@ class RV32IPredictor extends BaseObj;
     test_stats_t test_stat;
     rv32_regfile_t regf_model;
 
-    function new (Logger logger, rv32_regfile_t  regs);
+    function init_regfile_model();
+        int file_faults = $fopen (`REG_FILE_INIT, "r");
+        integer scan_faults;
+        int reg_cnt = 0;
+        string line;
+        while (!$feof(file_faults) && reg_cnt< 32) begin
+            scan_faults = $fgets(line, file_faults);
+            this.regf_model[reg_cnt] = line.atohex();
+            reg_cnt += 1;
+        end
+    endfunction
+
+    function new (Logger logger);
         super.new(logger);   // Calls 'new' method of parent class
         test_stat = '{pass_cnt: 0, fail_cnt: 0};
-        this.update_regf(regs);
+        init_regfile_model();
     endfunction
 
     function report_result ();
         print_result(this.test_stat, VERB_LOW, logger);
     endfunction : report_result
 
-    function update_regf(rv32_regfile_t regf);
-        this.regf_model = regf;
+    function update_regf(bit has_update, rv32_register_field_t rd, int val);
+        if (has_update) begin
+            this.regf_model[rd] = val;
+        end
     endfunction
 
     function void check_res(rv32_instr_t act_instr, int exp_val, real_val, string info="");
@@ -377,6 +391,7 @@ class RV32IPredictor extends BaseObj;
         string                instr_str = get_instr_str(instr);
         int                   exp_val, real_val;
         string                info;
+        bit                   has_update = 0;
         case (opcode)
             RV32_LB     : begin
                 logger.print($sformatf("checking 0x%8h: %s  is not supported yet", int'(act_instr), instr_str));
@@ -406,6 +421,7 @@ class RV32IPredictor extends BaseObj;
                 exp_val  = (regf_model[rs1] << regf_model[rs2]);
                 real_val =  regf[rd];
                 info     = instr_str;
+                has_update=1;
                 check_res(act_instr, exp_val, real_val, info);
             end
             RV32_SLLI   : begin
@@ -413,12 +429,14 @@ class RV32IPredictor extends BaseObj;
                 exp_val  = (regf_model[rs1] << imm);
                 real_val =  regf[rd];
                 info     = instr_str;
+                has_update=1;
                 check_res(act_instr, exp_val, real_val, info);
             end
             RV32_SRL    : begin
                 exp_val  = (regf_model[rs1] >> regf_model[rs2]);
                 real_val =  regf[rd];
                 info     = instr_str;
+                has_update=1;
                 check_res(act_instr, exp_val, real_val, info);
             end
             RV32_SRLI   : begin
@@ -426,12 +444,14 @@ class RV32IPredictor extends BaseObj;
                 exp_val  = (regf_model[rs1] >> imm);
                 real_val =  regf[rd];
                 info     = instr_str;
+                has_update=1;
                 check_res(act_instr, exp_val, real_val, info);
             end
             RV32_SRA    : begin
                 exp_val  = (regf_model[rs1] >>> regf_model[rs2]);
                 real_val =  regf[rd];
                 info     = instr_str;
+                has_update=1;
                 check_res(act_instr, exp_val, real_val, info);
             end
             RV32_SRAI   : begin
@@ -439,100 +459,116 @@ class RV32IPredictor extends BaseObj;
                 exp_val  = (regf_model[rs1] >>> imm);
                 real_val =  regf[rd];
                 info     = instr_str;
+                has_update=1;
                 check_res(act_instr, exp_val, real_val, info);
             end
             RV32_ADD    : begin
                 exp_val  = (regf_model[rs1] + regf_model[rs2]);
                 real_val =  regf[rd];
                 info     = instr_str;
+                has_update=1;
                 check_res(act_instr, exp_val, real_val, info);
             end
             RV32_ADDI   : begin
                 exp_val  = (regf_model[rs1] + int'(imm));
                 real_val =  regf[rd];
                 info     = instr_str;
+                has_update=1;
                 check_res(act_instr, exp_val, real_val, info);
             end
             RV32_SUB    : begin
                 exp_val  = (regf_model[rs1] - regf_model[rs2]);
                 real_val =  regf[rd];
                 info     = instr_str;
+                has_update=1;
                 check_res(act_instr, exp_val, real_val, info);
             end
             RV32_LUI    : begin
                 exp_val  = (int'(imm)<<12);
                 real_val =  regf[rd];
                 info     = instr_str;
+                has_update=1;
                 check_res(act_instr, exp_val, real_val, info);
             end
             RV32_AUIPC  : begin
                 exp_val  = (int'(pc_cnt)) + (int'(imm)<<12);
                 real_val =  regf[rd];
                 info     = instr_str;
+                has_update=1;
                 check_res(act_instr, exp_val, real_val, info);
             end
             RV32_XOR    : begin
                 exp_val  = (regf_model[rs1] ^ regf_model[rs2]);
                 real_val =  regf[rd];
                 info     = instr_str;
+                has_update=1;
                 check_res(act_instr, exp_val, real_val, info);
             end
             RV32_XORI   : begin
                 exp_val  = (regf_model[rs1] ^ int'(imm));
                 real_val =  regf[rd];
                 info     = instr_str;
+                has_update=1;
                 check_res(act_instr, exp_val, real_val, info);
             end
             RV32_OR     : begin
                 exp_val  = (regf_model[rs1] | regf_model[rs2]);
                 real_val =  regf[rd];
                 info     = instr_str;
+                has_update=1;
                 check_res(act_instr, exp_val, real_val, info);
             end
             RV32_ORI    : begin
                 exp_val  = (regf_model[rs1] | int'(imm));
                 real_val =  regf[rd];
                 info     = instr_str;
+                has_update=1;
                 check_res(act_instr, exp_val, real_val, info);
             end
             RV32_AND    : begin
                 exp_val  = (regf_model[rs1] & regf_model[rs2]);
                 real_val =  regf[rd];
                 info     = instr_str;
+                has_update=1;
                 check_res(act_instr, exp_val, real_val, info);
             end
             RV32_ANDI   : begin
                 exp_val  = (regf_model[rs1] & int'(imm));
                 real_val =  regf[rd];
                 info     = instr_str;
+                has_update=1;
                 check_res(act_instr, exp_val, real_val, info);
             end
             RV32_SLT    : begin
                 exp_val  = (regf_model[rs1] < regf_model[rs2]) ? 1 : 0;
                 real_val =  regf[rd];
                 info     = instr_str;
+                has_update=1;
                 check_res(act_instr, exp_val, real_val, info);
             end
             RV32_SLTI   : begin
                 exp_val  = (regf_model[rs1] < int'(imm)) ? 1 : 0;
                 real_val =  regf[rd];
                 info     = instr_str;
+                has_update=1;
                 check_res(act_instr, exp_val, real_val, info);
             end
             RV32_SLTU   : begin
                 exp_val  = (unsigned'(regf_model[rs1]) < unsigned'(regf_model[rs2]));
                 real_val =  regf[rd];
                 info     = instr_str;
+                has_update=1;
                 check_res(act_instr, exp_val, real_val, info);
             end
             RV32_SLTIU  : begin
                 exp_val  = (unsigned'(regf_model[rs1]) < signed'(imm));
                 real_val =  regf[rd];
                 info     = instr_str;
+                has_update=1;
                 check_res(act_instr, exp_val, real_val, info);
             end
             RV32_BEQ    : begin
-                $display($sformatf("BEQ-------> rs1=%0d rs2=%0d",signed'(regf_model[rs1]), signed'(regf_model[rs2])));
+                // $display($sformatf("BEQ-------> rs1=%0d rs2=%0d",signed'(regf_model[rs1]), signed'(regf_model[rs2])));
                 exp_val  = (signed'(regf_model[rs1]) == signed'(regf_model[rs2])) ? (pc_orig_cnt + signed'(imm)) : pc_orig_cnt;
                 real_val =  pc_cnt;
                 info     = instr_str;
@@ -576,6 +612,7 @@ class RV32IPredictor extends BaseObj;
                 exp_val  = pc_orig_cnt + 4;
                 real_val = regf_model[rd];
                 info     = instr_str;
+                has_update=1;
                 check_res(act_instr, exp_val, real_val, info);
             end
             RV32_JALR   : begin
@@ -586,6 +623,7 @@ class RV32IPredictor extends BaseObj;
                 exp_val  = pc_orig_cnt + 4;
                 real_val = regf_model[rd];
                 info     = instr_str;
+                has_update=1;
                 check_res(act_instr, exp_val, real_val, info);
             end
             RV32_FENCEI, RV32_FENCE,
@@ -607,7 +645,7 @@ class RV32IPredictor extends BaseObj;
                 logger.print($sformatf("Unknown Instruction: %s", instr_str));
             end
             endcase
-            this.update_regf(regf);
+            this.update_regf(has_update, rd, exp_val);
     endfunction
 
 endclass
@@ -652,13 +690,14 @@ endclass
         string instr_str, temp, line;
         rv32_instr_q instr_q;
         int word_cnt = 0;
-        if (fd)  begin logger.print($sformatf("File was opened successfully : %0d", fd)); end
-        else     begin logger.print($sformatf("File was NOT opened successfully : %0d", fd)); $finish(); end
+        if (fd)  begin logger.print($sformatf("%s was opened successfully : %0d", hex_file, fd)); end
+        else     begin logger.print($sformatf("%s was NOT opened successfully : %0d", hex_file, fd)); $finish(); end
         while (!$feof(fd) && word_cnt<nwords) begin
             temp = $fgets(line, fd);
             if (line.substr(0, 1) != "//") begin
                 instr_str = line.substr(0, 7);
                 instr_q.push_back(rv32_instr_t'(instr_str.atohex()));
+                word_cnt += 1;
             end
         end
         return instr_q;

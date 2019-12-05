@@ -98,6 +98,9 @@ add_wave_group pipeline
         add_wave -into pc_counters {{/core_tester/core/rv32_ex_pc}}
         add_wave -into pc_counters {{/core_tester/core/rv32_wb_pc}}
         add_wave -into pc_counters {{/core_tester/core/rv32_wf_pc}}
+        add_wave -into pc_counters {{/core_tester/core/rv32_org_ex_pc}}
+        add_wave -into pc_counters {{/core_tester/core/rv32_org_wb_pc}}
+        add_wave -into pc_counters {{/core_tester/core/rv32_org_wf_pc}}
     add_wave_group -into pipeline instructions
         add_wave -into instructions {{/core_tester/core/rv32_instr}}
         add_wave -into instructions {{/core_tester/core/rv32_dec_instr}}
@@ -110,3 +113,12 @@ add_wave_group pipeline
         add_wave -into opcodes {{/core_tester/core/rv32_ex_opcode}}
         add_wave -into opcodes {{/core_tester/core/rv32_wb_opcode}}
         add_wave -into opcodes {{/core_tester/core/rv32_wf_opcode}}
+    add_wave_group -into pipeline rs1_2
+        add_wave -into rs1_2 {{/core_tester/core/rv32_alu_rs1}}
+        add_wave -into rs1_2 {{/core_tester/core/rv32_alu_rs2}}
+        add_wave -into rs1_2 {{/core_tester/core/rv32_wb_alu_rs1}}
+        add_wave -into rs1_2 {{/core_tester/core/rv32_wb_alu_rs2}}
+        add_wave -into rs1_2 {{/core_tester/core/rv32_wf_alu_rs1}}
+        add_wave -into rs1_2 {{/core_tester/core/rv32_wf_alu_rs2}}
+        add_wave -into rs1_2 {{/core_tester/core/rv32_cap_alu_rs1}}
+        add_wave -into rs1_2 {{/core_tester/core/rv32_cap_alu_rs2}}

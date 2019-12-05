@@ -23,10 +23,13 @@ rv32_pc_cnt_t        rv32_org_ex_pc;
 rv32_pc_cnt_t        rv32_org_wb_pc;
 rv32_pc_cnt_t        rv32_org_wf_pc;
 rv32_pc_cnt_t        rv32_org_cap_pc;
-rv32_regfile_t       rv32_ex_regf;
-rv32_regfile_t       rv32_wb_regf;
-rv32_regfile_t       rv32_wf_regf;
-rv32_regfile_t       rv32_cap_regf;
+
+rv32_register_t     rv32_wb_alu_rs1;
+rv32_register_t     rv32_wb_alu_rs2;
+rv32_register_t     rv32_wf_alu_rs1;
+rv32_register_t     rv32_wf_alu_rs2;
+rv32_register_t     rv32_cap_alu_rs1;
+rv32_register_t     rv32_cap_alu_rs2;
 `endif
 // General signals
 logic              clk;
@@ -296,9 +299,6 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
             end
             `ifdef DEBUG
                 rv32_org_ex_pc <= rv32_dec_pc;
-                for (int i = 0; i < 32; i++) begin
-                    rv32_ex_regf[i]   <= regfile.data[i];
-                end
             `endif
         end
     end
@@ -337,7 +337,8 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
             end
             `ifdef DEBUG
                 rv32_org_wb_pc <= rv32_org_ex_pc;
-                rv32_wb_regf   <= rv32_ex_regf;
+                rv32_wb_alu_rs1<= rv32_alu_rs1;
+                rv32_wb_alu_rs2<= rv32_alu_rs2;
             `endif
         end
     end
@@ -400,7 +401,8 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
             end
             `ifdef DEBUG
                 rv32_org_wf_pc <= rv32_org_wb_pc;
-                rv32_wf_regf   <= rv32_wb_regf;
+                rv32_wf_alu_rs1<= rv32_wb_alu_rs1;
+                rv32_wf_alu_rs2<= rv32_wb_alu_rs2;
             `endif
         end
     end
@@ -424,7 +426,8 @@ rv32_instr_t       rv32_cap_instr;
             rv32_cap_opcode <= rv32_wf_opcode;
             rv32_cap_instr  <= rv32_wf_instr;
             rv32_org_cap_pc <= rv32_org_wf_pc;
-            rv32_cap_regf   <= rv32_wf_regf;
+            rv32_cap_alu_rs1<= rv32_wf_alu_rs1;
+            rv32_cap_alu_rs2<= rv32_wf_alu_rs2;
         end
     end
 `endif

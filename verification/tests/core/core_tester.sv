@@ -141,7 +141,7 @@ module core_tester ();
 
         logger = new(sim_log_file);
         rv32i_dec = new(logger);
-        rv32i_pred = new(logger, read_regs());
+        rv32i_pred = new(logger);
 
         instr_q = process_hex_file(program_hex_file, logger, 100); // read hex file and store the first 100 words to the ram
 
