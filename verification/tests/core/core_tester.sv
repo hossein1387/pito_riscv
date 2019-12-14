@@ -14,9 +14,9 @@ module core_tester ();
 // DUT Signals
     logic              clk;
     logic              rst_n;  // Asynchronous reset active low
-    rv32_imem_addr_t     imem_addr;
+    rv32_imem_addr_t   imem_addr;
     rv32_instr_t       imem_data;
-    rv32_dmem_addr_t     dmem_addr;
+    rv32_dmem_addr_t   dmem_addr;
     rv32_data_t        dmem_data;
     logic              imem_w_en;
     logic              dmem_w_en;
@@ -58,6 +58,49 @@ module core_tester ();
         return regs;
     endfunction : read_regs
 
+// TODO: A dirty hack for access values within DUT. A better way is to 
+// bind or use interface to correctly access the signals. For memory,
+// I do not have any idea :(
+    function automatic int read_dmem_word(rv32_inst_dec_t instr);
+        rv32_opcode_enum_t    opcode    = instr.opcode   ;
+        rv32_imm_t            imm       = instr.imm      ;
+        rv32_register_field_t rs1       = instr.rs1      ;
+        int                   addr;
+        case (opcode)
+            RV32_LB     : begin
+                addr      = (rs1==0) ? signed'(imm) : core.regfile.data[rs1]+signed'(imm);
+            end
+            RV32_LH     : begin
+                addr      = (rs1==0) ? signed'(imm) : core.regfile.data[rs1]+signed'(imm);
+            end
+            RV32_LW     : begin
+                addr      = (rs1==0) ? signed'(imm) : core.regfile.data[rs1]+signed'(imm);
+            end
+            RV32_LBU    : begin
+                addr      = (rs1==0) ? signed'(imm) : core.regfile.data[rs1]+signed'(imm);
+            end
+            RV32_LHU    : begin
+                addr      = (rs1==0) ? signed'(imm) : core.regfile.data[rs1]+signed'(imm);
+            end
+            RV32_SB     : begin
+                addr      = (rs1==0) ? signed'(imm) : core.regfile.data[rs1]+signed'(imm);
+            end
+            RV32_SH     : begin
+                addr      = (rs1==0) ? signed'(imm) : core.regfile.data[rs1]+signed'(imm);
+            end
+            RV32_SW     : begin
+                addr      = (rs1==0) ? signed'(imm) : core.regfile.data[rs1]+signed'(imm);
+            end
+            endcase
+        return core.d_mem.altsyncram_component.mem_data[addr];
+    endfunction : read_dmem_word
+
+    function print_imem_region(int addr_from, int addr_to);
+        for (int addr=addr_from; addr<=addr_to; addr++) begin
+            logger.print($sformatf("0x%4h: %8h", addr, core.i_mem.altsyncram_component.mem_data[addr]));
+        end
+    endfunction : print_imem_region
+
     function show_pipeline ();
             logger.print($sformatf("DECODE :  %s", core.rv32_dec_opcode.name ));
             logger.print($sformatf("EXECUTE:  %s", core.rv32_ex_opcode.name  ));
@@ -94,6 +137,7 @@ module core_tester ();
 
     task automatic monitor_pito(rv32_instr_q instr_q);
         bit all_instr_processed = 0;
+        rv32_opcode_enum_t rv32_wf_opcode;
         rv32_inst_dec_t instr;
         rv32_instr_t    exp_instr;
         rv32_instr_t    act_instr;
@@ -103,16 +147,19 @@ module core_tester ();
         while(all_instr_processed!=1) begin
             // logger.print($sformatf("pc=%d       decode:%s", core.rv32_dec_pc, core.rv32_dec_opcode.name));
             // logger.print($sformatf("%s",read_regs()));
-            exp_instr   = instr_q.pop_front();
+            exp_instr      = instr_q.pop_front();
             all_instr_processed = (instr_q.size()==0) ? 1 : 0;
-            pc_cnt      = core.rv32_wf_pc;
-            pc_orig_cnt = core.rv32_org_wf_pc;
-            act_instr   = core.rv32_wf_instr;
+            pc_cnt         = core.rv32_cap_pc;
+            pc_orig_cnt    = core.rv32_org_cap_pc;
+            act_instr      = core.rv32_wf_instr;
+            rv32_wf_opcode = core.rv32_cap_opcode;
             // logger.print($sformatf("Decoding %h", core.rv32_wf_instr));
-            instr       = rv32i_dec.decode_instr(act_instr);
-            @(posedge clk);
-            rv32i_pred.predict(act_instr, instr, pc_cnt, pc_orig_cnt, read_regs());
+            instr          = rv32i_dec.decode_instr(act_instr);
             @(negedge clk);
+            // $display($sformatf("instr: %s",rv32_wf_opcode.name));
+            rv32i_pred.predict(act_instr, instr, pc_cnt, pc_orig_cnt, read_regs(), read_dmem_word(instr));
+            // $display("\n");
+            // @(posedge clk);
         end
         if (all_instr_processed) begin
             logger.print_banner("All instructions were processed.");
@@ -152,6 +199,7 @@ module core_tester ();
         @(posedge clk);
         rst_n     = 1'b1;
         @(posedge clk);
+        // print_imem_region(0, 511);
         fork
             monitor_pito(instr_q);
             monitor_regs();
