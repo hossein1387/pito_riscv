@@ -55,7 +55,7 @@ add_wave_group core
         add_wave -into WBStage {{/core_tester/core/rv32_wb_rs2_skip}}
         add_wave -into WBStage {{/core_tester/core/rv32_wb_inst_type}}
         add_wave -into WBStage {{/core_tester/core/rv32_wb_pc}}
-        add_wave -into WBStage {{/core_tester/core/wb_skip}}
+        add_wave -into WBStage {{/core_tester/core/rv32_wb_skip}}
         add_wave -into WBStage {{/core_tester/core/rv32_wb_instr}}
     add_wave_group -into core WFStage
         add_wave -into WFStage {{/core_tester/core/rv32_wf_opcode}}
@@ -63,9 +63,9 @@ add_wave_group core
         add_wave -into WFStage {{/core_tester/core/pc_sel}}
         add_wave -into WFStage {{/core_tester/core/alu_src}}
         add_wave -into WFStage {{/core_tester/core/rv32_i_addr}}
-        add_wave -into WFStage {{/core_tester/core/rv32_dmem_addr_ctrl}}
-        add_wave -into WFStage {{/core_tester/core/rv32_dmem_data_ctrl}}
-        add_wave -into WFStage {{/core_tester/core/rv32_dmem_w_en_ctrl}}
+        add_wave -into WFStage {{/core_tester/core/rv32_dmem_addr}}
+        add_wave -into WFStage {{/core_tester/core/rv32_dmem_data}}
+        add_wave -into WFStage {{/core_tester/core/rv32_dmem_w_en}}
         add_wave -into WFStage {{/core_tester/core/rv32_dw_addr}}
         add_wave -into WFStage {{/core_tester/core/rv32_dw_data}}
         add_wave -into WFStage {{/core_tester/core/rv32_dw_en}}
@@ -82,8 +82,6 @@ add_wave_group core
             add_wave -into Next_PC {{/core_tester/core/rv32_next_pc_cal/rv32_has_new_pc}}
             add_wave -into Next_PC {{/core_tester/core/rv32_next_pc_cal/rv32_reg_pc}}
             add_wave -into Next_PC {{/core_tester/core/rv32_next_pc_cal/rv32_next_pc_val}}
-add_wave_group i_mem
-    add_wave -into i_mem {{/core_tester/core/i_mem}} 
 add_wave_group decoder
     add_wave -into decoder {{/core_tester/core/decoder}} 
 add_wave_group regfile
@@ -122,3 +120,20 @@ add_wave_group pipeline
         add_wave -into rs1_2 {{/core_tester/core/rv32_wf_alu_rs2}}
         add_wave -into rs1_2 {{/core_tester/core/rv32_cap_alu_rs1}}
         add_wave -into rs1_2 {{/core_tester/core/rv32_cap_alu_rs2}}
+add_wave_group mems
+    add_wave_group -into mems i_mem
+        add_wave -into i_mem {{/core_tester/core/i_mem/clock}}
+        add_wave -into i_mem {{/core_tester/core/i_mem/data}}
+        add_wave -into i_mem {{/core_tester/core/i_mem/rdaddress}}
+        add_wave -into i_mem {{/core_tester/core/i_mem/wraddress}}
+        add_wave -into i_mem {{/core_tester/core/i_mem/wren}}
+        add_wave -into i_mem {{/core_tester/core/i_mem/q}}
+        add_wave -into i_mem {{/core_tester/core/i_mem/altsyncram_component/mem_data}}
+    add_wave_group -into mems d_mem
+        add_wave -into d_mem {{/core_tester/core/d_mem/clock}}
+        add_wave -into d_mem {{/core_tester/core/d_mem/data}}
+        add_wave -into d_mem {{/core_tester/core/d_mem/rdaddress}}
+        add_wave -into d_mem {{/core_tester/core/d_mem/wraddress}}
+        add_wave -into d_mem {{/core_tester/core/d_mem/wren}}
+        add_wave -into d_mem {{/core_tester/core/d_mem/q}}
+        add_wave -into d_mem {{/core_tester/core/d_mem/altsyncram_component/mem_data}}
