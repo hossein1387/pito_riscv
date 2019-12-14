@@ -22,5 +22,5 @@ if __name__ == '__main__':
         import sys
         print("Unknown input type {}".format(instruction_format))
         sys.exit()
-    decoded_instruction = decoder.decode(instruction)
-    decoder.print_dic(decoded_instruction)
+    decoded_instruction = rv_decoder.decode(instruction)
+    rv_decoder.print_dic(decoded_instruction)
