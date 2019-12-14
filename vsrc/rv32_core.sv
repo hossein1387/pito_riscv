@@ -100,6 +100,7 @@ rv32_pc_cnt_t      rv32_wb_pc;
 rv32_imm_t         rv32_wb_imm;
 logic              rv32_wb_save_pc;
 logic              rv32_wb_has_new_pc;
+logic              rv32_wb_skip;
 rv32_register_t    rv32_wb_reg_pc;
 rv32_pc_cnt_t      rv32_wb_next_pc_val;
 
@@ -113,16 +114,15 @@ logic              rv32_wf_skip;
 // Control Signals
 logic pc_sel;
 logic alu_src;
-logic wb_skip;
 
 // Instruction Memory signals
 // The rest are control by io and internal lofgic
 rv32_dmem_addr_t  rv32_i_addr;
 
 // Data Memory control
-rv32_dmem_addr_t rv32_dmem_addr_ctrl;
-rv32_data_t      rv32_dmem_data_ctrl;
-logic            rv32_dmem_w_en_ctrl;
+rv32_dmem_addr_t rv32_dmem_addr;
+rv32_data_t      rv32_dmem_data;
+logic            rv32_dmem_w_en;
 
 // Data Memory signals
 rv32_dmem_addr_t rv32_dw_addr;
@@ -207,9 +207,9 @@ bram16k i_mem(
                         .q         (rv32_instr        )
     );
 
-assign rv32_dw_addr = (rv32_io_program) ? rv32_io_dmem_addr : rv32_dmem_addr_ctrl;
-assign rv32_dw_data = (rv32_io_program) ? rv32_io_dmem_data : rv32_dmem_data_ctrl;
-assign rv32_dw_en   = (rv32_io_program) ? rv32_io_dmem_w_en : rv32_dmem_w_en_ctrl;
+assign rv32_dw_addr = (rv32_io_program) ? rv32_io_dmem_addr : rv32_dmem_addr;
+assign rv32_dw_data = (rv32_io_program) ? rv32_io_dmem_data : rv32_dmem_data;
+assign rv32_dw_en   = (rv32_io_program) ? rv32_io_dmem_w_en : rv32_dmem_w_en;
 
 bram16k d_mem(
                         .clock     (clk         ),
@@ -262,9 +262,13 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
 //====================================================================
 //                   Execute Stage
 //====================================================================
+
     assign alu_src   = ((rv32_dec_opcode == RV32_SRL ) || (rv32_dec_opcode == RV32_SRA  ) || (rv32_dec_opcode == RV32_ADD ) ||
                         (rv32_dec_opcode == RV32_XOR ) || (rv32_dec_opcode == RV32_OR   ) || (rv32_dec_opcode == RV32_AND ) ||
-                        (rv32_dec_opcode == RV32_SLT ) || (rv32_dec_opcode == RV32_SLTU ) || (rv32_dec_opcode == RV32_SLL ) ) ? `PITO_ALU_SRC_RS2 : `PITO_ALU_SRC_IMM ;
+                        (rv32_dec_opcode == RV32_SLT ) || (rv32_dec_opcode == RV32_SLTU ) || (rv32_dec_opcode == RV32_SLL ) ||
+                        (rv32_dec_opcode == RV32_BEQ ) || (rv32_dec_opcode == RV32_BNE  ) || (rv32_dec_opcode == RV32_BLT ) ||
+                        (rv32_dec_opcode == RV32_BGE ) || (rv32_dec_opcode == RV32_BLTU ) || (rv32_dec_opcode == RV32_BGEU) ||
+                        (rv32_dec_opcode == RV32_SUB ) ) ? `PITO_ALU_SRC_RS2 : `PITO_ALU_SRC_IMM ;
     always @(posedge clk) begin
         if(rv32_io_rst_n == 1'b0) begin
             rv32_ex_pc    <= 0;
@@ -291,11 +295,8 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
                         rv32_alu_rs2 <= rv32_dec_imm;
                     end
                 end
-                wb_skip      <= ~((rv32_dec_opcode == RV32_SB) || (rv32_dec_opcode == RV32_SH) || (rv32_dec_opcode == RV32_SW));
             end else begin
                 rv32_ex_pc   <= rv32_dec_pc;
-                // make sure for nop we are not writing to memory
-                wb_skip      <= 1'b1;
             end
             `ifdef DEBUG
                 rv32_org_ex_pc <= rv32_dec_pc;
@@ -306,6 +307,7 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
 //====================================================================
 //                   Write Back Stage
 //====================================================================
+    assign rv32_wb_skip  = ((rv32_ex_opcode == RV32_SB) || (rv32_ex_opcode == RV32_SH) || (rv32_ex_opcode == RV32_SW)) ? 1'b0 : 1'b1;
 
     always @(posedge clk) begin
         if(rv32_io_rst_n == 1'b0) begin
@@ -319,19 +321,20 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
             rv32_wb_imm      <= rv32_ex_imm;
             rv32_wb_rs1      <= rv32_ex_rs1;
             rv32_wb_rd       <= rv32_ex_rd;
+            rv32_dmem_w_en   <= 1'b0;
             if (rv32_ex_opcode != RV32_NOP) begin
-                if (wb_skip) begin
+                if (rv32_wb_skip) begin
                     rv32_wb_out <= rv32_alu_res;
                 end else begin
                     if ((rv32_ex_opcode == RV32_LB ) ||
                         (rv32_ex_opcode == RV32_LH ) ||
                         (rv32_ex_opcode == RV32_LW ) ||
                         (rv32_ex_opcode == RV32_LBU) ) begin
-                        rv32_dr_addr <= rv32_alu_res;
+                        rv32_dr_addr   <= rv32_alu_res;
                     end else begin
-                        rv32_dmem_addr_ctrl <= rv32_alu_res;
-                        rv32_dmem_data_ctrl <= rv32_wb_rs2_skip;
-                        rv32_dmem_w_en_ctrl <= 1'b1; // -------------------------------> BUG1
+                        rv32_dmem_addr <= rv32_alu_res;
+                        rv32_dmem_data <= rv32_wb_rs2_skip;
+                        rv32_dmem_w_en <= 1'b1; 
                     end
                 end
             end
@@ -357,7 +360,6 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
             rv32_wf_instr<= {32{1'b0}};
         end else begin
             rv32_wf_opcode      <= rv32_wb_opcode;
-            rv32_dmem_w_en_ctrl <= 1'b0; // -------------------------------> BUG1
             rv32_wf_instr       <= rv32_wb_instr;
             if (rv32_wb_opcode != RV32_NOP) begin
                 //=================================================================================
@@ -379,7 +381,6 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
                         rv32_regf_wd <= rv32_wb_out;
                     end
                 end
-
                 //=================================================================================
                 // Next PC Counter
                 //=================================================================================
