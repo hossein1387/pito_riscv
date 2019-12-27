@@ -12,9 +12,9 @@
 //-------------------------------------------------------------------
 //                          pito specific consts
 //-------------------------------------------------------------------
-`define PITO_INSTR_MEM_SIZE  (512)
+`define PITO_INSTR_MEM_SIZE  (8192)
 `define PITO_INSTR_MEM_WIDTH $clog2(`PITO_INSTR_MEM_SIZE)
-`define PITO_DATA_MEM_SIZE   (512)
+`define PITO_DATA_MEM_SIZE   (8192)
 `define PITO_DATA_MEM_WIDTH  $clog2(`PITO_DATA_MEM_SIZE)
 `define PITO_PC_SEL_PLUS_4   (1'b1)
 `define PITO_PC_SEL_COMPUTED (1'b0)
