@@ -1,0 +1,10 @@
+../../../vsrc/rv32_defines.svh
+../../lib/utils/utils.sv
+../../lib/utils/rv32_utils.sv
+../../../vsrc/rv32_types.svh
+../../../vsrc/rv32_instr.svh
+../../../vsrc/bram_32Kb.v
+../../../vsrc/rv32_data_memory.sv
+../../../vsrc/rv32_instruction_memory.sv
+../../../vsrc/rv32_regfile.sv
+./mem_tester.sv
