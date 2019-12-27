@@ -1,3 +1,4 @@
+# set_property display_limit 300000 [current_wave_config]
 add_wave_group core
     add_wave -into core {{/core_tester/core/clk}}
     add_wave -into core {{/core_tester/core/rst_n}}
@@ -11,6 +12,7 @@ add_wave_group core
         add_wave -into FetchStage {{/core_tester/core/rv32_io_dmem_w_en}}
         add_wave -into FetchStage {{/core_tester/core/rv32_io_program}}
         add_wave -into FetchStage {{/core_tester/core/rv32_instr}}
+        add_wave -into FetchStage {{/core_tester/core/pc_sel}}
     add_wave_group -into core DecStage
         add_wave_group -into DecStage RegFile
             add_wave -into RegFile {{/core_tester/core/rv32_regf_ra1}}
@@ -120,6 +122,7 @@ add_wave_group pipeline
         add_wave -into rs1_2 {{/core_tester/core/rv32_wf_alu_rs2}}
         add_wave -into rs1_2 {{/core_tester/core/rv32_cap_alu_rs1}}
         add_wave -into rs1_2 {{/core_tester/core/rv32_cap_alu_rs2}}
+set_property display_limit 300000 [current_wave_config]
 add_wave_group mems
     add_wave_group -into mems i_mem
         add_wave -into i_mem {{/core_tester/core/i_mem/clock}}
@@ -128,7 +131,8 @@ add_wave_group mems
         add_wave -into i_mem {{/core_tester/core/i_mem/wraddress}}
         add_wave -into i_mem {{/core_tester/core/i_mem/wren}}
         add_wave -into i_mem {{/core_tester/core/i_mem/q}}
-        add_wave -into i_mem {{/core_tester/core/i_mem/altsyncram_component/mem_data}}
+        add_wave -into i_mem {{core/i_mem/bram_32Kb_inst/inst/\native_mem_module.blk_mem_gen_v8_4_3_inst /memory}}
+        # add_wave -into i_mem {{/core_tester/core/i_mem/altsyncram_component/mem_data}}
     add_wave_group -into mems d_mem
         add_wave -into d_mem {{/core_tester/core/d_mem/clock}}
         add_wave -into d_mem {{/core_tester/core/d_mem/data}}
@@ -136,4 +140,5 @@ add_wave_group mems
         add_wave -into d_mem {{/core_tester/core/d_mem/wraddress}}
         add_wave -into d_mem {{/core_tester/core/d_mem/wren}}
         add_wave -into d_mem {{/core_tester/core/d_mem/q}}
-        add_wave -into d_mem {{/core_tester/core/d_mem/altsyncram_component/mem_data}}
+        add_wave -into d_mem {{core/d_mem/bram_32Kb_inst/inst/\native_mem_module.blk_mem_gen_v8_4_3_inst /memory}}
+        # add_wave -into d_mem {{/core_tester/core/d_mem/altsyncram_component/mem_data}}

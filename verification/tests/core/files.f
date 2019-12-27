@@ -5,8 +5,9 @@
 ../../../vsrc/rv32_instr.svh
 ../../../vsrc/rv32_imm_gen.sv
 ../../../vsrc/rv32_decoder.sv
-../../../vsrc/altera_mf.v
-../../../vsrc/bram16k.v
+../../../vsrc/bram_32Kb.v
+../../../vsrc/rv32_data_memory.sv
+../../../vsrc/rv32_instruction_memory.sv
 ../../../vsrc/rv32_alu.sv
 ../../../vsrc/rv32_regfile.sv
 ../../../vsrc/rv32_core.sv
