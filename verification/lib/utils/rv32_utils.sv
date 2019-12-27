@@ -662,43 +662,43 @@ class RV32IPredictor extends BaseObj;
             end
             RV32_BEQ    : begin
                 // $display($sformatf("BEQ-------> rs1=%0d rs2=%0d",signed'(regf_model[rs1]), signed'(regf_model[rs2])));
-                exp_val  = (signed'(regf_model[rs1]) == signed'(regf_model[rs2])) ? (pc_orig_cnt + signed'(imm)) : pc_orig_cnt;
-                real_val =  pc_cnt;
+                exp_val  = (signed'(regf_model[rs1]) == signed'(regf_model[rs2])) ? (pc_orig_cnt + signed'(imm<<1)) : pc_orig_cnt;
+                real_val = pc_cnt;
                 info     = instr_str;
                 check_res(act_instr, exp_val, real_val, info, pc_cnt);
             end
             RV32_BNE    : begin
-                exp_val  = (signed'(regf_model[rs1]) != signed'(regf_model[rs2])) ? (pc_orig_cnt + signed'(imm)) : pc_orig_cnt;
+                exp_val  = (signed'(regf_model[rs1]) != signed'(regf_model[rs2])) ? (pc_orig_cnt + signed'(imm<<1)) : pc_orig_cnt;
                 real_val =  pc_cnt;
                 info     = instr_str;
                 check_res(act_instr, exp_val, real_val, info, pc_cnt);
             end
             RV32_BLT    : begin
-                exp_val  = (signed'(regf_model[rs1]) < signed'(regf_model[rs2])) ? (pc_orig_cnt + signed'(imm)) : pc_orig_cnt;
+                exp_val  = (signed'(regf_model[rs1]) < signed'(regf_model[rs2])) ? (pc_orig_cnt + signed'(imm<<1)) : pc_orig_cnt;
                 real_val =  pc_cnt;
                 info     = instr_str;
                 check_res(act_instr, exp_val, real_val, info, pc_cnt);
             end
             RV32_BGE    : begin
-                exp_val  = (signed'(regf_model[rs1]) >= signed'(regf_model[rs2])) ? (pc_orig_cnt + signed'(imm)) : pc_orig_cnt;
+                exp_val  = (signed'(regf_model[rs1]) >= signed'(regf_model[rs2])) ? (pc_orig_cnt + signed'(imm<<1)) : pc_orig_cnt;
                 real_val =  pc_cnt;
                 info     = instr_str;
                 check_res(act_instr, exp_val, real_val, info, pc_cnt);
             end
             RV32_BLTU   : begin
-                exp_val  = (unsigned'(regf_model[rs1]) < unsigned'(regf_model[rs2])) ? (pc_orig_cnt + signed'(imm)) : pc_orig_cnt;
+                exp_val  = (unsigned'(regf_model[rs1]) < unsigned'(regf_model[rs2])) ? (pc_orig_cnt + signed'(imm<<1)) : pc_orig_cnt;
                 real_val =  pc_cnt;
                 info     = instr_str;
                 check_res(act_instr, exp_val, real_val, info, pc_cnt);
             end
             RV32_BGEU   : begin
-                exp_val  = (unsigned'(regf_model[rs1]) >= unsigned'(regf_model[rs2])) ? (pc_orig_cnt + signed'(imm)) : pc_orig_cnt;
+                exp_val  = (unsigned'(regf_model[rs1]) >= unsigned'(regf_model[rs2])) ? (pc_orig_cnt + signed'(imm<<1)) : pc_orig_cnt;
                 real_val =  pc_cnt;
                 info     = instr_str;
                 check_res(act_instr, exp_val, real_val, info, pc_cnt);
             end
             RV32_JAL    : begin
-                exp_val  = pc_orig_cnt + signed'(imm);
+                exp_val  = pc_orig_cnt + signed'(imm<<1);
                 real_val = pc_cnt;
                 info     = instr_str;
                 check_res(act_instr, exp_val, real_val, info, pc_cnt);
@@ -734,7 +734,7 @@ class RV32IPredictor extends BaseObj;
             end
             RV32_UNKNOWN : begin
                 // TODO: send a signal to check_res function to increase filed counts
-                this.logger.print("Unknown Instruction");
+                // this.logger.print("Unknown Instruction");
                 this.logger.print($sformatf("Unknown Instruction: %s", instr_str));
             end
             endcase

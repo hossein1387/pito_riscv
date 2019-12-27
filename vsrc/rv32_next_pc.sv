@@ -19,11 +19,11 @@ module rv32_next_pc (
                 rv32_has_new_pc  = 1'b1; 
             end
             RV32_BEQ , RV32_BNE , RV32_BLT , RV32_BGE , RV32_BLTU, RV32_BGEU : begin
-                rv32_next_pc_val = (rv32_alu_res == 1) ? rv32_cur_pc + rv32_imm : rv32_cur_pc; 
+                rv32_next_pc_val = (rv32_alu_res == 1) ? rv32_cur_pc + (rv32_imm<<1) : rv32_cur_pc; 
                 rv32_has_new_pc  = (rv32_alu_res == 1) ? 1'b1 : 1'b0; 
             end
             RV32_JAL  : begin 
-                rv32_next_pc_val = rv32_cur_pc + rv32_imm; 
+                rv32_next_pc_val = rv32_cur_pc + (rv32_imm<<1); 
                 rv32_reg_pc      = rv32_cur_pc + 4; 
                 rv32_has_new_pc  = 1'b1; 
             end
