@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-
+#!/usr/bin/env python3
+#xelab bank64k_tester  -L blk_mem_gen_v8_4_3
 import os
 import sys
 import argparse
@@ -21,10 +21,12 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-s', '--simulator', help='Simulator to use', required=False)
     parser.add_argument('-f', '--files', help='Simulation files', required=False)
+    parser.add_argument('-m', '--vlogmacros', help='File containing Verilog global macros', required=False)
+    parser.add_argument('-l', '--libs', help='File containing list of simulation libraries', required=False)
     parser.add_argument('-t', '--top_level', help='Top level module for Xilinx tools', required=False)
     parser.add_argument('-g', '--gui', action='store_true', help=' gui mode supported in cadence irun only', required= False)
     parser.add_argument('-w', '--waveform', action='store_true', help=' compile with waveform information', required= False)
-    parser.add_argument('-v', '--svseed', help=' sv seed supported in cadence irun only', required= False)
+    parser.add_argument('-v', '--svseed', help=' sv seed supported in cadence irun and Xilinx xsim only', required= False)
     parser.add_argument('-c', '--coverage', action='store_true', help='add coverage supported in cadence irun only', required= False)
     parser.add_argument('-d', '--debug', action='store_true', help='create debug info supported in cadence irun only', required= False)
     parser.add_argument('-clean', '--clean', action='store_true', help='clean project', required= False)
@@ -54,6 +56,29 @@ def get_rtl_files(f_file):
                     sys.exit()
     # import ipdb as pdb; pdb.set_trace()
     return sv_rtl, v_rtl, vhdl_rtl
+
+def get_vlogmacros(f_file):
+    vlogmacros = ""
+    with open(f_file, 'r') as f:
+        macros = f.readlines()
+        for macro in macros:
+            if macro != "":
+                macro = macro.replace("\n", "")
+                vlogmacros += " -d " + macro + " "
+    return vlogmacros
+
+def get_libs(f_file):
+    # import ipdb as pdb; pdb.set_trace()
+    libs = ""
+    with open(f_file, 'r') as f:
+        libslist = f.readlines()
+        for lib in libslist:
+            if lib != "":
+                lib = lib.replace("\n", "")
+                libs += " -L " + lib + " "
+    return libs
+
+
 #=======================================================================
 # Main
 #=======================================================================
@@ -65,6 +90,8 @@ if __name__ == '__main__':
     simulator = args['simulator']
     top_level = args['top_level']
     files = args['files']
+    vlogmacros_file = args['vlogmacros']
+    libs_file = args['libs']
     gui = args['gui']
     svseed = args['svseed']
     coverage = args['coverage']
@@ -88,6 +115,25 @@ if __name__ == '__main__':
     if simulator == None:
         util.print_log("You need to provide Simulator name", "ERROR", verbosity="VERB_LOW")
         sys.exit()
+
+    # Load Verilog macros file, if specified
+    vlogmacros = ""
+    if vlogmacros_file is not None:
+        if os.path.exists(vlogmacros_file):
+            vlogmacros = get_vlogmacros(vlogmacros_file)
+        else:
+            util.print_log("Verilog macros file not found!", "ERROR", verbosity="VERB_LOW")
+            sys.exit()
+
+    # Load list of simulation libraries from file, if specified
+    libs = ""
+    if libs_file is not None:
+        if os.path.exists(libs_file):
+            libs = get_libs(libs_file)
+        else:
+            util.print_log("Library list file not found!", "ERROR", verbosity="VERB_LOW")
+            sys.exit()
+
     if simulator.lower() == "xilinx":
         # For Xilinx tools we need to specify top level for creating snapshots which is needed
         # by simulator and synthesis tools
@@ -106,27 +152,32 @@ if __name__ == '__main__':
         # import ipdb as pdb; pdb.set_trace()
         if sv_rtl != "":
             cmd_to_run = "xvlog --sv {0} ".format(sv_rtl)
+            cmd_to_run += vlogmacros
             if silence:
-                cmd_to_run += " > /dev/null "
+                cmd_to_run += "> /dev/null"
             util.run_command(cmd_to_run, split=False, verbosity=verbosity)
         if v_rtl != "":
-            cmd_to_run = " xvlog {0} ".format(v_rtl)
+            cmd_to_run = "xvlog {0} ".format(v_rtl)
+            cmd_to_run += vlogmacros
             if silence:
-                cmd_to_run += " > /dev/null "
+                cmd_to_run += "> /dev/null"
             util.run_command(cmd_to_run, split=False, verbosity=verbosity)
         if vhdl_rtl != "":
             cmd_to_run = "xvhdl {0} ".format(vhdl_rtl)
             if silence:
-                cmd_to_run += " > /dev/null "
+                cmd_to_run += "> /dev/null"
             util.run_command(cmd_to_run, split=False, verbosity=verbosity)
 
-
         util.print_banner("Creating snapshot", verbosity=verbosity)
+        # cmd_to_run = "xelab {0} ".format(top_level)
+        # import ipdb as pdb; pdb.set_trace()
         cmd_to_run = "xelab -debug typical -L secureip -L unisims_ver -L unimacro_ver {0} ".format(top_level)
+        if libs_file:
+            cmd_to_run += libs
         if waveform:
             cmd_to_run += " --debug all "
         if silence:
-            cmd_to_run += " > /dev/null "
+            cmd_to_run += "> /dev/null"
         if args['timescale'] != None:
             cmd_to_run += "--timescale {} ".format(args['timescale'])
         util.run_command(cmd_to_run, split=False, verbosity=verbosity)
