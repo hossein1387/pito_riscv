@@ -92,12 +92,13 @@ module core_tester ();
                 addr      = (rs1==0) ? signed'(imm) : core.regfile.data[rs1]+signed'(imm);
             end
             endcase
-        return core.d_mem.altsyncram_component.mem_data[addr];
+        return core.d_mem.bram_32Kb_inst.inst.native_mem_module.blk_mem_gen_v8_4_3_inst.memory[addr];
     endfunction : read_dmem_word
 
     function print_imem_region(int addr_from, int addr_to);
         for (int addr=addr_from; addr<=addr_to; addr++) begin
-            logger.print($sformatf("0x%4h: %8h", addr, core.i_mem.altsyncram_component.mem_data[addr]));
+            logger.print($sformatf("0x%4h: %8h", addr, core.i_mem.bram_32Kb_inst.inst.native_mem_module.blk_mem_gen_v8_4_3_inst.memory[addr]));
+            // logger.print("test");
         end
     endfunction : print_imem_region
 
@@ -128,7 +129,7 @@ module core_tester ();
             @(posedge clk);
         end
         if (time_out) begin
-            logger.print($sformatf("Failed to sync with DUT after %4d cycles.", NUM_WAIT_CYCELS), "ERROR");
+            logger.print_banner($sformatf("Failed to sync with DUT after %4d cycles.", NUM_WAIT_CYCELS), "ERROR");
             $finish;
         end else begin
             logger.print("Sync with DUT completed...");
@@ -144,7 +145,7 @@ module core_tester ();
         rv32_pc_cnt_t   pc_cnt, pc_orig_cnt;
         logger.print_banner("Starting Monitor Task");
         sync_with_dut(instr_q);
-        while(all_instr_processed!=1) begin
+        while(core.is_end == 1'b0) begin
             // logger.print($sformatf("pc=%d       decode:%s", core.rv32_dec_pc, core.rv32_dec_opcode.name));
             // logger.print($sformatf("%s",read_regs()));
             exp_instr      = instr_q.pop_front();
@@ -168,7 +169,7 @@ module core_tester ();
         end
     endtask
 
-    task monitor_regs();
+    task automatic monitor_regs();
         Logger reg_logger = new("reg_logs.log", 1, 0);
         @(posedge clk);
         while(1) begin
@@ -190,7 +191,7 @@ module core_tester ();
         rv32i_dec = new(logger);
         rv32i_pred = new(logger);
 
-        instr_q = process_hex_file(program_hex_file, logger, 100); // read hex file and store the first 100 words to the ram
+        instr_q = process_hex_file(program_hex_file, logger, 547); // read hex file and store the first n words to the ram
 
         @(posedge clk);
         rst_n     = 1'b0;
@@ -220,7 +221,7 @@ module core_tester ();
     end
 
     initial begin
-        #2000ms;
+        #100us;
         $display("Simulation took more than expected ( more than 600ms)");
         $finish();
     end

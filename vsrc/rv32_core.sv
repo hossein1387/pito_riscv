@@ -114,10 +114,12 @@ logic              rv32_wf_skip;
 // Control Signals
 logic pc_sel;
 logic alu_src;
-
+logic is_csr;
+logic is_exception;
+logic is_store;
 // Instruction Memory signals
 // The rest are control by io and internal lofgic
-rv32_dmem_addr_t  rv32_i_addr;
+rv32_imem_addr_t  rv32_i_addr;
 
 // Data Memory control
 rv32_dmem_addr_t rv32_dmem_addr;
@@ -198,7 +200,7 @@ rv32_next_pc rv32_next_pc_cal(
 // all the write  operations are done by io ports and all 
 // the reads are done by internal logic.
 
-bram16k i_mem(
+rv32_instruction_memory i_mem(
                         .clock     (clk               ),
                         .data      (rv32_io_imem_data ),
                         .rdaddress (rv32_i_addr       ),
@@ -211,7 +213,7 @@ assign rv32_dw_addr = (rv32_io_program) ? rv32_io_dmem_addr : rv32_dmem_addr;
 assign rv32_dw_data = (rv32_io_program) ? rv32_io_dmem_data : rv32_dmem_data;
 assign rv32_dw_en   = (rv32_io_program) ? rv32_io_dmem_w_en : rv32_dmem_w_en;
 
-bram16k d_mem(
+rv32_data_memory d_mem(
                         .clock     (clk         ),
                         .data      (rv32_dw_data),
                         .rdaddress (rv32_dr_addr),
@@ -262,6 +264,10 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
 //====================================================================
 //                   Execute Stage
 //====================================================================
+    // assign rv32_ex_is_exception = ((rv32_dec_opcode == RV32_ECALL) || (rv32_dec_opcode == RV32_EBREAK)) ? 1'b1 : 1'b0;
+    // assign rv32_ex_is_csr       = ((rv32_dec_opcode == RV32_CSRRW ) || (rv32_dec_opcode==RV32_CSRRS ) || (rv32_dec_opcode==RV32_CSRRC ) ||
+    //                                (rv32_dec_opcode == RV32_CSRRWI) || (rv32_dec_opcode==RV32_CSRRSI) || (rv32_dec_opcode==RV32_CSRRCI)) ? 1'b1 : 1'b0;
+    // assign rv32_ex_skip         = rv32_ex_is_exception || rv32_ex_is_csr || (rv32_dec_opcode==RV32_NOP);
 
     assign alu_src   = ((rv32_dec_opcode == RV32_SRL ) || (rv32_dec_opcode == RV32_SRA  ) || (rv32_dec_opcode == RV32_ADD ) ||
                         (rv32_dec_opcode == RV32_XOR ) || (rv32_dec_opcode == RV32_OR   ) || (rv32_dec_opcode == RV32_AND ) ||
@@ -307,7 +313,13 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
 //====================================================================
 //                   Write Back Stage
 //====================================================================
-    assign rv32_wb_skip  = ((rv32_ex_opcode == RV32_SB) || (rv32_ex_opcode == RV32_SH) || (rv32_ex_opcode == RV32_SW)) ? 1'b0 : 1'b1;
+    assign is_exception = ((rv32_ex_opcode == RV32_ECALL) || (rv32_ex_opcode == RV32_EBREAK)) ? 1'b1 : 1'b0;
+    assign is_csr       = ((rv32_ex_opcode == RV32_CSRRW ) || (rv32_ex_opcode==RV32_CSRRS ) || (rv32_ex_opcode==RV32_CSRRC ) ||
+                           (rv32_ex_opcode == RV32_CSRRWI) || (rv32_ex_opcode==RV32_CSRRSI) || (rv32_ex_opcode==RV32_CSRRCI)) ? 1'b1 : 1'b0;
+// The following circuit decides whether the write back to memory should
+// be skipped or not. The write back stage should be skipped only when the 
+// instruction is of type: NOT store
+    assign rv32_wb_skip = ((rv32_ex_opcode == RV32_SB) || (rv32_ex_opcode == RV32_SH) || (rv32_ex_opcode == RV32_SW)) ? 1'b0 : 1'b1;
 
     always @(posedge clk) begin
         if(rv32_io_rst_n == 1'b0) begin
@@ -322,7 +334,7 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
             rv32_wb_rs1      <= rv32_ex_rs1;
             rv32_wb_rd       <= rv32_ex_rd;
             rv32_dmem_w_en   <= 1'b0;
-            if (rv32_ex_opcode != RV32_NOP) begin
+            if (rv32_ex_opcode != RV32_NOP ) begin
                 if (rv32_wb_skip) begin
                     rv32_wb_out <= rv32_alu_res;
                 end else begin
@@ -418,6 +430,9 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
 rv32_opcode_enum_t rv32_cap_opcode;
 rv32_pc_cnt_t      rv32_cap_pc;
 rv32_instr_t       rv32_cap_instr;
+logic is_end;
+
+assign is_end = (rv32_wf_opcode ==  RV32_ECALL) ? 1'b1 : 1'b0;
 
     always @(posedge clk) begin
         if(rv32_io_rst_n == 1'b0) begin
