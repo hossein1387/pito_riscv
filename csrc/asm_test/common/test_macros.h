@@ -195,7 +195,7 @@ test_ ## testnum: \
       li  x2, val2; \
       TEST_INSERT_NOPS_5; \
       inst x3, x1, x2; \
-      TEST_INSERT_NOPS_ ## nop_cycles \
+      TEST_INSERT_NOPS_ ## nop_cycles;  \
       TEST_INSERT_NOPS_5; \
       addi  x6, x3, 0; \
       TEST_INSERT_NOPS_5; \

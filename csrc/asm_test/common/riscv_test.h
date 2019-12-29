@@ -101,7 +101,7 @@ TEST_FUNC_NAME:				\
 	nop;	\
 	nop;	\
 	nop;	\
-	sw	a1,0(a2);
+	sw	a1,0(a2); \
 	nop;	\
 	nop;	\
 	nop;	\
@@ -156,7 +156,7 @@ TEST_FUNC_NAME:				\
 	nop;	\
 	nop;	\
 	nop;	\
-	jal	zero,TEST_FUNC_RET;
+	jal	zero,TEST_FUNC_RET; \
 	nop;	\
 	nop;	\
 	nop;	\
@@ -235,7 +235,7 @@ TEST_FUNC_NAME:				\
 	nop;	\
 	nop;	\
 	nop;	\
-	ebreak;
+	ebreak; \
 	nop;	\
 	nop;	\
 	nop;	\
