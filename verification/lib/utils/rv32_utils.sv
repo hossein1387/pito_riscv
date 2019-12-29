@@ -341,7 +341,7 @@ endclass
 class RV32IPredictor extends BaseObj;
     test_stats_t test_stat;
     rv32_regfile_t regf_model;
-    int riscv_data_mem [logic[7:0]];
+    int riscv_data_mem [logic[31:0]];
 
     function init_regfile_model();
         int file_faults = $fopen (`REG_FILE_INIT, "r");
@@ -355,14 +355,28 @@ class RV32IPredictor extends BaseObj;
         end
     endfunction
 
-    function new (Logger logger);
+    function init_data_mem_model (rv32_data_q data_q);
+        for (int addr=0; addr<data_q.size(); addr++) begin
+            if (data_q[addr] != 0) begin
+                riscv_data_mem[addr] = data_q[addr];
+            end
+        end
+    endfunction 
+
+    function new (Logger logger, rv32_data_q data_q);
         super.new(logger);   // Calls 'new' method of parent class
         test_stat = '{pass_cnt: 0, fail_cnt: 0};
         init_regfile_model();
+        init_data_mem_model(data_q);
     endfunction
 
-    function void report_result ();
+    function void report_result (bit is_riscv_test);
+        string res_str;
         print_result(this.test_stat, VERB_LOW, this.logger);
+        if (is_riscv_test) begin
+            res_str = $sformatf("RISC-V Test Result: %c%c%c%c", this.regf_model[11], this.regf_model[12], this.regf_model[13], this.regf_model[14]);
+            this.logger.print(res_str);
+        end
     endfunction : report_result
 
     function update_regf(bit has_update, rv32_register_field_t rd, int val);
@@ -377,13 +391,13 @@ class RV32IPredictor extends BaseObj;
         if (size==1) begin
             riscv_data_mem[addr] = val[7:0];
         end else if (size==2) begin
-            riscv_data_mem[addr  ] = val[7 :0];
-            riscv_data_mem[addr+1] = val[15:8];
+            // riscv_data_mem[addr  ] = val[7 :0];
+            riscv_data_mem[addr] = val[15:0];
         end else if (size==4) begin
-            riscv_data_mem[addr  ] = val[7  : 0 ];
-            riscv_data_mem[addr+1] = val[15 : 8 ];
-            riscv_data_mem[addr+2] = val[23 : 16];
-            riscv_data_mem[addr+3] = val[31 : 24];
+            riscv_data_mem[addr] = val;
+            // riscv_data_mem[addr+1] = val[15 : 8 ];
+            // riscv_data_mem[addr+2] = val[23 : 16];
+            // riscv_data_mem[addr+3] = val[31 : 24];
         end else begin
             this.logger.print($sformatf("ERROR: Address not accessible for a variable size %0d", size));
         end
@@ -392,27 +406,43 @@ class RV32IPredictor extends BaseObj;
     function int read_from_mem(int addr, int size, bit is_signed);
         int ret_val = 0;
         if (size==1) begin
-            ret_val = riscv_data_mem[addr];
+            ret_val = riscv_data_mem[addr >> 2];
             if (is_signed) begin
-                ret_val = signed'(ret_val[7:0]);
+                case (addr[1:0])
+                    00: ret_val = signed'(ret_val[7 : 0]);
+                    01: ret_val = signed'(ret_val[15: 8]);
+                    10: ret_val = signed'(ret_val[23:16]);
+                    11: ret_val = signed'(ret_val[31:24]);
+                    default : ret_val = 0;
+                endcase
             end else begin
-                ret_val = unsigned'(ret_val[7:0]);
+                case (addr[1:0])
+                    00: ret_val = unsigned'(ret_val[7 : 0]);
+                    01: ret_val = unsigned'(ret_val[15: 8]);
+                    10: ret_val = unsigned'(ret_val[23:16]);
+                    11: ret_val = unsigned'(ret_val[31:24]);
+                    default : ret_val = 0;
+                endcase
             end
         end else if (size==2) begin
-            ret_val = (((riscv_data_mem[addr+1] & 32'h000000FF)<<8) | 
-                        (riscv_data_mem[addr  ] & 32'h000000FF)   );
+            ret_val = riscv_data_mem[addr >> 2];
             if (is_signed) begin
-                ret_val = signed'(ret_val[15:0]);
+                case (addr[1:0])
+                    00: ret_val = signed'(ret_val[15: 0]);
+                    10: ret_val = signed'(ret_val[31:16]);
+                    default : ret_val = 0;
+                endcase
             end else begin
-                ret_val = unsigned'(ret_val[15:0]);
+                case (addr[1:0])
+                    00: ret_val = unsigned'(ret_val[15: 0]);
+                    10: ret_val = unsigned'(ret_val[31:16]);
+                    default : ret_val = 0;
+                endcase
             end
         end else if (size==4) begin
-            ret_val = (((riscv_data_mem[addr+3] & 32'h000000FF)<<24) | 
-                       ((riscv_data_mem[addr+2] & 32'h000000FF)<<16) | 
-                       ((riscv_data_mem[addr+1] & 32'h000000FF)<<8 ) | 
-                        (riscv_data_mem[addr  ] & 32'h000000FF)    );
+            ret_val = riscv_data_mem[addr >> 2];
         end else begin
-            this.logger.print($sformatf("ERROR: Address not accessible for a variable size %0d", size));
+            this.logger.print($sformatf("ERROR: Reading of size %0d from memory is not available.", size));
         end
         return ret_val;
     endfunction
@@ -445,46 +475,47 @@ class RV32IPredictor extends BaseObj;
         case (opcode)
             RV32_LB     : begin
                 addr      = (rs1==0) ? signed'(imm) : regf_model[rs1]+signed'(imm);
-                exp_val   = (rs1==0) ? read_from_mem(addr, 1, 1) : read_from_mem(addr, 1, 1);
-                real_val  = signed'(mem_val & 32'h0000_00FF);
+                exp_val   = (rd==0) ? 0 : read_from_mem(addr, 1, 1);
+                real_val  = regf[rd];
                 info      = instr_str;
                 has_update=1;
                 check_res(act_instr, exp_val, real_val, info, pc_cnt);
             end
             RV32_LH     : begin
                 addr      = (rs1==0) ? signed'(imm) : regf_model[rs1]+signed'(imm);
-                exp_val   = (rs1==0) ? read_from_mem(addr, 2, 1) : read_from_mem(addr, 2, 1);
-                real_val  = signed'(mem_val & 32'h0000_FFFF);
+                exp_val   = (rd==0) ? 0 : read_from_mem(addr, 2, 1);
+                real_val  = regf[rd];
                 info      = instr_str;
                 has_update=1;
                 check_res(act_instr, exp_val, real_val, info, pc_cnt);
             end
             RV32_LW     : begin
                 addr      = (rs1==0) ? signed'(imm) : regf_model[rs1]+signed'(imm);
-                exp_val   = (rs1==0) ? read_from_mem(addr, 4, 1) : read_from_mem(addr, 4, 1);
-                real_val  = signed'(mem_val);
+                exp_val   = (rd==0) ? 0 : read_from_mem(addr, 4, 1);
+                real_val  = regf[rd];
                 info      = instr_str;
                 has_update=1;
                 check_res(act_instr, exp_val, real_val, info, pc_cnt);
             end
             RV32_LBU    : begin
                 addr      = (rs1==0) ? signed'(imm) : regf_model[rs1]+signed'(imm);
-                exp_val   = (rs1==0) ? read_from_mem(addr, 1, 0) : read_from_mem(addr, 1, 0);
-                real_val  = mem_val & 32'h0000_00FF;
+                exp_val   = (rd==0) ? 0 : read_from_mem(addr, 1, 0);
+                real_val  = regf[rd];
                 info      = instr_str;
                 has_update=1;
                 check_res(act_instr, exp_val, real_val, info, pc_cnt);
             end
             RV32_LHU    : begin
                 addr      = (rs1==0) ? signed'(imm) : regf_model[rs1]+signed'(imm);
-                exp_val   = (rs1==0) ? read_from_mem(addr, 2, 0) : read_from_mem(addr, 2, 0);
-                real_val  = mem_val & 32'h0000_FFFF;
+                exp_val   = (rd==0) ? 0 : read_from_mem(addr, 2, 0);
+                real_val  = regf[rd];
                 info      = instr_str;
                 has_update=1;
                 check_res(act_instr, exp_val, real_val, info, pc_cnt);
             end
             RV32_SB     : begin
                 addr      = (rs1==0) ? signed'(imm) : regf_model[rs1]+signed'(imm);
+                addr      = addr - `PITO_DATA_MEM_OFFSET;
                 exp_val   = regf_model[rs2];
                 real_val  = mem_val;
                 info      = instr_str;
@@ -494,6 +525,7 @@ class RV32IPredictor extends BaseObj;
             end
             RV32_SH     : begin
                 addr      = (rs1==0) ? signed'(imm) : regf_model[rs1]+signed'(imm);
+                addr      = addr - `PITO_DATA_MEM_OFFSET;
                 exp_val   = regf_model[rs2];
                 real_val  = mem_val;
                 info      = instr_str;
@@ -503,6 +535,7 @@ class RV32IPredictor extends BaseObj;
             end
             RV32_SW     : begin
                 addr      = (rs1==0) ? signed'(imm) : regf_model[rs1]+signed'(imm);
+                addr      = addr - `PITO_DATA_MEM_OFFSET;
                 exp_val   = regf_model[rs2];
                 real_val  = mem_val;
                 info      = instr_str;
@@ -735,7 +768,7 @@ class RV32IPredictor extends BaseObj;
             RV32_UNKNOWN : begin
                 // TODO: send a signal to check_res function to increase filed counts
                 // this.logger.print("Unknown Instruction");
-                this.logger.print($sformatf("Unknown Instruction: %s", instr_str));
+                this.logger.print($sformatf("Unknown Instruction: %s pc=%d", instr_str, pc_orig_cnt));
             end
             endcase
             this.update_regf(has_update, rd, exp_val);
@@ -778,10 +811,10 @@ endclass
         return instr_str;
     endfunction
 
-    function automatic rv32_instr_q process_hex_file(string hex_file, Logger logger, int nwords);
+    function automatic rv32_data_q process_hex_file(string hex_file, Logger logger, int nwords);
         int fd = $fopen (hex_file, "r");
         string instr_str, temp, line;
-        rv32_instr_q instr_q;
+        rv32_data_q instr_q;
         int word_cnt = 0;
         if (fd)  begin logger.print($sformatf("%s was opened successfully : %0d", hex_file, fd)); end
         else     begin logger.print($sformatf("%s was NOT opened successfully : %0d", hex_file, fd)); $finish(); end

@@ -86,7 +86,7 @@ rv32_type_enum_t   rv32_ex_inst_type;
 rv32_opcode_enum_t rv32_ex_opcode;
 rv32_pc_cnt_t      rv32_ex_pc;
 rv32_imm_t         rv32_ex_imm;
-
+rv32_dmem_addr_t   rv32_ex_readd_addr;
 //====================================================================
 // WB stage wires
 //====================================================================
@@ -103,6 +103,8 @@ logic              rv32_wb_has_new_pc;
 logic              rv32_wb_skip;
 rv32_register_t    rv32_wb_reg_pc;
 rv32_pc_cnt_t      rv32_wb_next_pc_val;
+rv32_data_t        rv32_wb_store_val;
+rv32_dmem_addr_t   rv32_wb_readd_addr;
 
 //====================================================================
 // WF stage wires
@@ -111,6 +113,8 @@ rv32_pc_cnt_t      rv32_wb_next_pc_val;
 rv32_opcode_enum_t rv32_wf_opcode;
 rv32_pc_cnt_t      rv32_wf_pc;
 logic              rv32_wf_skip;
+logic              rv32_wf_is_load;
+rv32_data_t        rv32_wf_load_val;
 // Control Signals
 logic pc_sel;
 logic alu_src;
@@ -222,6 +226,8 @@ rv32_data_memory d_mem(
                         .q         (rv32_dr_data)
     );
 
+assign rv32_dr_addr = rv32_ex_readd_addr>>2; // for now, we access 32 bit at a time
+
 //====================================================================
 //                   Fetch Stage
 //====================================================================
@@ -279,6 +285,7 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
         if(rv32_io_rst_n == 1'b0) begin
             rv32_ex_pc    <= 0;
             rv32_dec_instr<= {32{1'b0}};
+            rv32_ex_readd_addr  <= 0;
         end else begin
             // rv32_regf_wen    <= 1'b0;
             rv32_ex_opcode    <= rv32_dec_opcode;
@@ -292,13 +299,21 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
                 rv32_alu_rs1     <= rv32_regf_rd1;
                 rv32_wb_rs2_skip <= rv32_regf_rd2;
                 rv32_ex_rd       <= rv32_dec_rd;
-                if (alu_src == `PITO_ALU_SRC_RS2 ) begin
-                    rv32_alu_rs2 <= rv32_regf_rd2;
+                if ((rv32_dec_opcode == RV32_LB ) ||
+                    (rv32_dec_opcode == RV32_LH ) ||
+                    (rv32_dec_opcode == RV32_LW ) ||
+                    (rv32_dec_opcode == RV32_LBU) ||
+                    (rv32_dec_opcode == RV32_LHU) ) begin
+                    rv32_ex_readd_addr <= rv32_dec_imm + rv32_regf_rd1;
                 end else begin
-                    if ((rv32_dec_alu_op == `ALU_SLL ) || (rv32_dec_alu_op == `ALU_SRL ) || (rv32_dec_alu_op == `ALU_SRA )) begin
-                        rv32_alu_rs2 <= {27'b0, rv32_dec_shamt};
+                    if (alu_src == `PITO_ALU_SRC_RS2 ) begin
+                        rv32_alu_rs2 <= rv32_regf_rd2;
                     end else begin
-                        rv32_alu_rs2 <= rv32_dec_imm;
+                        if ((rv32_dec_alu_op == `ALU_SLL ) || (rv32_dec_alu_op == `ALU_SRL ) || (rv32_dec_alu_op == `ALU_SRA )) begin
+                            rv32_alu_rs2 <= {27'b0, rv32_dec_shamt};
+                        end else begin
+                            rv32_alu_rs2 <= rv32_dec_imm;
+                        end
                     end
                 end
             end else begin
@@ -319,35 +334,41 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
 // The following circuit decides whether the write back to memory should
 // be skipped or not. The write back stage should be skipped only when the 
 // instruction is of type: NOT store
-    assign rv32_wb_skip = ((rv32_ex_opcode == RV32_SB) || (rv32_ex_opcode == RV32_SH) || (rv32_ex_opcode == RV32_SW)) ? 1'b0 : 1'b1;
+    assign rv32_wb_skip = ((rv32_ex_opcode == RV32_SB) || (rv32_ex_opcode == RV32_SH) || (rv32_ex_opcode == RV32_SW) ) ? 1'b0 : 1'b1;
+    // TODO: should be byte addressed
+    // Data memory is word accessed. In the path to register file, 
+    // the circuit below takes the correct value from the ram output.
+    always_comb begin
+        case (rv32_ex_opcode)
+             RV32_SB : rv32_wb_store_val = { {24{1'b0}}, rv32_wb_rs2_skip[7 : 0]};
+             RV32_SH : rv32_wb_store_val = { {16{1'b0}}, rv32_wb_rs2_skip[15: 0]};
+             RV32_SW : rv32_wb_store_val = rv32_wb_rs2_skip;
+             default : rv32_wb_store_val = {32{1'b0}};
+        endcase
+    end
 
     always @(posedge clk) begin
         if(rv32_io_rst_n == 1'b0) begin
-            rv32_wb_pc   <= 0;
-            rv32_wb_instr<= {32{1'b0}};
+            rv32_wb_pc     <= 0;
+            rv32_wb_instr  <= {32{1'b0}};
+            rv32_dmem_w_en <= 1'b0;
         end else begin
-            rv32_wb_pc       <= rv32_ex_pc;
-            rv32_wb_opcode   <= rv32_ex_opcode;
-            rv32_wb_inst_type<= rv32_ex_inst_type;
-            rv32_wb_instr    <= rv32_ex_instr;
-            rv32_wb_imm      <= rv32_ex_imm;
-            rv32_wb_rs1      <= rv32_ex_rs1;
-            rv32_wb_rd       <= rv32_ex_rd;
-            rv32_dmem_w_en   <= 1'b0;
+            rv32_wb_pc        <= rv32_ex_pc;
+            rv32_wb_opcode    <= rv32_ex_opcode;
+            rv32_wb_inst_type <= rv32_ex_inst_type;
+            rv32_wb_instr     <= rv32_ex_instr;
+            rv32_wb_imm       <= rv32_ex_imm;
+            rv32_wb_rs1       <= rv32_ex_rs1;
+            rv32_wb_rd        <= rv32_ex_rd;
+            rv32_dmem_w_en    <= 1'b0;
+            rv32_wb_readd_addr<= rv32_ex_readd_addr;
             if (rv32_ex_opcode != RV32_NOP ) begin
                 if (rv32_wb_skip) begin
                     rv32_wb_out <= rv32_alu_res;
                 end else begin
-                    if ((rv32_ex_opcode == RV32_LB ) ||
-                        (rv32_ex_opcode == RV32_LH ) ||
-                        (rv32_ex_opcode == RV32_LW ) ||
-                        (rv32_ex_opcode == RV32_LBU) ) begin
-                        rv32_dr_addr   <= rv32_alu_res;
-                    end else begin
-                        rv32_dmem_addr <= rv32_alu_res;
-                        rv32_dmem_data <= rv32_wb_rs2_skip;
-                        rv32_dmem_w_en <= 1'b1; 
-                    end
+                    rv32_dmem_addr <= rv32_alu_res - `PITO_DATA_MEM_OFFSET;
+                    rv32_dmem_data <= rv32_wb_store_val;
+                    rv32_dmem_w_en <= 1'b1; 
                 end
             end
             `ifdef DEBUG
@@ -357,6 +378,7 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
             `endif
         end
     end
+
 //====================================================================
 //                   RegFile Write Stage
 //====================================================================
@@ -364,6 +386,50 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
     assign rv32_wf_skip = ((rv32_wb_opcode == RV32_BEQ ) || (rv32_wb_opcode == RV32_BNE ) || (rv32_wb_opcode == RV32_BLT ) || 
                            (rv32_wb_opcode == RV32_BGE ) || (rv32_wb_opcode == RV32_BLTU) || (rv32_wb_opcode == RV32_BGEU) ||
                            (rv32_wb_opcode == RV32_SB  ) || (rv32_wb_opcode == RV32_SH  ) || (rv32_wb_opcode == RV32_SW  )) ? 1'b1 : 1'b0;
+    assign rv32_wf_is_load = ((rv32_wb_opcode == RV32_LB) || (rv32_wb_opcode == RV32_LH) || (rv32_wb_opcode == RV32_LW) ||
+                              (rv32_wb_opcode == RV32_LBU)) ? 1'b1 : 1'b0;
+    // Memory is byte addressed but Data memory is word accessed. 
+    // In the path to register file, the circuit below takes the correct 
+    // value from the ram output. 
+    always_comb begin
+        case (rv32_wb_opcode)
+             RV32_LB : begin
+                        case (rv32_wb_readd_addr[1:0])
+                            00: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[7 : 0]};
+                            01: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[15: 8]};
+                            10: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[23:16]};
+                            11: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[31:24]};
+                            default : rv32_wf_load_val = 0;
+                        endcase
+                       end
+             RV32_LH :  begin
+                        case (rv32_wb_readd_addr[1:0])
+                            00: rv32_wf_load_val = { {16{1'b0}}, rv32_dr_data[15: 0]};
+                            10: rv32_wf_load_val = { {16{1'b0}}, rv32_dr_data[31:16]};
+                            default : rv32_wf_load_val = 0;
+                        endcase
+                       end
+             RV32_LW : rv32_wf_load_val = rv32_dr_data;
+             RV32_LBU: begin
+                        case (rv32_wb_readd_addr[1:0])
+                            00: rv32_wf_load_val = { {24{rv32_dr_data[7 ]}}, rv32_dr_data[7 : 0]};
+                            01: rv32_wf_load_val = { {24{rv32_dr_data[15]}}, rv32_dr_data[15: 8]};
+                            10: rv32_wf_load_val = { {24{rv32_dr_data[23]}}, rv32_dr_data[23:16]};
+                            11: rv32_wf_load_val = { {24{rv32_dr_data[31]}}, rv32_dr_data[31:24]};
+                            default : rv32_wf_load_val = 0;
+                        endcase
+                       end
+             RV32_LHU: begin
+                        case (rv32_wb_readd_addr[1:0])
+                            00: rv32_wf_load_val = { {16{rv32_dr_data[15]}}, rv32_dr_data[15: 0]};
+                            10: rv32_wf_load_val = { {16{rv32_dr_data[31]}}, rv32_dr_data[31:16]};
+                            default : rv32_wf_load_val = 0;
+                        endcase
+                       end
+             default : rv32_wf_load_val = {32{1'b0}};
+        endcase
+    end
+
     always @(posedge clk) begin
         if(rv32_io_rst_n == 1'b0) begin
             rv32_regf_wa <= 0;
@@ -379,17 +445,21 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
                 //=================================================================================
                 // Decide if we need to write anything to RF. This is decided by rv32_wf_skip signal.
                 // Most instructions (except the one in rv32_wf_skip) have to write results to RF.
-                // They can be devided into these three types:
+                // They can be devided into these four types:
                 // 1- Immediates: Only LUI instruction is in this cat. Load Immediate to RF.
                 // 2- Return Add: For JAL and JALR, we need to save the return address into RF.
-                // 3- ALU Res: For all other types, store ALU output to the RF.
+                // 3- Load operation: All load operations will write to RF.
+                // 4- ALU Res: For all other types, store ALU output to the RF.
+
                 if (!rv32_wf_skip) begin
                     rv32_regf_wa <= rv32_wb_rd;
                     if (rv32_wb_opcode == RV32_LUI) begin // 1- Immediates: Load Upper Immediate to RF
                         rv32_regf_wd <= rv32_wb_imm;
                     end else if (rv32_wb_save_pc) begin // 2- Return Add: PC has to be written to RF
                         rv32_regf_wd <= rv32_wb_reg_pc;
-                    end else begin // 3- ALU Res: All other instructions except rv32_wf_skip have to write ALU res into RF 
+                    end else if (rv32_wf_is_load) begin // 3- Load operation: All load operations will write to RF.
+                        rv32_regf_wd <= rv32_wf_load_val;
+                    end else begin // 4- ALU Res: All other instructions except rv32_wf_skip have to write ALU res into RF 
                         rv32_regf_wd <= rv32_wb_out;
                     end
                 end
@@ -432,7 +502,7 @@ rv32_pc_cnt_t      rv32_cap_pc;
 rv32_instr_t       rv32_cap_instr;
 logic is_end;
 
-assign is_end = (rv32_wf_opcode ==  RV32_ECALL) ? 1'b1 : 1'b0;
+assign is_end = ((rv32_wf_opcode ==  RV32_ECALL) || (rv32_wf_opcode ==  RV32_EBREAK)) ? 1'b1 : 1'b0;
 
     always @(posedge clk) begin
         if(rv32_io_rst_n == 1'b0) begin
