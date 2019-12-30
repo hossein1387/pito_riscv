@@ -13,6 +13,15 @@ module rv32_core (
 );
 
 //====================================================================
+// HART related signals
+//====================================================================
+rv32_hart_cnt_t rv32_hart_cnt;
+rv32_hart_cnt_t rv32_hart_dec_cnt;
+rv32_hart_cnt_t rv32_hart_ex_cnt;
+rv32_hart_cnt_t rv32_hart_wb_cnt;
+rv32_hart_cnt_t rv32_hart_wf_cnt;
+
+//====================================================================
 // General Wires and registers
 //====================================================================
 
@@ -34,7 +43,7 @@ rv32_register_t     rv32_cap_alu_rs2;
 // General signals
 logic              clk;
 logic              rst_n;
-rv32_pc_cnt_t      rv32_pc;
+rv32_pc_cnt_t      rv32_pc [`PITO_NUM_HARTS-1 : 0];
 
 // raw un-decoded rv32 instruction
 rv32_instr_t        rv32_instr;
@@ -48,9 +57,9 @@ rv32_instr_t        rv32_wf_instr;
 //====================================================================
 // Register file wires
 rv32_regfile_addr_t rv32_regf_ra1;
-rv32_register_t     rv32_regf_rd1;
+rv32_register_t     rv32_regf_rd1 [`PITO_NUM_HARTS-1 : 0];
 rv32_regfile_addr_t rv32_regf_ra2;
-rv32_register_t     rv32_regf_rd2;
+rv32_register_t     rv32_regf_rd2 [`PITO_NUM_HARTS-1 : 0];
 logic               rv32_regf_wen;
 rv32_regfile_addr_t rv32_regf_wa ;
 rv32_register_t     rv32_regf_wd ;
@@ -111,7 +120,7 @@ rv32_dmem_addr_t   rv32_wb_readd_addr;
 //====================================================================
 // write regfile stage
 rv32_opcode_enum_t rv32_wf_opcode;
-rv32_pc_cnt_t      rv32_wf_pc;
+rv32_pc_cnt_t      rv32_wf_pc[`PITO_NUM_HARTS-1 : 0];;
 logic              rv32_wf_skip;
 logic              rv32_wf_is_load;
 rv32_data_t        rv32_wf_load_val;
@@ -137,24 +146,23 @@ logic            rv32_dw_en  ;
 rv32_dmem_addr_t rv32_dr_addr;
 rv32_data_t      rv32_dr_data;
 
-// connect io clock and reset to internal logic
-assign clk   = rv32_io_clk;
-assign rst_n = rv32_io_rst_n;
-
 //====================================================================
 //                   Module instansiation
 //====================================================================
-
-rv32_regfile regfile(
-                        .clk(clk              ),
-                        .ra1(rv32_dec_rs1[4:0]),
-                        .rd1(rv32_regf_rd1    ),
-                        .ra2(rv32_dec_rs2[4:0]),
-                        .rd2(rv32_regf_rd2    ),
-                        .wen(rv32_regf_wen    ),
-                        .wa (rv32_regf_wa     ),
-                        .wd (rv32_regf_wd     )
-                    );
+// Generate register file for all harts
+genvar regf_var;
+for (regf_var=0; regf_var < `PITO_NUM_HARTS; regf_var ++) begin
+    rv32_regfile regfile(
+                            .clk(clk                      ),
+                            .ra1(rv32_dec_rs1regf_var[4:0]),
+                            .rd1(rv32_regf_rd1[regf_var]  ),
+                            .ra2(rv32_dec_rs2regf_var[4:0]),
+                            .rd2(rv32_regf_rd2[regf_var]  ),
+                            .wen(rv32_regf_wen[regf_var]  ),
+                            .wa (rv32_regf_wa[regf_var]   ),
+                            .wd (rv32_regf_wd[regf_var]   )
+                        );
+end
 
 rv32_decoder decoder (
                         .instr         (rv32_instr         ),
@@ -226,7 +234,11 @@ rv32_data_memory d_mem(
                         .q         (rv32_dr_data)
     );
 
-assign rv32_dr_addr = rv32_ex_readd_addr>>2; // for now, we access 32 bit at a time
+ // for now, we access 32 bit at a time
+ assign rv32_dr_addr = rv32_ex_readd_addr>>2;
+// connect io clock and reset to internal logic
+assign clk   = rv32_io_clk;
+assign rst_n = rv32_io_rst_n;
 
 //====================================================================
 //                   Fetch Stage
@@ -234,26 +246,30 @@ assign rv32_dr_addr = rv32_ex_readd_addr>>2; // for now, we access 32 bit at a t
 // pipeline
     always @(posedge clk) begin
         if(rv32_io_rst_n == 1'b0) begin
-            rv32_pc         <= `RESET_ADDRESS;
+            for (int i = 0; i < `PITO_NUM_HARTS; i++) begin
+                rv32_pc[i]  <= `RESET_ADDRESS;
+            end
+            rv32_hart_cnt <= 0;
         end else begin
             // rv32_pc is the main program counter. Depending on the executed instruction
             // it can be either PC+4 or, in branch and jump instruction, comming from
             // instruction decoding. This decision is represented by pc_sel. Initially at 
             // reset, we set the pc_sel to PITO_PC_SEL_PLUS_4 so that the pc counter starts
             // executing instruction from memory.
-            if (rv32_pc == `RESET_ADDRESS) begin
-                rv32_pc <= 0;
+            if (rv32_pc[rv32_hart_cnt] == `RESET_ADDRESS) begin
+                rv32_pc[rv32_hart_cnt] <= 0 + (rv32_hart_cnt << 10);
             end else begin
                 if (pc_sel == `PITO_PC_SEL_PLUS_4) begin
-                    rv32_pc <= rv32_pc + 4;
+                    rv32_pc[rv32_hart_cnt] <= rv32_pc[rv32_hart_cnt] + 4 + (rv32_hart_cnt << 10);
                 end else begin
-                    rv32_pc <= rv32_wf_pc;
+                    rv32_pc[rv32_hart_cnt] <= rv32_wf_pc[rv32_hart_cnt] + (rv32_hart_cnt << 10);
                 end
             end
+            rv32_hart_cnt <= rv32_hart_cnt + 1;
         end
     end
 
-assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
+assign rv32_i_addr = rv32_pc[rv32_hart_cnt] >> 2; // for now, we access 32 bit at a time
 
 //====================================================================
 //                   Decode Stage
@@ -263,8 +279,9 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
         if(rv32_io_rst_n == 1'b0) begin
             rv32_dec_pc <= 0;
         end else begin
-            rv32_dec_pc    <= rv32_pc;
-            rv32_dec_instr <= rv32_instr;
+            rv32_dec_pc       <= rv32_pc[rv32_hart_cnt];
+            rv32_dec_instr    <= rv32_instr;
+            rv32_hart_dec_cnt <= rv32_hart_cnt;
         end
     end
 //====================================================================
@@ -294,6 +311,7 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
             rv32_ex_imm       <= rv32_dec_imm;
             rv32_ex_pc        <= rv32_dec_pc;
             rv32_ex_rs1       <= rv32_dec_rs1; // copy for auipc calculation in wf stage
+            rv32_hart_ex_cnt  <= rv32_hart_dec_cnt;
             if (rv32_dec_opcode != RV32_NOP) begin
                 rv32_alu_op      <= rv32_dec_alu_op;
                 rv32_alu_rs1     <= rv32_regf_rd1;
@@ -304,7 +322,7 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
                     (rv32_dec_opcode == RV32_LW ) ||
                     (rv32_dec_opcode == RV32_LBU) ||
                     (rv32_dec_opcode == RV32_LHU) ) begin
-                    rv32_ex_readd_addr <= rv32_dec_imm + rv32_regf_rd1;
+                    rv32_ex_readd_addr <= rv32_dec_imm + rv32_regf_rd1 + (rv32_hart_dec_cnt << 10);
                 end else begin
                     if (alu_src == `PITO_ALU_SRC_RS2 ) begin
                         rv32_alu_rs2 <= rv32_regf_rd2;
@@ -362,11 +380,12 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
             rv32_wb_rd        <= rv32_ex_rd;
             rv32_dmem_w_en    <= 1'b0;
             rv32_wb_readd_addr<= rv32_ex_readd_addr;
+            rv32_hart_wb_cnt  <= rv32_hart_ex_cnt;
             if (rv32_ex_opcode != RV32_NOP ) begin
                 if (rv32_wb_skip) begin
                     rv32_wb_out <= rv32_alu_res;
                 end else begin
-                    rv32_dmem_addr <= rv32_alu_res - `PITO_DATA_MEM_OFFSET;
+                    rv32_dmem_addr <= rv32_alu_res - `PITO_DATA_MEM_OFFSET + (rv32_hart_ex_cnt << 10);
                     rv32_dmem_data <= rv32_wb_store_val;
                     rv32_dmem_w_en <= 1'b1; 
                 end
@@ -433,12 +452,15 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
     always @(posedge clk) begin
         if(rv32_io_rst_n == 1'b0) begin
             rv32_regf_wa <= 0;
-            rv32_wf_pc   <= 0;
+            for (int i=0; i<`PITO_NUM_HARTS; i++) begin
+                rv32_wf_pc[i] <= 0;
+            end
             pc_sel       <= `PITO_PC_SEL_PLUS_4;
             rv32_wf_instr<= {32{1'b0}};
         end else begin
-            rv32_wf_opcode      <= rv32_wb_opcode;
-            rv32_wf_instr       <= rv32_wb_instr;
+            rv32_wf_opcode    <= rv32_wb_opcode;
+            rv32_wf_instr     <= rv32_wb_instr;
+            rv32_hart_wf_cnt  <= rv32_hart_wb_cnt;
             if (rv32_wb_opcode != RV32_NOP) begin
                 //=================================================================================
                 // Register File
@@ -473,14 +495,14 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
                 // need to use the calculated PC counter or just the current (in Fetch stage) PC + 4.
                 if (rv32_wb_has_new_pc) begin
                     pc_sel     <= `PITO_PC_SEL_COMPUTED;
-                    rv32_wf_pc <= rv32_wb_next_pc_val;
+                    rv32_wf_pc[rv32_hart_wb_cnt] <= rv32_wb_next_pc_val;
                 end else begin
                     pc_sel     <= `PITO_PC_SEL_PLUS_4;
-                    rv32_wf_pc <= rv32_wb_pc;
+                    rv32_wf_pc[rv32_hart_wb_cnt] <= rv32_wb_pc;
                 end
             end else begin
                 pc_sel     <= `PITO_PC_SEL_PLUS_4;
-                rv32_wf_pc <= rv32_wb_pc;
+                rv32_wf_pc[rv32_hart_wb_cnt] <= rv32_wb_pc;
             end
             `ifdef DEBUG
                 rv32_org_wf_pc <= rv32_org_wb_pc;
@@ -500,6 +522,8 @@ assign rv32_i_addr = rv32_pc>>2; // for now, we access 32 bit at a time
 rv32_opcode_enum_t rv32_cap_opcode;
 rv32_pc_cnt_t      rv32_cap_pc;
 rv32_instr_t       rv32_cap_instr;
+rv32_hart_cnt_t    rv32_hart_cap_cnt;
+
 logic is_end;
 
 assign is_end = ((rv32_wf_opcode ==  RV32_ECALL) || (rv32_wf_opcode ==  RV32_EBREAK)) ? 1'b1 : 1'b0;
@@ -508,12 +532,13 @@ assign is_end = ((rv32_wf_opcode ==  RV32_ECALL) || (rv32_wf_opcode ==  RV32_EBR
         if(rv32_io_rst_n == 1'b0) begin
             rv32_cap_pc     <= 0;
         end else begin
-            rv32_cap_pc     <= rv32_wf_pc;
-            rv32_cap_opcode <= rv32_wf_opcode;
-            rv32_cap_instr  <= rv32_wf_instr;
-            rv32_org_cap_pc <= rv32_org_wf_pc;
-            rv32_cap_alu_rs1<= rv32_wf_alu_rs1;
-            rv32_cap_alu_rs2<= rv32_wf_alu_rs2;
+            rv32_cap_pc      <= rv32_wf_pc[rv32_hart_wf_cnt];
+            rv32_cap_opcode  <= rv32_wf_opcode;
+            rv32_cap_instr   <= rv32_wf_instr;
+            rv32_org_cap_pc  <= rv32_org_wf_pc;
+            rv32_cap_alu_rs1 <= rv32_wf_alu_rs1;
+            rv32_cap_alu_rs2 <= rv32_wf_alu_rs2;
+            rv32_hart_cap_cnt<= rv32_hart_wf_cnt;
         end
     end
 `endif

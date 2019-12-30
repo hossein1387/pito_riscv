@@ -21,6 +21,8 @@
 `define PITO_PC_SEL_COMPUTED (1'b0)
 `define PITO_ALU_SRC_RS2     (1'b1)
 `define PITO_ALU_SRC_IMM     (1'b0)
+`define PITO_NUM_HARTS       (8)
+`define PITO_HART_CNT_WIDTH  $clog2(`PITO_NUM_HARTS)
 //-------------------------------------------------------------------
 //                           Width-related constants
 //-------------------------------------------------------------------
