@@ -60,6 +60,7 @@ TEST_FUNC_NAME:				\
 	TEST_INSERT_NOPS_5;\
 	sw	a3,0(a0);		\
 	TEST_INSERT_NOPS_5;\
+	ebreak;\
 	jal	zero,TEST_FUNC_RET;
 
 #define RVTEST_FAIL			\
@@ -85,7 +86,7 @@ TEST_FUNC_NAME:				\
 	TEST_INSERT_NOPS_5;\
 	sw	a4,0(a0);		\
 	TEST_INSERT_NOPS_5;\
-	ebreak;
+	ebreak;\
 
 #define RVTEST_CODE_END
 #define RVTEST_DATA_BEGIN .balign 4;
