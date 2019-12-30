@@ -152,7 +152,7 @@ module core_tester ();
         end
     endtask
 
-    task automatic monitor_pito(rv32
+    task automatic monitor_pito(rv32_data_q instr_q);
         rv32_opcode_enum_t rv32_wf_opcode;
         rv32_inst_dec_t instr;
         rv32_instr_t    exp_instr;
@@ -176,7 +176,7 @@ module core_tester ();
             // $display("\n");
             // @(posedge clk);
         end
-        logger.print("ECALL signal was received.");
+        logger.print($sformatf("Exception signal was received code name: %s", core.rv32_wf_opcode.name));
     endtask
 
     task automatic monitor_regs();
@@ -198,7 +198,7 @@ module core_tester ();
         pito_program = 0;
 
         logger = new(sim_log_file);
-        instr_q = process_hex_file(program_hex_file, logger, 743); // read hex file and store the first n words to the ram
+        instr_q = process_hex_file(program_hex_file, logger, 1000); // read hex file and store the first n words to the ram
 
         rv32i_dec = new(logger);
         rv32i_pred = new(logger, instr_q);

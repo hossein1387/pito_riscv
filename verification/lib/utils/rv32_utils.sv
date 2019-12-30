@@ -157,19 +157,48 @@ class RV32IDecoder extends BaseObj;
             endcase
             //rv32_inst_dec.ins_str = $sformatf("%8s.%7s: rd=%2d rs1=%2d           imm=%4d", inst_type, funct3_str, rd, rs1, imm);
         end else if (opcode == 7'b0001111) begin
-            /*
-            TODO: Decode the fence instructions here
-            */
+            string funct3_str;
+            case (funct3)
+                3'b000  : begin rv32_inst_dec.opcode = RV32_FENCE  ; funct3_str = "fence" ; end
+                3'b001  : begin rv32_inst_dec.opcode = RV32_FENCEI ; funct3_str = "fencei"; end
+                default : begin rv32_inst_dec.opcode = RV32_UNKNOWN; funct3_str = "unknown"; end/* default */
+            endcase
             //rv32_inst_dec.ins_str = "fence instruction   [NOT SUPPORTED]";
-            rv32_inst_dec.opcode = RV32_FENCE;
         end else if (opcode == 7'b1110011) begin
-            /*
-            TODO: Decode the csr instructions here
-            */
-            //rv32_inst_dec.ins_str = "csr instruction     [NOT SUPPORTED]";
-            rv32_inst_dec.opcode = RV32_CSRRC;
-            rv32_inst_dec.csr    = `PITO_NULL;
-        end else                           begin
+            string funct3_str;
+            case (funct3)
+                3'b000  : begin if (instr[31:20]==0) begin 
+                                    funct3_str = "ecall"; 
+                                    rv32_inst_dec.opcode = RV32_ECALL; 
+                                    rv32_inst_dec.imm    = 0;
+                                end else if (instr[31:20]==1) begin 
+                                    funct3_str = "ebreak"; 
+                                    rv32_inst_dec.opcode = RV32_EBREAK; 
+                                    rv32_inst_dec.imm    = 0;
+                                end else begin
+                                    rv32_inst_dec.opcode = RV32_UNKNOWN; 
+                                    funct3_str = "unknown"; 
+                                end 
+                          end
+                3'b001  : begin rv32_inst_dec.opcode = RV32_CSRRW  ; funct3_str = "csrrw"  ; end
+                3'b010  : begin rv32_inst_dec.opcode = RV32_CSRRS  ; funct3_str = "csrrs"  ; end
+                3'b011  : begin rv32_inst_dec.opcode = RV32_CSRRC  ; funct3_str = "csrrc"  ; end
+                3'b101  : begin 
+                            rv32_inst_dec.opcode = RV32_CSRRWI ; funct3_str = "csrrwi" ; 
+                            rv32_inst_dec.imm = instr[19:15];
+                           end
+                3'b110  : begin 
+                            rv32_inst_dec.opcode = RV32_CSRRSI ; funct3_str = "csrrsi" ; 
+                            rv32_inst_dec.imm = instr[19:15];
+                           end
+                3'b111  : begin 
+                            rv32_inst_dec.opcode = RV32_CSRRCI ; funct3_str = "csrrci" ; 
+                            rv32_inst_dec.imm = instr[19:15];
+                           end
+                default : begin rv32_inst_dec.opcode = RV32_UNKNOWN; funct3_str = "unknown"; end/* default */
+            endcase
+            rv32_inst_dec.csr = instr[31:20];
+        end else begin
             //rv32_inst_dec.ins_str = "!unknown instruction!";
             rv32_inst_dec.opcode = RV32_UNKNOWN;
             rv32_inst_dec.inst_type = RV32_TYPE_UNKNOWN;
