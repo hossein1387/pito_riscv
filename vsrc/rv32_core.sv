@@ -57,9 +57,9 @@ rv32_instr_t        rv32_wf_instr;
 //====================================================================
 // Register file wires
 rv32_regfile_addr_t rv32_regf_ra1;
-rv32_register_t     rv32_regf_rd1 [`PITO_NUM_HARTS-1 : 0];
+rv32_register_t     rv32_regf_rd1;
 rv32_regfile_addr_t rv32_regf_ra2;
-rv32_register_t     rv32_regf_rd2 [`PITO_NUM_HARTS-1 : 0];
+rv32_register_t     rv32_regf_rd2;
 logic               rv32_regf_wen;
 rv32_regfile_addr_t rv32_regf_wa ;
 rv32_register_t     rv32_regf_wd ;
@@ -150,19 +150,30 @@ rv32_data_t      rv32_dr_data;
 //                   Module instansiation
 //====================================================================
 // Generate register file for all harts
-genvar regf_var;
-for (regf_var=0; regf_var < `PITO_NUM_HARTS; regf_var ++) begin
+// genvar regf_var;
+// for (regf_var=0; regf_var < `PITO_NUM_HARTS; regf_var ++) begin
+//     rv32_regfile regfile(
+//                             .clk(clk                      ),
+//                             .ra1(rv32_dec_rs1regf_var[4:0]),
+//                             .rd1(rv32_regf_rd1[regf_var]  ),
+//                             .ra2(rv32_dec_rs2regf_var[4:0]),
+//                             .rd2(rv32_regf_rd2[regf_var]  ),
+//                             .wen(rv32_regf_wen[regf_var]  ),
+//                             .wa (rv32_regf_wa[regf_var]   ),
+//                             .wd (rv32_regf_wd[regf_var]   )
+//                         );
+// end
     rv32_regfile regfile(
                             .clk(clk                      ),
-                            .ra1(rv32_dec_rs1regf_var[4:0]),
-                            .rd1(rv32_regf_rd1[regf_var]  ),
-                            .ra2(rv32_dec_rs2regf_var[4:0]),
-                            .rd2(rv32_regf_rd2[regf_var]  ),
-                            .wen(rv32_regf_wen[regf_var]  ),
-                            .wa (rv32_regf_wa[regf_var]   ),
-                            .wd (rv32_regf_wd[regf_var]   )
+                            .ra1(rv32_dec_rs1[4:0]),
+                            .rd1(rv32_regf_rd1    ),
+                            .ra2(rv32_dec_rs2[4:0]),
+                            .rd2(rv32_regf_rd2    ),
+                            .wen(rv32_regf_wen    ),
+                            .wa (rv32_regf_wa     ),
+                            .wd (rv32_regf_wd     )
                         );
-end
+
 
 rv32_decoder decoder (
                         .instr         (rv32_instr         ),
