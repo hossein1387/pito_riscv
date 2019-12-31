@@ -42,38 +42,40 @@ RVTEST_CODE_BEGIN
   # Source/Destination tests
   #-------------------------------------------------------------
 
-  TEST_RR_SRC1_EQ_DEST( 17, add, 24, 13, 11 );
-  TEST_RR_SRC2_EQ_DEST( 18, add, 25, 14, 11 );
-  TEST_RR_SRC12_EQ_DEST( 19, add, 26, 13 );
+ TEST_RR_SRC1_EQ_DEST( 17, add, 24, 13, 11 );
+ TEST_RR_SRC2_EQ_DEST( 18, add, 25, 14, 11 );
+ TEST_RR_SRC12_EQ_DEST( 19, add, 26, 13 );
 
-  #-------------------------------------------------------------
-  # Bypassing tests
-  #-------------------------------------------------------------
+  # #-------------------------------------------------------------
+  # # Bypassing tests
+  # #-------------------------------------------------------------
 
-  TEST_RR_DEST_BYPASS( 20, 0, add, 24, 13, 11 );
-  TEST_RR_DEST_BYPASS( 21, 1, add, 25, 14, 11 );
-  TEST_RR_DEST_BYPASS( 22, 2, add, 26, 15, 11 );
+ TEST_RR_DEST_BYPASS( 20, 0, add, 24, 13, 11 );
+ TEST_RR_DEST_BYPASS( 21, 1, add, 25, 14, 11 );
+ TEST_RR_DEST_BYPASS( 22, 2, add, 26, 15, 11 );
 
-  TEST_RR_SRC12_BYPASS( 23, 0, 0, add, 24, 13, 11 );
-  TEST_RR_SRC12_BYPASS( 24, 0, 1, add, 25, 14, 11 );
-  TEST_RR_SRC12_BYPASS( 25, 0, 2, add, 26, 15, 11 );
-  TEST_RR_SRC12_BYPASS( 26, 1, 0, add, 24, 13, 11 );
-  TEST_RR_SRC12_BYPASS( 27, 1, 1, add, 25, 14, 11 );
-  TEST_RR_SRC12_BYPASS( 28, 2, 0, add, 26, 15, 11 );
+ TEST_RR_SRC12_BYPASS( 23, 0, 0, add, 24, 13, 11 );
+ TEST_RR_SRC12_BYPASS( 24, 0, 1, add, 25, 14, 11 );
+ TEST_RR_SRC12_BYPASS( 25, 0, 2, add, 26, 15, 11 );
+ TEST_RR_SRC12_BYPASS( 26, 1, 0, add, 24, 13, 11 );
+ TEST_RR_SRC12_BYPASS( 27, 1, 1, add, 25, 14, 11 );
+ TEST_RR_SRC12_BYPASS( 28, 2, 0, add, 26, 15, 11 );
 
-  TEST_RR_SRC21_BYPASS( 29, 0, 0, add, 24, 13, 11 );
-  TEST_RR_SRC21_BYPASS( 30, 0, 1, add, 25, 14, 11 );
-  TEST_RR_SRC21_BYPASS( 31, 0, 2, add, 26, 15, 11 );
-  TEST_RR_SRC21_BYPASS( 32, 1, 0, add, 24, 13, 11 );
-  TEST_RR_SRC21_BYPASS( 33, 1, 1, add, 25, 14, 11 );
-  TEST_RR_SRC21_BYPASS( 34, 2, 0, add, 26, 15, 11 );
+ TEST_RR_SRC21_BYPASS( 29, 0, 0, add, 24, 13, 11 );
+ TEST_RR_SRC21_BYPASS( 30, 0, 1, add, 25, 14, 11 );
+ TEST_RR_SRC21_BYPASS( 31, 0, 2, add, 26, 15, 11 );
+ TEST_RR_SRC21_BYPASS( 32, 1, 0, add, 24, 13, 11 );
+ TEST_RR_SRC21_BYPASS( 33, 1, 1, add, 25, 14, 11 );
+ TEST_RR_SRC21_BYPASS( 34, 2, 0, add, 26, 15, 11 );
 
-  TEST_RR_ZEROSRC1( 35, add, 15, 15 );
-  TEST_RR_ZEROSRC2( 36, add, 32, 32 );
-  TEST_RR_ZEROSRC12( 37, add, 0 );
-  TEST_RR_ZERODEST( 38, add, 16, 30 );
+ TEST_RR_ZEROSRC1( 35, add, 15, 15 );
+ TEST_RR_ZEROSRC2( 36, add, 32, 32 );
+ TEST_RR_ZEROSRC12( 37, add, 0 );
+ TEST_RR_ZERODEST( 38, add, 16, 30 );
 
   TEST_PASSFAIL
+add_ret:
+    ret
 
 RVTEST_CODE_END
 
