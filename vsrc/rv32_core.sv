@@ -254,7 +254,7 @@ assign rst_n = rv32_io_rst_n;
             // reset, we set the pc_sel to PITO_PC_SEL_PLUS_4 so that the pc counter starts
             // executing instruction from memory.
             if (rv32_pc[rv32_hart_cnt] == `RESET_ADDRESS) begin
-                rv32_pc[rv32_hart_cnt] <= 0 + (rv32_hart_cnt << 10);
+                rv32_pc[rv32_hart_cnt] <= rv32_hart_cnt << 12;
             end else begin
                 if (pc_sel == `PITO_PC_SEL_PLUS_4) begin
                     rv32_pc[rv32_hart_cnt] <= rv32_pc[rv32_hart_cnt] + 4;
@@ -382,7 +382,7 @@ assign rv32_i_addr = rv32_pc[rv32_hart_cnt] >> 2; // for now, we access 32 bit a
                 if (rv32_wb_skip) begin
                     rv32_wb_out <= rv32_alu_res;
                 end else begin
-                    rv32_dmem_addr <= rv32_alu_res - `PITO_DATA_MEM_OFFSET + (rv32_hart_ex_cnt << 10);
+                    rv32_dmem_addr <= rv32_alu_res - `PITO_DATA_MEM_OFFSET;
                     rv32_dmem_data <= rv32_wb_store_val;
                     rv32_dmem_w_en <= 1'b1; 
                 end

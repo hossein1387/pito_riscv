@@ -797,7 +797,7 @@ class RV32IPredictor extends BaseObj;
             RV32_UNKNOWN : begin
                 // TODO: send a signal to check_res function to increase filed counts
                 // this.logger.print("Unknown Instruction");
-                this.logger.print($sformatf("Unknown Instruction: %s pc=%d", instr_str, pc_orig_cnt));
+                this.logger.print($sformatf("[0x%8h: %s] Unknown Instruction, pc=%d", act_instr, instr_str, pc_orig_cnt));
             end
             endcase
             this.update_regf(has_update, rd, exp_val);

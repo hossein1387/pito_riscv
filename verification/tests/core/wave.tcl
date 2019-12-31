@@ -122,6 +122,13 @@ add_wave_group pipeline
         add_wave -into rs1_2 {{/core_tester/core/rv32_wf_alu_rs2}}
         add_wave -into rs1_2 {{/core_tester/core/rv32_cap_alu_rs1}}
         add_wave -into rs1_2 {{/core_tester/core/rv32_cap_alu_rs2}}
+    add_wave_group -into pipeline harts
+        add_wave_group -into harts hart_ids
+            add_wave -into hart_ids {{/core_tester/core/rv32_hart_cnt}}
+            add_wave -into hart_ids {{/core_tester/core/rv32_hart_dec_cnt}}
+            add_wave -into hart_ids {{/core_tester/core/rv32_hart_ex_cnt}}
+            add_wave -into hart_ids {{/core_tester/core/rv32_hart_wb_cnt}}
+            add_wave -into hart_ids {{/core_tester/core/rv32_hart_wf_cnt}}
 set_property display_limit 300000 [current_wave_config]
 add_wave_group mems
     add_wave_group -into mems i_mem

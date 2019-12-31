@@ -5,6 +5,8 @@
 `define PITO_NULL  0
 `define NUM_REGS 32
 `define REG_FILE_INIT "regfile.mem"
+`define NUM_MVUS 8
+`define NUM_INSTR_WORDS (1024*`NUM_MVUS)
 //-------------------------------------------------------------------
 //                          Reset Macros
 //-------------------------------------------------------------------
@@ -21,7 +23,7 @@
 `define PITO_PC_SEL_COMPUTED (1'b0)
 `define PITO_ALU_SRC_RS2     (1'b1)
 `define PITO_ALU_SRC_IMM     (1'b0)
-`define PITO_NUM_HARTS       (8)
+`define PITO_NUM_HARTS       (`NUM_MVUS)
 `define PITO_HART_CNT_WIDTH  $clog2(`PITO_NUM_HARTS)
 //-------------------------------------------------------------------
 //                           Width-related constants
