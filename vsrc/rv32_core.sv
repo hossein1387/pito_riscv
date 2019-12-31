@@ -163,17 +163,16 @@ rv32_data_t      rv32_dr_data;
 //                             .wd (rv32_regf_wd[regf_var]   )
 //                         );
 // end
-    rv32_regfile regfile(
-                            .clk(clk                      ),
-                            .ra1(rv32_dec_rs1[4:0]),
-                            .rd1(rv32_regf_rd1    ),
-                            .ra2(rv32_dec_rs2[4:0]),
-                            .rd2(rv32_regf_rd2    ),
-                            .wen(rv32_regf_wen    ),
-                            .wa (rv32_regf_wa     ),
-                            .wd (rv32_regf_wd     )
-                        );
-
+rv32_regfile regfile(
+                        .clk(clk              ),
+                        .ra1(rv32_dec_rs1[4:0]),
+                        .rd1(rv32_regf_rd1    ),
+                        .ra2(rv32_dec_rs2[4:0]),
+                        .rd2(rv32_regf_rd2    ),
+                        .wen(rv32_regf_wen    ),
+                        .wa (rv32_regf_wa     ),
+                        .wd (rv32_regf_wd     )
+                    );
 
 rv32_decoder decoder (
                         .instr         (rv32_instr         ),
@@ -245,8 +244,8 @@ rv32_data_memory d_mem(
                         .q         (rv32_dr_data)
     );
 
- // for now, we access 32 bit at a time
- assign rv32_dr_addr = rv32_ex_readd_addr>>2;
+// for now, we access 32 bit at a time
+assign rv32_dr_addr = rv32_ex_readd_addr>>2;
 // connect io clock and reset to internal logic
 assign clk   = rv32_io_clk;
 assign rst_n = rv32_io_rst_n;
@@ -271,9 +270,9 @@ assign rst_n = rv32_io_rst_n;
                 rv32_pc[rv32_hart_cnt] <= 0 + (rv32_hart_cnt << 10);
             end else begin
                 if (pc_sel == `PITO_PC_SEL_PLUS_4) begin
-                    rv32_pc[rv32_hart_cnt] <= rv32_pc[rv32_hart_cnt] + 4 + (rv32_hart_cnt << 10);
+                    rv32_pc[rv32_hart_cnt] <= rv32_pc[rv32_hart_cnt] + 4;
                 end else begin
-                    rv32_pc[rv32_hart_cnt] <= rv32_wf_pc[rv32_hart_cnt] + (rv32_hart_cnt << 10);
+                    rv32_pc[rv32_hart_cnt] <= rv32_wf_pc[rv32_hart_cnt];
                 end
             end
             rv32_hart_cnt <= rv32_hart_cnt + 1;
@@ -333,7 +332,7 @@ assign rv32_i_addr = rv32_pc[rv32_hart_cnt] >> 2; // for now, we access 32 bit a
                     (rv32_dec_opcode == RV32_LW ) ||
                     (rv32_dec_opcode == RV32_LBU) ||
                     (rv32_dec_opcode == RV32_LHU) ) begin
-                    rv32_ex_readd_addr <= rv32_dec_imm + rv32_regf_rd1 + (rv32_hart_dec_cnt << 10);
+                    rv32_ex_readd_addr <= rv32_dec_imm + rv32_regf_rd1;
                 end else begin
                     if (alu_src == `PITO_ALU_SRC_RS2 ) begin
                         rv32_alu_rs2 <= rv32_regf_rd2;

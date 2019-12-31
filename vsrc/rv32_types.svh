@@ -25,7 +25,7 @@ typedef logic [`PITO_INSTR_MEM_WIDTH-1 : 0 ] rv32_imem_addr_t;
 typedef logic [`PITO_DATA_MEM_WIDTH-1  : 0 ] rv32_dmem_addr_t;
 typedef logic [`NUM_REGS-1:0 ][`XPR_LEN-1:0] rv32_regfile_t;
 typedef rv32_data_t                          rv32_data_q[$];
-typedef logic [PITO_HART_CNT_WIDTH-1   : 0 ] rv32_hart_cnt_t;
+typedef logic [`PITO_HART_CNT_WIDTH-1  : 0 ] rv32_hart_cnt_t;
 //-------------------------------------------------------------------
 //                          RV32 Insrtuction Types Decoding
 //-------------------------------------------------------------------
