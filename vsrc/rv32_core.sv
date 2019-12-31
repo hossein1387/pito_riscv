@@ -150,19 +150,6 @@ rv32_data_t      rv32_dr_data;
 //                   Module instansiation
 //====================================================================
 // Generate register file for all harts
-// genvar regf_var;
-// for (regf_var=0; regf_var < `PITO_NUM_HARTS; regf_var ++) begin
-//     rv32_regfile regfile(
-//                             .clk(clk                      ),
-//                             .ra1(rv32_dec_rs1regf_var[4:0]),
-//                             .rd1(rv32_regf_rd1[regf_var]  ),
-//                             .ra2(rv32_dec_rs2regf_var[4:0]),
-//                             .rd2(rv32_regf_rd2[regf_var]  ),
-//                             .wen(rv32_regf_wen[regf_var]  ),
-//                             .wa (rv32_regf_wa[regf_var]   ),
-//                             .wd (rv32_regf_wd[regf_var]   )
-//                         );
-// end
 rv32_regfile regfile(
                         .clk(clk              ),
                         .ra1(rv32_dec_rs1[4:0]),
