@@ -20,8 +20,8 @@ module rv32_alu (
             `ALU_AND     : res = rs1 & rs2;
             `ALU_SLT     : res = {31'b0, $signed(rs1) < $signed(rs2)};
             `ALU_SLTU    : res = {31'b0, rs1 < rs2};
-            `ALU_SBT     : res = {31'b0, $signed(rs1) > $signed(rs2)};
-            `ALU_SBTU    : res = {31'b0, rs1 > rs2};
+            `ALU_SBT     : res = {31'b0, $signed(rs1) >= $signed(rs2)};
+            `ALU_SBTU    : res = {31'b0, rs1 >= rs2};
             `ALU_EQ      : res = {31'b0, rs1==rs2};
             `ALU_NEQ     : res = {31'b0, rs1!=rs2};
             default     : res = 0;
