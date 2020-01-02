@@ -16,6 +16,7 @@ module rv32_core (
 // HART related signals
 //====================================================================
 rv32_hart_cnt_t rv32_hart_cnt;
+rv32_hart_cnt_t rv32_hart_fet_cnt;
 rv32_hart_cnt_t rv32_hart_dec_cnt;
 rv32_hart_cnt_t rv32_hart_ex_cnt;
 rv32_hart_cnt_t rv32_hart_wb_cnt;
@@ -120,12 +121,12 @@ rv32_dmem_addr_t   rv32_wb_readd_addr;
 //====================================================================
 // write regfile stage
 rv32_opcode_enum_t rv32_wf_opcode;
-rv32_pc_cnt_t      rv32_wf_pc[`PITO_NUM_HARTS-1 : 0];;
+rv32_pc_cnt_t      rv32_wf_pc[`PITO_NUM_HARTS-1 : 0];
 logic              rv32_wf_skip;
 logic              rv32_wf_is_load;
 rv32_data_t        rv32_wf_load_val;
 // Control Signals
-logic pc_sel;
+logic pc_sel[`PITO_NUM_HARTS-1 : 0];
 logic alu_src;
 logic is_csr;
 logic is_exception;
@@ -238,16 +239,26 @@ assign clk   = rv32_io_clk;
 assign rst_n = rv32_io_rst_n;
 
 //====================================================================
+//                   Barreled HART counter
+//====================================================================
+// A strict round robin scheduler for implementing barreling
+    always @(posedge clk) begin
+        if(rv32_io_rst_n == 1'b0) begin
+            rv32_hart_cnt <= 0;
+        end else begin
+             rv32_hart_cnt <= rv32_hart_cnt + 1;
+        end
+    end
+//====================================================================
 //                   Fetch Stage
 //====================================================================
-// pipeline
     always @(posedge clk) begin
         if(rv32_io_rst_n == 1'b0) begin
             for (int i = 0; i < `PITO_NUM_HARTS; i++) begin
                 rv32_pc[i]  <= `RESET_ADDRESS;
             end
-            rv32_hart_cnt <= 0;
         end else begin
+            rv32_hart_fet_cnt <= rv32_hart_cnt;
             // rv32_pc is the main program counter. Depending on the executed instruction
             // it can be either PC+4 or, in branch and jump instruction, comming from
             // instruction decoding. This decision is represented by pc_sel. Initially at 
@@ -256,29 +267,28 @@ assign rst_n = rv32_io_rst_n;
             if (rv32_pc[rv32_hart_cnt] == `RESET_ADDRESS) begin
                 rv32_pc[rv32_hart_cnt] <= rv32_hart_cnt << 12;
             end else begin
-                if (pc_sel == `PITO_PC_SEL_PLUS_4) begin
+                if (pc_sel[rv32_hart_cnt] == `PITO_PC_SEL_PLUS_4) begin
                     rv32_pc[rv32_hart_cnt] <= rv32_pc[rv32_hart_cnt] + 4;
                 end else begin
                     rv32_pc[rv32_hart_cnt] <= rv32_wf_pc[rv32_hart_cnt];
                 end
             end
-            rv32_hart_cnt <= rv32_hart_cnt + 1;
         end
     end
 
-assign rv32_i_addr = rv32_pc[rv32_hart_cnt] >> 2; // for now, we access 32 bit at a time
+assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 bit at a time
 
 //====================================================================
 //                   Decode Stage
 //====================================================================
-
+    // Decoder samples instruction right from the memory (no registering)
+    assign rv32_dec_instr = rv32_instr;
     always @(posedge clk) begin
         if(rv32_io_rst_n == 1'b0) begin
             rv32_dec_pc <= 0;
         end else begin
-            rv32_dec_pc       <= rv32_pc[rv32_hart_cnt];
-            rv32_dec_instr    <= rv32_instr;
-            rv32_hart_dec_cnt <= rv32_hart_cnt;
+            rv32_dec_pc       <= rv32_pc[rv32_hart_fet_cnt];
+            rv32_hart_dec_cnt <= rv32_hart_fet_cnt;
         end
     end
 //====================================================================
@@ -298,7 +308,6 @@ assign rv32_i_addr = rv32_pc[rv32_hart_cnt] >> 2; // for now, we access 32 bit a
     always @(posedge clk) begin
         if(rv32_io_rst_n == 1'b0) begin
             rv32_ex_pc    <= 0;
-            rv32_dec_instr<= {32{1'b0}};
             rv32_ex_readd_addr  <= 0;
         end else begin
             // rv32_regf_wen    <= 1'b0;
@@ -411,34 +420,34 @@ assign rv32_i_addr = rv32_pc[rv32_hart_cnt] >> 2; // for now, we access 32 bit a
         case (rv32_wb_opcode)
              RV32_LB : begin
                         case (rv32_wb_readd_addr[1:0])
-                            00: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[7 : 0]};
-                            01: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[15: 8]};
-                            10: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[23:16]};
-                            11: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[31:24]};
+                            2'b00: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[7 : 0]};
+                            2'b01: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[15: 8]};
+                            2'b10: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[23:16]};
+                            2'b11: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[31:24]};
                             default : rv32_wf_load_val = 0;
                         endcase
                        end
              RV32_LH :  begin
                         case (rv32_wb_readd_addr[1:0])
-                            00: rv32_wf_load_val = { {16{1'b0}}, rv32_dr_data[15: 0]};
-                            10: rv32_wf_load_val = { {16{1'b0}}, rv32_dr_data[31:16]};
+                            2'b00: rv32_wf_load_val = { {16{1'b0}}, rv32_dr_data[15: 0]};
+                            2'b10: rv32_wf_load_val = { {16{1'b0}}, rv32_dr_data[31:16]};
                             default : rv32_wf_load_val = 0;
                         endcase
                        end
              RV32_LW : rv32_wf_load_val = rv32_dr_data;
              RV32_LBU: begin
                         case (rv32_wb_readd_addr[1:0])
-                            00: rv32_wf_load_val = { {24{rv32_dr_data[7 ]}}, rv32_dr_data[7 : 0]};
-                            01: rv32_wf_load_val = { {24{rv32_dr_data[15]}}, rv32_dr_data[15: 8]};
-                            10: rv32_wf_load_val = { {24{rv32_dr_data[23]}}, rv32_dr_data[23:16]};
-                            11: rv32_wf_load_val = { {24{rv32_dr_data[31]}}, rv32_dr_data[31:24]};
+                            2'b00: rv32_wf_load_val = { {24{rv32_dr_data[7 ]}}, rv32_dr_data[7 : 0]};
+                            2'b01: rv32_wf_load_val = { {24{rv32_dr_data[15]}}, rv32_dr_data[15: 8]};
+                            2'b10: rv32_wf_load_val = { {24{rv32_dr_data[23]}}, rv32_dr_data[23:16]};
+                            2'b11: rv32_wf_load_val = { {24{rv32_dr_data[31]}}, rv32_dr_data[31:24]};
                             default : rv32_wf_load_val = 0;
                         endcase
                        end
              RV32_LHU: begin
                         case (rv32_wb_readd_addr[1:0])
-                            00: rv32_wf_load_val = { {16{rv32_dr_data[15]}}, rv32_dr_data[15: 0]};
-                            10: rv32_wf_load_val = { {16{rv32_dr_data[31]}}, rv32_dr_data[31:16]};
+                            2'b00: rv32_wf_load_val = { {16{rv32_dr_data[15]}}, rv32_dr_data[15: 0]};
+                            2'b10: rv32_wf_load_val = { {16{rv32_dr_data[31]}}, rv32_dr_data[31:16]};
                             default : rv32_wf_load_val = 0;
                         endcase
                        end
@@ -451,8 +460,8 @@ assign rv32_i_addr = rv32_pc[rv32_hart_cnt] >> 2; // for now, we access 32 bit a
             rv32_regf_wa <= 0;
             for (int i=0; i<`PITO_NUM_HARTS; i++) begin
                 rv32_wf_pc[i] <= 0;
+                pc_sel[i]     <= `PITO_PC_SEL_PLUS_4;
             end
-            pc_sel       <= `PITO_PC_SEL_PLUS_4;
             rv32_wf_instr<= {32{1'b0}};
         end else begin
             rv32_wf_opcode    <= rv32_wb_opcode;
@@ -491,14 +500,14 @@ assign rv32_i_addr = rv32_pc[rv32_hart_cnt] >> 2; // for now, we access 32 bit a
                 // has already calculated the next PC value. With rv32_wb_has_new_pc we know if we 
                 // need to use the calculated PC counter or just the current (in Fetch stage) PC + 4.
                 if (rv32_wb_has_new_pc) begin
-                    pc_sel     <= `PITO_PC_SEL_COMPUTED;
+                    pc_sel[rv32_hart_wb_cnt]     <= `PITO_PC_SEL_COMPUTED;
                     rv32_wf_pc[rv32_hart_wb_cnt] <= rv32_wb_next_pc_val;
                 end else begin
-                    pc_sel     <= `PITO_PC_SEL_PLUS_4;
+                    pc_sel[rv32_hart_wb_cnt]     <= `PITO_PC_SEL_PLUS_4;
                     rv32_wf_pc[rv32_hart_wb_cnt] <= rv32_wb_pc;
                 end
             end else begin
-                pc_sel     <= `PITO_PC_SEL_PLUS_4;
+                pc_sel[rv32_hart_wb_cnt]     <= `PITO_PC_SEL_PLUS_4;
                 rv32_wf_pc[rv32_hart_wb_cnt] <= rv32_wb_pc;
             end
             `ifdef DEBUG

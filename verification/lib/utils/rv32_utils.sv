@@ -438,18 +438,18 @@ class RV32IPredictor extends BaseObj;
             ret_val = riscv_data_mem[addr >> 2];
             if (is_signed) begin
                 case (addr[1:0])
-                    00: ret_val = signed'(ret_val[7 : 0]);
-                    01: ret_val = signed'(ret_val[15: 8]);
-                    10: ret_val = signed'(ret_val[23:16]);
-                    11: ret_val = signed'(ret_val[31:24]);
+                    2'b00: ret_val = signed'(ret_val[7 : 0]);
+                    2'b01: ret_val = signed'(ret_val[15: 8]);
+                    2'b10: ret_val = signed'(ret_val[23:16]);
+                    2'b11: ret_val = signed'(ret_val[31:24]);
                     default : ret_val = 0;
                 endcase
             end else begin
                 case (addr[1:0])
-                    00: ret_val = unsigned'(ret_val[7 : 0]);
-                    01: ret_val = unsigned'(ret_val[15: 8]);
-                    10: ret_val = unsigned'(ret_val[23:16]);
-                    11: ret_val = unsigned'(ret_val[31:24]);
+                    2'b00: ret_val = unsigned'(ret_val[7 : 0]);
+                    2'b01: ret_val = unsigned'(ret_val[15: 8]);
+                    2'b10: ret_val = unsigned'(ret_val[23:16]);
+                    2'b11: ret_val = unsigned'(ret_val[31:24]);
                     default : ret_val = 0;
                 endcase
             end
@@ -457,14 +457,14 @@ class RV32IPredictor extends BaseObj;
             ret_val = riscv_data_mem[addr >> 2];
             if (is_signed) begin
                 case (addr[1:0])
-                    00: ret_val = signed'(ret_val[15: 0]);
-                    10: ret_val = signed'(ret_val[31:16]);
+                    2'b00: ret_val = signed'(ret_val[15: 0]);
+                    2'b10: ret_val = signed'(ret_val[31:16]);
                     default : ret_val = 0;
                 endcase
             end else begin
                 case (addr[1:0])
-                    00: ret_val = unsigned'(ret_val[15: 0]);
-                    10: ret_val = unsigned'(ret_val[31:16]);
+                    2'b00: ret_val = unsigned'(ret_val[15: 0]);
+                    2'b10: ret_val = unsigned'(ret_val[31:16]);
                     default : ret_val = 0;
                 endcase
             end
@@ -478,7 +478,7 @@ class RV32IPredictor extends BaseObj;
 
 
     function void check_res(rv32_instr_t act_instr, int exp_val, real_val, string info="", rv32_pc_cnt_t pc_cnt=0);
-        info = $sformatf("%s pc=%4d", info, int'(pc_cnt));
+        info = $sformatf("%s pc=%4h", info, int'(pc_cnt));
         if ( exp_val == real_val) begin
             this.test_stat.pass_cnt ++;
             this.logger.print($sformatf("Test Pass [0x%8h: %s]: Expecting %0d got %0d", act_instr, info, exp_val, real_val));
@@ -797,7 +797,7 @@ class RV32IPredictor extends BaseObj;
             RV32_UNKNOWN : begin
                 // TODO: send a signal to check_res function to increase filed counts
                 // this.logger.print("Unknown Instruction");
-                this.logger.print($sformatf("[0x%8h: %s] Unknown Instruction, pc=%d", act_instr, instr_str, pc_orig_cnt));
+                this.logger.print($sformatf("Test Fail [0x%8h: %s] Unknown Instruction, pc=%4h", act_instr, instr_str, pc_orig_cnt));
             end
             endcase
             this.update_regf(has_update, rd, exp_val);

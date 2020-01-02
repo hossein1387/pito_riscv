@@ -59,6 +59,7 @@ add_wave_group core
         add_wave -into WBStage {{/core_tester/core/rv32_wb_pc}}
         add_wave -into WBStage {{/core_tester/core/rv32_wb_skip}}
         add_wave -into WBStage {{/core_tester/core/rv32_wb_instr}}
+        add_wave -into WBStage {{/core_tester/core/rv32_wb_readd_addr}}
     add_wave_group -into core WFStage
         add_wave -into WFStage {{/core_tester/core/rv32_wf_opcode}}
         add_wave -into WFStage {{/core_tester/core/rv32_wf_pc}}
@@ -74,6 +75,8 @@ add_wave_group core
         add_wave -into WFStage {{/core_tester/core/rv32_dr_addr}}
         add_wave -into WFStage {{/core_tester/core/rv32_dr_data}}
         add_wave -into WFStage {{/core_tester/core/rv32_wf_instr}}
+        add_wave -into WFStage {{/core_tester/core/rv32_wf_load_val}}
+        add_wave -into WFStage {{/core_tester/core/rv32_wf_load_val}}
     add_wave_group -into WFStage Next_PC
             add_wave -into Next_PC {{/core_tester/core/rv32_next_pc_cal/rv32_alu_res}}
             add_wave -into Next_PC {{/core_tester/core/rv32_next_pc_cal/rv32_rs1}}
@@ -125,6 +128,7 @@ add_wave_group pipeline
     add_wave_group -into pipeline harts
         add_wave_group -into harts hart_ids
             add_wave -into hart_ids {{/core_tester/core/rv32_hart_cnt}}
+            add_wave -into hart_ids {{/core_tester/core/rv32_hart_fet_cnt}}
             add_wave -into hart_ids {{/core_tester/core/rv32_hart_dec_cnt}}
             add_wave -into hart_ids {{/core_tester/core/rv32_hart_ex_cnt}}
             add_wave -into hart_ids {{/core_tester/core/rv32_hart_wb_cnt}}

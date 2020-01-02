@@ -149,11 +149,12 @@ module core_tester ();
         rv32_inst_dec_t act_instr; 
         logger.print($sformatf("Attempt to Sync with DUT hart id %1d...", hart_ids_q));
         for (int cycle=0; cycle<NUM_WAIT_CYCELS; cycle++) begin
-            logger.print($sformatf("hart id=%1d", core.rv32_hart_cap_cnt));
-            if (hart_ids_q[core.rv32_hart_cap_cnt] == 1) begin
+            logger.print($sformatf("hart id=%1d", core.rv32_hart_wf_cnt));
+            if (hart_ids_q[core.rv32_hart_wf_cnt] == 1) begin
                 act_instr       = rv32i_dec.decode_instr(core.rv32_wf_instr);
+                // logger.print($sformatf("exp=0x%8h: %s        actual=0x%8h: %s", instr_q[0], exp_instr.opcode.name, core.rv32_wf_instr, act_instr.opcode.name));
                 logger.print($sformatf("exp=0x%8h: %s        actual=0x%8h: %s", instr_q[0], exp_instr.opcode.name, core.rv32_wf_instr, act_instr.opcode.name));
-                if (core.rv32_cap_opcode == exp_instr.opcode) begin
+                if (core.rv32_wf_opcode == exp_instr.opcode) begin
                     time_out = 0;
                     break;
                 end
@@ -182,27 +183,32 @@ module core_tester ();
         rv32_instr_t    exp_instr;
         rv32_instr_t    act_instr;
         rv32_pc_cnt_t   pc_cnt, pc_orig_cnt;
+        int hart_valid = 0;
         logger.print_banner("Starting Monitor Task");
         logger.print("Monitoring the following harts:");
         sync_with_dut(instr_q, hart_ids_q);
+
         while(core.is_end == 1'b0) begin
             // logger.print($sformatf("pc=%d       decode:%s", core.rv32_dec_pc, core.rv32_dec_opcode.name));
             // logger.print($sformatf("%s",read_regs()));
-            if (hart_ids_q[core.rv32_hart_cap_cnt] == 1) begin
+            // logger.print($sformatf("hart id=%1d  is_set=%1d", core.rv32_hart_wf_cnt, hart_ids_q[core.rv32_hart_wf_cnt]));
+            if (hart_ids_q[core.rv32_hart_wf_cnt] == 1) begin
                 // exp_instr      = instr_q.pop_front();
-                pc_cnt         = core.rv32_cap_pc;
-                pc_orig_cnt    = core.rv32_org_cap_pc;
+                pc_cnt         = core.rv32_wf_pc[core.rv32_hart_wf_cnt];
+                pc_orig_cnt    = core.rv32_org_wf_pc;
                 act_instr      = core.rv32_wf_instr;
-                rv32_wf_opcode = core.rv32_cap_opcode;
+                rv32_wf_opcode = core.rv32_wf_opcode;
                 // logger.print($sformatf("Decoding %h", core.rv32_wf_instr));
                 instr          = rv32i_dec.decode_instr(act_instr);
+                hart_valid     = 1;
             end
             @(negedge clk);
-            if (hart_ids_q[core.rv32_hart_cap_cnt] == 1) begin
+            if (hart_valid == 1) begin
                 // $display($sformatf("instr: %s",rv32_wf_opcode.name));
                 rv32i_pred.predict(act_instr, instr, pc_cnt, pc_orig_cnt, read_regs(), read_dmem_word(instr));
                 // $display("\n");
                 // @(posedge clk);
+                hart_valid = 0;
             end
         end
         logger.print($sformatf("Exception signal was received code name: %s", core.rv32_wf_opcode.name));
