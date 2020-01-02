@@ -603,7 +603,7 @@ class RV32IPredictor extends BaseObj;
                 check_res(act_instr, exp_val, real_val, info, pc_cnt);
             end
             RV32_SRA    : begin
-                exp_val  = (rd==0) ? 0 : (regf_model[rs1] >>> (regf_model[rs2]&32'h0000_001F));
+                exp_val  = (rd==0) ? 0 : (signed'(regf_model[rs1]) >>> (regf_model[rs2]&32'h0000_001F));
                 real_val =  regf[rd];
                 info     = instr_str;
                 has_update=1;
@@ -611,7 +611,7 @@ class RV32IPredictor extends BaseObj;
             end
             RV32_SRAI   : begin
                 imm = int'(imm[4:0]);
-                exp_val  = (rd==0) ? 0 : (regf_model[rs1] >>> imm&32'h0000_001F);
+                exp_val  = (rd==0) ? 0 : (signed'(regf_model[rs1]) >>> imm);
                 real_val =  regf[rd];
                 info     = instr_str;
                 has_update=1;

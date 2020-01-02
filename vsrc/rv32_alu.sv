@@ -5,7 +5,7 @@ module rv32_alu (
     input  rv32_register_t       rs2,
     input  rv32_alu_op_t         alu_opcode,
     output rv32_register_t       res,
-    output logic               z
+    output logic                 z
 );
 
     always @(*) begin
