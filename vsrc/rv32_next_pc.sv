@@ -30,7 +30,7 @@ module rv32_next_pc (
             end
             RV32_JALR : begin 
                 rv32_next_pc_val = rv32_rs1 + rv32_imm; 
-                rv32_reg_pc      = rv32_cur_pc; 
+                rv32_reg_pc      = rv32_cur_pc + 4; 
                 rv32_has_new_pc  = 1'b1; 
             end
             default : begin
