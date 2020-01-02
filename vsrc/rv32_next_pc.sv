@@ -15,8 +15,9 @@ module rv32_next_pc (
     always_comb begin
         case (rv32_instr_opcode)
             RV32_AUIPC: begin
-                rv32_next_pc_val = rv32_cur_pc + rv32_imm; 
-                rv32_has_new_pc  = 1'b1; 
+                // rv32_next_pc_val = rv32_cur_pc + rv32_imm; 
+                rv32_reg_pc      = rv32_cur_pc + rv32_imm;
+                rv32_has_new_pc  = 1'b0; 
             end
             RV32_BEQ , RV32_BNE , RV32_BLT , RV32_BGE , RV32_BLTU, RV32_BGEU : begin
                 rv32_next_pc_val = (rv32_alu_res == 1) ? rv32_cur_pc + (rv32_imm<<1) : rv32_cur_pc; 
@@ -39,6 +40,6 @@ module rv32_next_pc (
         endcase
     end
 
-    assign rv32_save_pc = (rv32_has_new_pc && ((rv32_instr_opcode == RV32_JAL) || (rv32_instr_opcode == RV32_JALR))) ? 1'b1 : 1'b0;
+    assign rv32_save_pc = (rv32_has_new_pc && ((rv32_instr_opcode == RV32_JAL) || (rv32_instr_opcode == RV32_JALR))) || (rv32_instr_opcode == RV32_AUIPC) ? 1'b1 : 1'b0;
 
 endmodule
