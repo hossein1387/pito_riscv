@@ -10,9 +10,9 @@ module rv32_alu (
 
     always @(*) begin
         case (alu_opcode)
-            `ALU_SLL     : res = rs1 << rs2;
-            `ALU_SRL     : res = rs1 >> rs2;
-            `ALU_SRA     : res = $signed(rs1) >>> rs2;
+            `ALU_SLL     : res = rs1 << rs2[4:0];
+            `ALU_SRL     : res = rs1 >> rs2[4:0];
+            `ALU_SRA     : res = $signed(rs1) >>> rs2[4:0];
             `ALU_ADD     : res = rs1 + rs2;
             `ALU_SUB     : res = rs1 - rs2;
             `ALU_XOR     : res = rs1 ^ rs2;

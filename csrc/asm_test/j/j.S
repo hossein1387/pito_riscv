@@ -38,6 +38,9 @@ test_2:
   )
 
   TEST_PASSFAIL
+j_ret:
+    ebreak
+    ret
 
 RVTEST_CODE_END
 

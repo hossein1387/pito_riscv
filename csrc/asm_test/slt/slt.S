@@ -73,6 +73,9 @@ RVTEST_CODE_BEGIN
   TEST_RR_ZERODEST( 38, slt, 16, 30 );
 
   TEST_PASSFAIL
+slt_ret:
+    ebreak
+    ret
 
 RVTEST_CODE_END
 

@@ -44,6 +44,9 @@ RVTEST_CODE_BEGIN
   TEST_IMM_ZERODEST( 14, andi, 0x00ff00ff, 0x70f );
 
   TEST_PASSFAIL
+andi_ret:
+    ebreak
+    ret
 
 RVTEST_CODE_END
 

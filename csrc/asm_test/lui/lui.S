@@ -25,6 +25,9 @@ RVTEST_CODE_BEGIN
   TEST_CASE( 6, x0, 0, lui x0, 0x80000 );
 
   TEST_PASSFAIL
+lui_ret:
+    ebreak
+    ret
 
 RVTEST_CODE_END
 

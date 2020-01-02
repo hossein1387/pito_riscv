@@ -75,6 +75,9 @@ RVTEST_CODE_BEGIN
   )
 
   TEST_PASSFAIL
+lb_ret:
+    ebreak
+    ret
 
 RVTEST_CODE_END
 
