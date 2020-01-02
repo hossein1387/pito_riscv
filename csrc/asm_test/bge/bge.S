@@ -65,6 +65,9 @@ RVTEST_CODE_BEGIN
   )
 
   TEST_PASSFAIL
+bge_ret:
+    ebreak
+    ret
 
 RVTEST_CODE_END
 
