@@ -69,50 +69,50 @@ module core_tester ();
         end
     endtask
 
-    function rv32_regfile_t read_regs();
-        rv32_regfile_t regs;
-        for (int i=0; i<`NUM_REGS; i++) begin
-            regs[i] = core.regfile.data[i];
-        end
-        return regs;
-    endfunction : read_regs
+    // function rv32_regfile_t read_regs();
+    //     rv32_regfile_t regs;
+    //     for (int i=0; i<`NUM_REGS; i++) begin
+    //         regs[i] = core.regfile.data[i];
+    //     end
+    //     return regs;
+    // endfunction : read_regs
 
 // TODO: A dirty hack for access values within DUT. A better way is to 
 // bind or use interface to correctly access the signals. For memory,
 // I do not have any idea :(
-    function automatic int read_dmem_word(rv32_inst_dec_t instr);
-        rv32_opcode_enum_t    opcode    = instr.opcode   ;
-        rv32_imm_t            imm       = instr.imm      ;
-        rv32_register_field_t rs1       = instr.rs1      ;
-        int                   addr;
-        case (opcode)
-            // RV32_LB     : begin
-            //     addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (core.regfile.data[rs1]+signed'(imm) - `PITO_DATA_MEM_OFFSET);
-            // end
-            // RV32_LH     : begin
-            //     addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (core.regfile.data[rs1]+signed'(imm) - `PITO_DATA_MEM_OFFSET);
-            // end
-            // RV32_LW     : begin
-            //     addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (core.regfile.data[rs1]+signed'(imm) - `PITO_DATA_MEM_OFFSET);
-            // end
-            // RV32_LBU    : begin
-            //     addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (core.regfile.data[rs1]+signed'(imm) - `PITO_DATA_MEM_OFFSET);
-            // end
-            // RV32_LHU    : begin
-            //     addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (core.regfile.data[rs1]+signed'(imm) - `PITO_DATA_MEM_OFFSET);
-            // end
-            RV32_SB     : begin
-                addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (core.regfile.data[rs1]+signed'(imm) - `PITO_DATA_MEM_OFFSET);
-            end
-            RV32_SH     : begin
-                addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (core.regfile.data[rs1]+signed'(imm) - `PITO_DATA_MEM_OFFSET);
-            end
-            RV32_SW     : begin
-                addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (core.regfile.data[rs1]+signed'(imm) - `PITO_DATA_MEM_OFFSET);
-            end
-            endcase
-        return core.d_mem.bram_32Kb_inst.inst.native_mem_module.blk_mem_gen_v8_4_3_inst.memory[addr];
-    endfunction : read_dmem_word
+    // function automatic int read_dmem_word(rv32_inst_dec_t instr);
+    //     rv32_opcode_enum_t    opcode    = instr.opcode   ;
+    //     rv32_imm_t            imm       = instr.imm      ;
+    //     rv32_register_field_t rs1       = instr.rs1      ;
+    //     int                   addr;
+    //     case (opcode)
+    //         // RV32_LB     : begin
+    //         //     addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (core.regfile.data[rs1]+signed'(imm) - `PITO_DATA_MEM_OFFSET);
+    //         // end
+    //         // RV32_LH     : begin
+    //         //     addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (core.regfile.data[rs1]+signed'(imm) - `PITO_DATA_MEM_OFFSET);
+    //         // end
+    //         // RV32_LW     : begin
+    //         //     addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (core.regfile.data[rs1]+signed'(imm) - `PITO_DATA_MEM_OFFSET);
+    //         // end
+    //         // RV32_LBU    : begin
+    //         //     addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (core.regfile.data[rs1]+signed'(imm) - `PITO_DATA_MEM_OFFSET);
+    //         // end
+    //         // RV32_LHU    : begin
+    //         //     addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (core.regfile.data[rs1]+signed'(imm) - `PITO_DATA_MEM_OFFSET);
+    //         // end
+    //         RV32_SB     : begin
+    //             addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (core.regfile.data[rs1]+signed'(imm) - `PITO_DATA_MEM_OFFSET);
+    //         end
+    //         RV32_SH     : begin
+    //             addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (core.regfile.data[rs1]+signed'(imm) - `PITO_DATA_MEM_OFFSET);
+    //         end
+    //         RV32_SW     : begin
+    //             addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (core.regfile.data[rs1]+signed'(imm) - `PITO_DATA_MEM_OFFSET);
+    //         end
+    //         endcase
+    //     return core.d_mem.bram_32Kb_inst.inst.native_mem_module.blk_mem_gen_v8_4_3_inst.memory[addr];
+    // endfunction : read_dmem_word
 
     function automatic print_imem_region(int addr_from, int addr_to, string radix);
         string mem_val_str="";
@@ -205,7 +205,7 @@ module core_tester ();
             @(negedge clk);
             if (hart_valid == 1) begin
                 // $display($sformatf("instr: %s",rv32_wf_opcode.name));
-                rv32i_pred.predict(act_instr, instr, pc_cnt, pc_orig_cnt, read_regs(), read_dmem_word(instr));
+                // rv32i_pred.predict(act_instr, instr, pc_cnt, pc_orig_cnt, read_regs(), read_dmem_word(instr));
                 // $display("\n");
                 // @(posedge clk);
                 hart_valid = 0;
@@ -214,14 +214,14 @@ module core_tester ();
         logger.print($sformatf("Exception signal was received code name: %s", core.rv32_wf_opcode.name));
     endtask
 
-    task automatic monitor_regs();
-        Logger reg_logger = new("reg_logs.log", 1, 0);
-        @(posedge clk);
-        while(1) begin
-            reg_logger.print($sformatf("\n%s\n", reg_file_to_str(read_regs())));
-            @(posedge clk);
-        end
-    endtask
+    // task automatic monitor_regs();
+    //     Logger reg_logger = new("reg_logs.log", 1, 0);
+    //     @(posedge clk);
+    //     while(1) begin
+    //         reg_logger.print($sformatf("\n%s\n", reg_file_to_str(read_regs())));
+    //         @(posedge clk);
+    //     end
+    // endtask
 
     initial begin
         rv32_data_q instr_q;
@@ -257,7 +257,7 @@ module core_tester ();
         // print_imem_region(0, 511);
         fork
             monitor_pito(instr_q, hart_ids_q);
-            monitor_regs();
+            // monitor_regs();
         join_any
         rv32i_pred.report_result(1);
         // print_imem_region( int'(`PITO_DATA_MEM_OFFSET), int'(`PITO_DATA_MEM_OFFSET+4), "char");

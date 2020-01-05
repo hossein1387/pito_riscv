@@ -66,20 +66,22 @@ rv32_regfile_addr_t rv32_regf_wa ;
 rv32_register_t     rv32_regf_wd ;
 
 // decoder wires
-rv32_pc_cnt_t      rv32_dec_pc;
-rv32_register_t    rv32_dec_rs1;
-rv32_register_t    rv32_dec_rd;
-rv32_register_t    rv32_dec_rs2;
-rv32_shamt_t       rv32_dec_shamt;
-rv32_imm_t         rv32_dec_imm;
-logic[3:0]         rv32_dec_fence_succ;
-logic[3:0]         rv32_dec_fence_pred;
-rv32_csr_t         rv32_dec_csr;
-rv32_zimm_t        rv32_dec_zimm;
-rv32_type_enum_t   rv32_dec_inst_type;
-logic              rv32_dec_instr_trap;
-rv32_alu_op_t      rv32_dec_alu_op;
-rv32_opcode_enum_t rv32_dec_opcode;
+rv32_pc_cnt_t       rv32_dec_pc;
+rv32_register_t     rv32_dec_rs1;
+rv32_register_t     rv32_dec_rd;
+rv32_register_t     rv32_dec_rs2;
+rv32_shamt_t        rv32_dec_shamt;
+rv32_imm_t          rv32_dec_imm;
+logic[3:0]          rv32_dec_fence_succ;
+logic[3:0]          rv32_dec_fence_pred;
+rv32_csr_t          rv32_dec_csr;
+rv32_zimm_t         rv32_dec_zimm;
+rv32_type_enum_t    rv32_dec_inst_type;
+logic               rv32_dec_instr_trap;
+rv32_alu_op_t       rv32_dec_alu_op;
+rv32_opcode_enum_t  rv32_dec_opcode;
+rv32_register_t     rv32_dec_rd1;
+rv32_register_t     rv32_dec_rd2;
 
 //====================================================================
 // EX stage wires
@@ -151,15 +153,29 @@ rv32_data_t      rv32_dr_data;
 //                   Module instansiation
 //====================================================================
 // Generate register file for all harts
-rv32_regfile regfile(
-                        .clk(clk              ),
-                        .ra1(rv32_dec_rs1[4:0]),
-                        .rd1(rv32_regf_rd1    ),
-                        .ra2(rv32_dec_rs2[4:0]),
-                        .rd2(rv32_regf_rd2    ),
-                        .wen(rv32_regf_wen    ),
-                        .wa (rv32_regf_wa     ),
-                        .wd (rv32_regf_wd     )
+// rv32_regfile regfile(
+//                         .clk(clk              ),
+//                         .ra1(rv32_dec_rs1[4:0]),
+//                         .rd1(rv32_regf_rd1    ),
+//                         .ra2(rv32_dec_rs2[4:0]),
+//                         .rd2(rv32_regf_rd2    ),
+//                         .wen(rv32_regf_wen    ),
+//                         .wa (rv32_regf_wa     ),
+//                         .wd (rv32_regf_wd     )
+//                     );
+
+rv32_barrel_regfiles regfile(
+                        .clk     (clk              ),
+                        .rsa_hart(rv32_hart_dec_cnt),
+                        .rsd_hart(rv32_hart_dec_cnt),
+                        .rd_hart (rv32_hart_wf_cnt ),
+                        .ra1     (rv32_dec_rs1[4:0]),
+                        .rd1     (rv32_regf_rd1    ),
+                        .ra2     (rv32_dec_rs2[4:0]),
+                        .rd2     (rv32_regf_rd2    ),
+                        .wen     (rv32_regf_wen    ),
+                        .wa      (rv32_regf_wa     ),
+                        .wd      (rv32_regf_wd     )
                     );
 
 rv32_decoder decoder (
@@ -289,6 +305,8 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
         end else begin
             rv32_dec_pc       <= rv32_pc[rv32_hart_fet_cnt];
             rv32_hart_dec_cnt <= rv32_hart_fet_cnt;
+            rv32_dec_rd1      <= rv32_regf_rd1;
+            rv32_dec_rd2      <= rv32_regf_rd2;
         end
     end
 //====================================================================
@@ -481,6 +499,7 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
 
                 if (!rv32_wf_skip) begin
                     rv32_regf_wa <= rv32_wb_rd;
+                    rv32_regf_wen<= 1'b1;
                     if (rv32_wb_opcode == RV32_LUI) begin // 1- Immediates: Load Upper Immediate to RF
                         rv32_regf_wd <= rv32_wb_imm;
                     end else if (rv32_wb_save_pc) begin // 2- Return Add: PC has to be written to RF
@@ -490,6 +509,9 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
                     end else begin // 4- ALU Res: All other instructions except rv32_wf_skip have to write ALU res into RF 
                         rv32_regf_wd <= rv32_wb_out;
                     end
+                end else begin
+                    rv32_regf_wa <= 0;
+                    rv32_regf_wd <= 0;
                 end
                 //=================================================================================
                 // Next PC Counter
@@ -507,6 +529,9 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
                     rv32_wf_pc[rv32_hart_wb_cnt] <= rv32_wb_pc;
                 end
             end else begin
+                rv32_regf_wen                <= 1'b0;
+                rv32_regf_wa                 <= 0;
+                rv32_regf_wd                 <= 0;
                 pc_sel[rv32_hart_wb_cnt]     <= `PITO_PC_SEL_PLUS_4;
                 rv32_wf_pc[rv32_hart_wb_cnt] <= rv32_wb_pc;
             end
@@ -518,7 +543,7 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
         end
     end
 
-    assign rv32_regf_wen = 1'b1;
+    // assign rv32_regf_wen = 1'b1;
 
 
 //====================================================================

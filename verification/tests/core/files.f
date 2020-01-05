@@ -10,6 +10,7 @@
 ../../../vsrc/rv32_instruction_memory.sv
 ../../../vsrc/rv32_alu.sv
 ../../../vsrc/rv32_regfile.sv
+../../../vsrc/rv32_barrel_regfiles.sv
 ../../../vsrc/rv32_core.sv
 ../../../vsrc/rv32_next_pc.sv
 ./core_tester.sv
