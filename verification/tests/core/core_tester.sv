@@ -69,50 +69,66 @@ module core_tester ();
         end
     endtask
 
-    // function rv32_regfile_t read_regs();
-    //     rv32_regfile_t regs;
-    //     for (int i=0; i<`NUM_REGS; i++) begin
-    //         regs[i] = core.regfile.data[i];
-    //     end
-    //     return regs;
-    // endfunction : read_regs
+    function int read_hart_reg_val (int hart_id, int reg_num);
+        case (hart_id)
+            0: return core.regfile.genblk1[0].regfile.data[reg_num];
+            1: return core.regfile.genblk1[1].regfile.data[reg_num];
+            2: return core.regfile.genblk1[2].regfile.data[reg_num];
+            3: return core.regfile.genblk1[3].regfile.data[reg_num];
+            4: return core.regfile.genblk1[4].regfile.data[reg_num];
+            5: return core.regfile.genblk1[5].regfile.data[reg_num];
+            6: return core.regfile.genblk1[6].regfile.data[reg_num];
+            7: return core.regfile.genblk1[7].regfile.data[reg_num];
+            default : return 0;
+        endcase
+    endfunction 
+
+    function rv32_regfile_t read_regs(int hart_id);
+        rv32_regfile_t regs;
+        for (int i=0; i<`NUM_REGS; i++) begin
+            regs[i] = read_hart_reg_val(hart_id, i);
+        end
+        return regs;
+    endfunction : read_regs
 
 // TODO: A dirty hack for access values within DUT. A better way is to 
 // bind or use interface to correctly access the signals. For memory,
 // I do not have any idea :(
-    // function automatic int read_dmem_word(rv32_inst_dec_t instr);
-    //     rv32_opcode_enum_t    opcode    = instr.opcode   ;
-    //     rv32_imm_t            imm       = instr.imm      ;
-    //     rv32_register_field_t rs1       = instr.rs1      ;
-    //     int                   addr;
-    //     case (opcode)
-    //         // RV32_LB     : begin
-    //         //     addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (core.regfile.data[rs1]+signed'(imm) - `PITO_DATA_MEM_OFFSET);
-    //         // end
-    //         // RV32_LH     : begin
-    //         //     addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (core.regfile.data[rs1]+signed'(imm) - `PITO_DATA_MEM_OFFSET);
-    //         // end
-    //         // RV32_LW     : begin
-    //         //     addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (core.regfile.data[rs1]+signed'(imm) - `PITO_DATA_MEM_OFFSET);
-    //         // end
-    //         // RV32_LBU    : begin
-    //         //     addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (core.regfile.data[rs1]+signed'(imm) - `PITO_DATA_MEM_OFFSET);
-    //         // end
-    //         // RV32_LHU    : begin
-    //         //     addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (core.regfile.data[rs1]+signed'(imm) - `PITO_DATA_MEM_OFFSET);
-    //         // end
-    //         RV32_SB     : begin
-    //             addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (core.regfile.data[rs1]+signed'(imm) - `PITO_DATA_MEM_OFFSET);
-    //         end
-    //         RV32_SH     : begin
-    //             addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (core.regfile.data[rs1]+signed'(imm) - `PITO_DATA_MEM_OFFSET);
-    //         end
-    //         RV32_SW     : begin
-    //             addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (core.regfile.data[rs1]+signed'(imm) - `PITO_DATA_MEM_OFFSET);
-    //         end
-    //         endcase
-    //     return core.d_mem.bram_32Kb_inst.inst.native_mem_module.blk_mem_gen_v8_4_3_inst.memory[addr];
-    // endfunction : read_dmem_word
+    function automatic int read_dmem_word(rv32_inst_dec_t instr, int hart_id);
+        rv32_opcode_enum_t    opcode    = instr.opcode   ;
+        rv32_imm_t            imm       = instr.imm      ;
+        rv32_register_field_t rs1       = instr.rs1      ;
+        int                   addr;
+        // int reg_val = `read_hart_reg(hart_id, rs1);
+        int reg_val = read_hart_reg_val(hart_id, rs1);
+        case (opcode)
+            // RV32_LB     : begin
+            //     addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (core.regfile.data[rs1]+signed'(imm) - `PITO_DATA_MEM_OFFSET);
+            // end
+            // RV32_LH     : begin
+            //     addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (core.regfile.data[rs1]+signed'(imm) - `PITO_DATA_MEM_OFFSET);
+            // end
+            // RV32_LW     : begin
+            //     addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (core.regfile.data[rs1]+signed'(imm) - `PITO_DATA_MEM_OFFSET);
+            // end
+            // RV32_LBU    : begin
+            //     addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (core.regfile.data[rs1]+signed'(imm) - `PITO_DATA_MEM_OFFSET);
+            // end
+            // RV32_LHU    : begin
+            //     addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (core.regfile.data[rs1]+signed'(imm) - `PITO_DATA_MEM_OFFSET);
+            // end
+            RV32_SB     : begin
+                addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (reg_val+signed'(imm) - `PITO_DATA_MEM_OFFSET);
+            end
+            RV32_SH     : begin
+                addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (reg_val+signed'(imm) - `PITO_DATA_MEM_OFFSET);
+            end
+            RV32_SW     : begin
+                addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (reg_val+signed'(imm) - `PITO_DATA_MEM_OFFSET);
+            end
+            endcase
+        return core.d_mem.bram_32Kb_inst.inst.native_mem_module.blk_mem_gen_v8_4_3_inst.memory[addr];
+    endfunction : read_dmem_word
 
     function automatic print_imem_region(int addr_from, int addr_to, string radix);
         string mem_val_str="";
@@ -183,6 +199,7 @@ module core_tester ();
         rv32_instr_t    exp_instr;
         rv32_instr_t    act_instr;
         rv32_pc_cnt_t   pc_cnt, pc_orig_cnt;
+        int hart_id;
         int hart_valid = 0;
         logger.print_banner("Starting Monitor Task");
         logger.print("Monitoring the following harts:");
@@ -201,11 +218,12 @@ module core_tester ();
                 // logger.print($sformatf("Decoding %h", core.rv32_wf_instr));
                 instr          = rv32i_dec.decode_instr(act_instr);
                 hart_valid     = 1;
+                hart_id        = core.rv32_hart_wf_cnt;
             end
             @(negedge clk);
             if (hart_valid == 1) begin
                 // $display($sformatf("instr: %s",rv32_wf_opcode.name));
-                // rv32i_pred.predict(act_instr, instr, pc_cnt, pc_orig_cnt, read_regs(), read_dmem_word(instr));
+                rv32i_pred.predict(act_instr, instr, pc_cnt, pc_orig_cnt, read_regs(hart_id), read_dmem_word(instr, hart_id), hart_id);
                 // $display("\n");
                 // @(posedge clk);
                 hart_valid = 0;
@@ -244,7 +262,7 @@ module core_tester ();
         instr_q = process_hex_file(program_hex_file, logger, `NUM_INSTR_WORDS); // read hex file and store the first n words to the ram
 
         rv32i_dec = new(logger);
-        rv32i_pred = new(logger, instr_q);
+        rv32i_pred = new(logger, instr_q, `PITO_NUM_HARTS);
 
         @(posedge clk);
         rst_n     = 1'b0;
@@ -259,7 +277,7 @@ module core_tester ();
             monitor_pito(instr_q, hart_ids_q);
             // monitor_regs();
         join_any
-        rv32i_pred.report_result(1);
+        rv32i_pred.report_result(1, hart_ids_q);
         // print_imem_region( int'(`PITO_DATA_MEM_OFFSET), int'(`PITO_DATA_MEM_OFFSET+4), "char");
         $finish();
     end

@@ -15,13 +15,28 @@ add_wave_group core
         add_wave -into FetchStage {{/core_tester/core/pc_sel}}
     add_wave_group -into core DecStage
         add_wave_group -into DecStage RegFile
-            add_wave -into RegFile {{/core_tester/core/rv32_regf_ra1}}
-            add_wave -into RegFile {{/core_tester/core/rv32_regf_rd1}}
-            add_wave -into RegFile {{/core_tester/core/rv32_regf_ra2}}
-            add_wave -into RegFile {{/core_tester/core/rv32_regf_rd2}}
-            add_wave -into RegFile {{/core_tester/core/rv32_regf_wen}}
-            add_wave -into RegFile {{/core_tester/core/rv32_regf_wa}}
-            add_wave -into RegFile {{/core_tester/core/rv32_regf_wd}}
+            add_wave -into RegFile {{/core_tester/core/regfile/clk}} 
+            add_wave -into RegFile {{/core_tester/core/regfile/rsa_hart}} 
+            add_wave -into RegFile {{/core_tester/core/regfile/rsd_hart}} 
+            add_wave -into RegFile {{/core_tester/core/regfile/rd_hart}} 
+            add_wave_group -into RegFile RegFileTop
+            add_wave -into RegFileTop {{/core_tester/core/regfile}} 
+            add_wave_group -into RegFile RegFile_0
+                add_wave -into RegFile_0 {{/core_tester/core/regfile/\genblk1[0].regfile }} 
+            add_wave_group -into RegFile RegFile_1
+                add_wave -into RegFile_1 {{/core_tester/core/regfile/\genblk1[1].regfile }} 
+            add_wave_group -into RegFile RegFile_2
+                add_wave -into RegFile_2 {{/core_tester/core/regfile/\genblk1[2].regfile }} 
+            add_wave_group -into RegFile RegFile_3
+                add_wave -into RegFile_3 {{/core_tester/core/regfile/\genblk1[3].regfile }} 
+            add_wave_group -into RegFile RegFile_4
+                add_wave -into RegFile_4 {{/core_tester/core/regfile/\genblk1[4].regfile }} 
+            add_wave_group -into RegFile RegFile_5
+                add_wave -into RegFile_5 {{/core_tester/core/regfile/\genblk1[5].regfile }} 
+            add_wave_group -into RegFile RegFile_6
+                add_wave -into RegFile_6 {{/core_tester/core/regfile/\genblk1[6].regfile }} 
+            add_wave_group -into RegFile RegFile_7
+                add_wave -into RegFile_7 {{/core_tester/core/regfile/\genblk1[7].regfile }} 
         add_wave_group -into DecStage Decoder
             add_wave -into Decoder {{/core_tester/core/rv32_dec_pc}}
             add_wave -into Decoder {{/core_tester/core/rv32_dec_rs1}}
@@ -29,6 +44,8 @@ add_wave_group core
             add_wave -into Decoder {{/core_tester/core/rv32_dec_rs2}}
             add_wave -into Decoder {{/core_tester/core/rv32_dec_shamt}}
             add_wave -into Decoder {{/core_tester/core/rv32_dec_imm}}
+            add_wave -into Decoder {{/core_tester/core/rv32_dec_rd1}}
+            add_wave -into Decoder {{/core_tester/core/rv32_dec_rd2}}
             add_wave -into Decoder {{/core_tester/core/rv32_dec_fence_succ}}
             add_wave -into Decoder {{/core_tester/core/rv32_dec_fence_pred}}
             add_wave -into Decoder {{/core_tester/core/rv32_dec_csr}}
@@ -40,16 +57,22 @@ add_wave_group core
             add_wave -into Decoder {{/core_tester/core/rv32_dec_instr}}
     add_wave_group -into core EXStage
         add_wave_group -into EXStage Alu
+            add_wave -into Alu {{/core_tester/core/alu_src}}
             add_wave -into Alu {{/core_tester/core/rv32_alu_rs1}}
             add_wave -into Alu {{/core_tester/core/rv32_alu_rs2}}
             add_wave -into Alu {{/core_tester/core/rv32_ex_rd}}
             add_wave -into Alu {{/core_tester/core/rv32_alu_res}}
             add_wave -into Alu {{/core_tester/core/rv32_alu_op}}
             add_wave -into Alu {{/core_tester/core/rv32_alu_z}}
+        add_wave -into EXStage {{/core_tester/core/rv32_ex_instr}}
+        add_wave -into EXStage {{/core_tester/core/rv32_ex_rd}}
+        add_wave -into EXStage {{/core_tester/core/rv32_ex_rs1}}
         add_wave -into EXStage {{/core_tester/core/rv32_ex_inst_type}}
         add_wave -into EXStage {{/core_tester/core/rv32_ex_opcode}}
         add_wave -into EXStage {{/core_tester/core/rv32_ex_pc}}
-        add_wave -into EXStage {{/core_tester/core/rv32_ex_instr}}
+        add_wave -into EXStage {{/core_tester/core/rv32_ex_imm}}
+        add_wave -into EXStage {{/core_tester/core/rv32_ex_readd_addr}}
+
     add_wave_group -into core WBStage
         add_wave -into WBStage {{/core_tester/core/rv32_wb_opcode}}
         add_wave -into WBStage {{/core_tester/core/rv32_wb_rd}}
@@ -77,6 +100,7 @@ add_wave_group core
         add_wave -into WFStage {{/core_tester/core/rv32_wf_instr}}
         add_wave -into WFStage {{/core_tester/core/rv32_wf_load_val}}
         add_wave -into WFStage {{/core_tester/core/rv32_wf_load_val}}
+        add_wave -into WFStage {{/core_tester/core/rv32_regf_wd}}
     add_wave_group -into WFStage Next_PC
             add_wave -into Next_PC {{/core_tester/core/rv32_next_pc_cal/rv32_alu_res}}
             add_wave -into Next_PC {{/core_tester/core/rv32_next_pc_cal/rv32_rs1}}

@@ -17,6 +17,6 @@
 %.bin: %.elf
 	riscv32-unknown-elf-objcopy -O binary $< $@
 %.hex: %.bin
-	python3 makehex.py $< 8196 > $@
+	python3 makehex.py $< 8192 > $@
 clean:
 	rm -f *.elf *.bin *.hex *.o *.obj 
