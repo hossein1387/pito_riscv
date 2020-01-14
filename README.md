@@ -38,5 +38,5 @@ We have to figure out a way to read/write in a byte aligned memory space.
 # TODO:
 
 - [ ] Adding support for CSR related instructions.
-- [ ] We will attempt to implement the barreled data path. 
+- [x] We will attempt to implement the barreled data path. 
 - [ ] Adding support for Exceptions, HALT, interrupts and traps.
