@@ -4,7 +4,8 @@
 `timescale 1 ps / 1 ps
 
 module rv32_imm_gen (
-    input  rv32_instr_t    rv_instr,    // riscv 32 instruction
+    // input  logic    rv_instr,    // riscv 32 instruction
+    input logic [`XPR_LEN-1 : 0 ] rv_instr, // input instruction
     input  rv32_type_enum_t rv32_imm_type, // riscv 32 imm type
     output rv32_imm_t         rv_imm       // riscv 32 decoded immediate
 );

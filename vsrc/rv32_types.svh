@@ -1,4 +1,4 @@
-// `include "rv32_defines.svh"
+//`include "rv32_defines.svh"
 
 //-------------------------------------------------------------------
 // Forward Decleration:
@@ -26,6 +26,8 @@ typedef logic [`PITO_DATA_MEM_WIDTH-1  : 0 ] rv32_dmem_addr_t;
 typedef logic [`NUM_REGS-1:0 ][`XPR_LEN-1:0] rv32_regfile_t;
 typedef rv32_data_t                          rv32_data_q[$];
 typedef logic [`PITO_HART_CNT_WIDTH-1  : 0 ] rv32_hart_cnt_t;
+typedef logic [`XPR_LEN-1              : 0 ] rv32_instr_t;
+
 //-------------------------------------------------------------------
 //                          RV32 Insrtuction Types Decoding
 //-------------------------------------------------------------------
@@ -88,16 +90,16 @@ typedef struct packed {
 } rv32_dec_op_t;
 
 
-typedef union packed {
-    logic [`XPR_LEN-1:0] rv32_instr;
-    rv32_dec_op_t        rv32_dec_op;
-    // rv32_type_r_t        rv32_type_r;
-    // rv32_type_i_t        rv32_type_i;
-    // rv32_type_s_t        rv32_type_s;
-    // rv32_type_b_t        rv32_type_b;
-    // rv32_type_u_t        rv32_type_u;
-    // rv32_type_j_t        rv32_type_j;
-} rv32_instr_t;
+//typedef union packed {
+//    logic [`XPR_LEN-1:0] rv32_instr_t;
+//    // rv32_dec_op_t        rv32_dec_op;
+//    // rv32_type_r_t        rv32_type_r;
+//    // rv32_type_i_t        rv32_type_i;
+//    // rv32_type_s_t        rv32_type_s;
+//    // rv32_type_b_t        rv32_type_b;
+//    // rv32_type_u_t        rv32_type_u;
+//    // rv32_type_j_t        rv32_type_j;
+//} rv32_instr_t;
 
 //-------------------------------------------------------------------
 //                     RV32 Insrtuction Format Mapping

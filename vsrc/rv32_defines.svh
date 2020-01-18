@@ -57,3 +57,29 @@
 //-------------------------------------------------------------------
 //                          Macros
 //-------------------------------------------------------------------
+`define and_q(q, res)\
+    begin\
+        logic __tmp = 1;\
+        for(int i=0; i<q.size(); i++)\
+            __tmp &= q[i];\
+        res = __tmp;\
+    end
+
+`define init_q(q, val)\
+    begin\
+        for(int i=0; i<q.size(); i++)\
+            q[i] = val;\
+    end
+
+`define wait_for_all_begin(q)\
+    begin\
+        logic ___all_done = 0;\
+        logic __tmp;\
+        while(!___all_done) begin\
+            ___all_done = 1;\
+            `and_q(q, __tmp)\
+            ___all_done &= __tmp;
+
+`define wait_for_all_end\
+        end\
+    end
