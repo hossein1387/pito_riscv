@@ -57,6 +57,9 @@ RVTEST_CODE_BEGIN
   TEST_IMM_ZERODEST( 25, srai, 33, 20 );
 #
   TEST_PASSFAIL
+srai_ret:
+    ebreak
+    ret
 
 RVTEST_CODE_END
 

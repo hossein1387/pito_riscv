@@ -49,6 +49,9 @@ target_2:
   )
 
   TEST_PASSFAIL
+jal_ret:
+    ebreak
+    ret
 
 RVTEST_CODE_END
 

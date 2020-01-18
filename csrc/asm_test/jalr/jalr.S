@@ -79,6 +79,9 @@ target_3:
   TEST_PASSFAIL
 
 RVTEST_CODE_END
+jalr_ret:
+    ebreak
+    ret
 
   .data
 RVTEST_DATA_BEGIN

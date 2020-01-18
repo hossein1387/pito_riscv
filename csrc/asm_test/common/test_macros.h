@@ -122,7 +122,6 @@ test_ ## testnum: \
 #define TEST_R_OP( testnum, inst, result, val1 ) \
     TEST_CASE( testnum, x3, result, \
       li  x1, val1; \
-      TEST_INSERT_NOPS_5; \
       inst x3, x1; \
     )
 
@@ -151,136 +150,91 @@ test_ ## testnum: \
 #define TEST_RR_OP( testnum, inst, result, val1, val2 ) \
     TEST_CASE( testnum, x3, result, \
       li  x1, val1; \
-      TEST_INSERT_NOPS_5; \
       li  x2, val2; \
-      TEST_INSERT_NOPS_5; \
       inst x3, x1, x2; \
-      TEST_INSERT_NOPS_5; \
     )
 
 #define TEST_RR_SRC1_EQ_DEST( testnum, inst, result, val1, val2 ) \
     TEST_CASE( testnum, x1, result, \
       li  x1, val1; \
-      TEST_INSERT_NOPS_5; \
       li  x2, val2; \
-      TEST_INSERT_NOPS_5; \
       inst x1, x1, x2; \
-      TEST_INSERT_NOPS_5; \
     )
 
 #define TEST_RR_SRC2_EQ_DEST( testnum, inst, result, val1, val2 ) \
     TEST_CASE( testnum, x2, result, \
       li  x1, val1; \
-      TEST_INSERT_NOPS_5; \
       li  x2, val2; \
-      TEST_INSERT_NOPS_5; \
       inst x2, x1, x2; \
-      TEST_INSERT_NOPS_5; \
     )
 
 #define TEST_RR_SRC12_EQ_DEST( testnum, inst, result, val1 ) \
     TEST_CASE( testnum, x1, result, \
       li  x1, val1; \
-      TEST_INSERT_NOPS_5; \
       inst x1, x1, x1; \
-      TEST_INSERT_NOPS_5; \
     )
 
 #define TEST_RR_DEST_BYPASS( testnum, nop_cycles, inst, result, val1, val2 ) \
     TEST_CASE( testnum, x6, result, \
       li  x4, 0; \
-      TEST_INSERT_NOPS_5; \
 1:    li  x1, val1; \
-      TEST_INSERT_NOPS_5; \
       li  x2, val2; \
-      TEST_INSERT_NOPS_5; \
       inst x3, x1, x2; \
-      TEST_INSERT_NOPS_ ## nop_cycles;  \
-      TEST_INSERT_NOPS_5; \
+      TEST_INSERT_NOPS_ ## nop_cycles \
       addi  x6, x3, 0; \
-      TEST_INSERT_NOPS_5; \
       addi  x4, x4, 1; \
-      TEST_INSERT_NOPS_5; \
       li  x5, 2; \
-      TEST_INSERT_NOPS_5; \
       bne x4, x5, 1b \
-      TEST_INSERT_NOPS_5; \
     )
 
 #define TEST_RR_SRC12_BYPASS( testnum, src1_nops, src2_nops, inst, result, val1, val2 ) \
     TEST_CASE( testnum, x3, result, \
       li  x4, 0; \
-      TEST_INSERT_NOPS_5; \
 1:    li  x1, val1; \
-      TEST_INSERT_NOPS_5; \
       TEST_INSERT_NOPS_ ## src1_nops \
-      TEST_INSERT_NOPS_5; \
       li  x2, val2; \
-      TEST_INSERT_NOPS_5; \
       TEST_INSERT_NOPS_ ## src2_nops \
-      TEST_INSERT_NOPS_5; \
       inst x3, x1, x2; \
-      TEST_INSERT_NOPS_5; \
       addi  x4, x4, 1; \
-      TEST_INSERT_NOPS_5; \
       li  x5, 2; \
-      TEST_INSERT_NOPS_5; \
       bne x4, x5, 1b \
-      TEST_INSERT_NOPS_5; \
     )
 
 #define TEST_RR_SRC21_BYPASS( testnum, src1_nops, src2_nops, inst, result, val1, val2 ) \
     TEST_CASE( testnum, x3, result, \
       li  x4, 0; \
-      TEST_INSERT_NOPS_5; \
 1:    li  x2, val2; \
-      TEST_INSERT_NOPS_5; \
       TEST_INSERT_NOPS_ ## src1_nops \
-      TEST_INSERT_NOPS_5; \
       li  x1, val1; \
-      TEST_INSERT_NOPS_5; \
       TEST_INSERT_NOPS_ ## src2_nops \
-      TEST_INSERT_NOPS_5; \
       inst x3, x1, x2; \
-      TEST_INSERT_NOPS_5; \
       addi  x4, x4, 1; \
-      TEST_INSERT_NOPS_5; \
       li  x5, 2; \
-      TEST_INSERT_NOPS_5; \
       bne x4, x5, 1b \
-      TEST_INSERT_NOPS_5; \
     )
 
 #define TEST_RR_ZEROSRC1( testnum, inst, result, val ) \
     TEST_CASE( testnum, x2, result, \
       li x1, val; \
-      TEST_INSERT_NOPS_5; \
       inst x2, x0, x1; \
-      TEST_INSERT_NOPS_5; \
     )
 
 #define TEST_RR_ZEROSRC2( testnum, inst, result, val ) \
     TEST_CASE( testnum, x2, result, \
       li x1, val; \
-      TEST_INSERT_NOPS_5; \
       inst x2, x1, x0; \
-      TEST_INSERT_NOPS_5; \
     )
 
 #define TEST_RR_ZEROSRC12( testnum, inst, result ) \
     TEST_CASE( testnum, x1, result, \
       inst x1, x0, x0; \
-      TEST_INSERT_NOPS_5; \
     )
 
 #define TEST_RR_ZERODEST( testnum, inst, val1, val2 ) \
     TEST_CASE( testnum, x0, 0, \
       li x1, val1; \
-      TEST_INSERT_NOPS_5; \
       li x2, val2; \
-      TEST_INSERT_NOPS_5; \
       inst x0, x1, x2; \
-      TEST_INSERT_NOPS_5; \
     )
 
 #-----------------------------------------------------------------------

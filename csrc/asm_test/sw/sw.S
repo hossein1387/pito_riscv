@@ -69,6 +69,9 @@ RVTEST_CODE_BEGIN
   TEST_ST_SRC21_BYPASS( 23, 2, 0, lw, sw, 0x12233001, 20, tdat );
 
   TEST_PASSFAIL
+sw_ret:
+    ebreak
+    ret
 
 RVTEST_CODE_END
 

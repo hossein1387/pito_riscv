@@ -28,6 +28,9 @@ RVTEST_CODE_BEGIN
   )
 
   TEST_PASSFAIL
+auipc_ret:
+    ebreak
+    ret
 
 RVTEST_CODE_END
 
