@@ -12,3 +12,5 @@
 __pycache__
 *.gch
 .Xil/
+*.pyc
+synthesis/
