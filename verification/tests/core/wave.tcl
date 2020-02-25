@@ -49,8 +49,6 @@ add_wave_group core
             add_wave -into Decoder {{/core_tester/core/rv32_dec_fence_succ}}
             add_wave -into Decoder {{/core_tester/core/rv32_dec_fence_pred}}
             add_wave -into Decoder {{/core_tester/core/rv32_dec_csr}}
-            add_wave -into Decoder {{/core_tester/core/rv32_dec_zimm}}
-            add_wave -into Decoder {{/core_tester/core/rv32_dec_inst_type}}
             add_wave -into Decoder {{/core_tester/core/rv32_dec_instr_trap}}
             add_wave -into Decoder {{/core_tester/core/rv32_dec_alu_op}}
             add_wave -into Decoder {{/core_tester/core/rv32_dec_opcode}}
@@ -67,7 +65,6 @@ add_wave_group core
         add_wave -into EXStage {{/core_tester/core/rv32_ex_instr}}
         add_wave -into EXStage {{/core_tester/core/rv32_ex_rd}}
         add_wave -into EXStage {{/core_tester/core/rv32_ex_rs1}}
-        add_wave -into EXStage {{/core_tester/core/rv32_ex_inst_type}}
         add_wave -into EXStage {{/core_tester/core/rv32_ex_opcode}}
         add_wave -into EXStage {{/core_tester/core/rv32_ex_pc}}
         add_wave -into EXStage {{/core_tester/core/rv32_ex_imm}}
@@ -78,7 +75,6 @@ add_wave_group core
         add_wave -into WBStage {{/core_tester/core/rv32_wb_rd}}
         add_wave -into WBStage {{/core_tester/core/rv32_wb_out}}
         add_wave -into WBStage {{/core_tester/core/rv32_wb_rs2_skip}}
-        add_wave -into WBStage {{/core_tester/core/rv32_wb_inst_type}}
         add_wave -into WBStage {{/core_tester/core/rv32_wb_pc}}
         add_wave -into WBStage {{/core_tester/core/rv32_wb_skip}}
         add_wave -into WBStage {{/core_tester/core/rv32_wb_instr}}

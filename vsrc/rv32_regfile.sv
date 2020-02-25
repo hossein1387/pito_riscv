@@ -30,7 +30,7 @@ module rv32_regfile(
 
 `ifdef DEBUG
     initial begin
-        $display("Loading rom.");
+        $display("Loading register file rom.");
         $readmemh(`REG_FILE_INIT, data);
     end
 `endif
