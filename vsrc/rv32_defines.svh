@@ -5,6 +5,7 @@
 `define PITO_NULL  0
 `define NUM_REGS 32
 `define REG_FILE_INIT "regfile.mem"
+`define DECODER_FILE_INIT "decoderlut.mem"
 `define NUM_MVUS 8
 `define NUM_INSTR_WORDS (1024*`NUM_MVUS)
 //-------------------------------------------------------------------
