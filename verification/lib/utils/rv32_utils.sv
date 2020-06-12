@@ -1,6 +1,8 @@
 package rv32_utils;
 import utils::*;
-`include "../../../vsrc/rv32_types.svh"
+import rv32_pkg::*;
+// `include "../../../vsrc/rv32_types.svh"
+
 //==================================================================================================
 // RV32IDecoder class used for verification and simulation purposes 
 //==================================================================================================

@@ -1,5 +1,8 @@
 `timescale 1 ps / 1 ps
 
+import rv32_pkg::*;
+
+
 module rv32_core (
     input  logic              rv32_io_clk,    // Clock
     input  logic              rv32_io_rst_n,  // Synchronous reset active low
@@ -195,6 +198,9 @@ rv32_alu alu (
                         .alu_opcode(rv32_alu_op ),
                         .res       (rv32_alu_res),
                         .z         (rv32_alu_z  )
+);
+
+rv32_csr csr(
 );
 
 rv32_next_pc rv32_next_pc_cal(

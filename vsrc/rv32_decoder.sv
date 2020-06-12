@@ -3,6 +3,9 @@
 // `include "rv32_defines.svh"
 `timescale 1 ps / 1 ps
 
+import rv32_pkg::*;
+
+
 module rv32_decoder (
     input  logic [`XPR_LEN-1          : 0 ] instr, // input instruction
     output logic [`XPR_LEN-1          : 0 ] rv_rs1,

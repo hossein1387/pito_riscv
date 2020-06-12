@@ -170,7 +170,8 @@ module core_tester ();
                 act_instr       = rv32i_dec.decode_instr(core.rv32_wf_instr);
                 // logger.print($sformatf("exp=0x%8h: %s        actual=0x%8h: %s", instr_q[0], exp_instr.opcode.name, core.rv32_wf_instr, act_instr.opcode.name));
                 logger.print($sformatf("exp=0x%8h: %s        actual=0x%8h: %s", instr_q[0], exp_instr.opcode.name, core.rv32_wf_instr, act_instr.opcode.name));
-                if (core.rv32_wf_opcode == exp_instr.opcode) begin
+                // if (core.rv32_wf_opcode == exp_instr.opcode) begin
+                if (exp_instr.opcode.name == act_instr.opcode.name) begin
                     time_out = 0;
                     break;
                 end

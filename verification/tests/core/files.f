@@ -1,7 +1,8 @@
 ../../../vsrc/rv32_defines.svh
+../../lib/utils/rv32_pkg.sv
+../../lib/utils/pito_pkg.sv
 ../../lib/utils/utils.sv
 ../../lib/utils/rv32_utils.sv
-../../../vsrc/rv32_types.svh
 ../../../vsrc/rv32_instr.svh
 ../../../vsrc/rv32_imm_gen.sv
 ../../../vsrc/rv32_decoder.sv
@@ -13,4 +14,5 @@
 ../../../vsrc/rv32_barrel_regfiles.sv
 ../../../vsrc/rv32_core.sv
 ../../../vsrc/rv32_next_pc.sv
+../../../vsrc/rv32_csr.sv
 ./core_tester.sv
