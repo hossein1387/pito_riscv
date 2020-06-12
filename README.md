@@ -1,4 +1,4 @@
-![alt text](https://github.com/hossein1387/pito_riscv/blob/master/doc/pics/pito_rv32i.png)
+![alt text](https://github.com/hossein1387/pito_riscv/blob/master/doc/pics/MVU_CORE%20-%20Barelled.png)
 
 # pito_riscv
 A pito version of rv32i 
@@ -27,9 +27,9 @@ Upto this point, we have implemented a working core runs most RV32I instructsion
 
 Here are the known issues with the core:
 
-1. `riscv_tests` are not supported. This is because we still do not have a proper memory map. We have to make sure the gcc can target the correct memory regions (obviously based on the restrictions that we define like 32Kb of instruction ram and 32Kb of data ram).
-2. We have assumed that access to memory happens in one clock cycle. Up to now, we have been using FPGA block ram. We assumed it takes one cycle to read and one cycle to write to the memory. 
-3. :bug: Access to memory is word aligned not byte. According to ISA, the memory should be byte accessible: 
+1. [#3](/../../issues/3):`riscv_tests` are not supported. This is because we still do not have a proper memory map. We have to make sure the gcc can target the correct memory regions (obviously based on the restrictions that we define like 32Kb of instruction ram and 32Kb of data ram). 
+2. [#4](/../../issues/4): We have assumed that access to memory happens in one clock cycle. Up to now, we have been using FPGA block ram. We assumed it takes one cycle to read and one cycle to write to the memory. 
+3. [#5](/../../issues/5): bug: Access to memory is word aligned not byte. According to ISA, the memory should be byte accessible: 
        
        A RISC-V hart has a single byte-addressable address space of 2XLEN bytes for all memory accesses. (Page 6 The RISC-V Instruction Set Manual Volume I: Unprivileged ISA Document Version 20191213)
 
