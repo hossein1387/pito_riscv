@@ -50,6 +50,9 @@ package pito_pkg;
         CSR_MCYCLEH        = 12'hB80,
         CSR_MINSTRETH      = 12'hB82,
 
+        CSR_MCALL          = 12'hB0C,  // Procedure call
+        CSR_MRET           = 12'hB0D,  // Procedure Return
+
         // MVU CSRs            32-63
         CSR_MVU_WBASEPTR   = 12'hF20,
         CSR_MVU_IBASEPTR   = 12'hF21,
@@ -80,11 +83,10 @@ package pito_pkg;
 
 
     typedef enum logic [2:0] {
-        CSR_MRET  = 3'b000,
-        CSR_WRITE = 3'b001,
-        CSR_READ  = 3'b010,
-        CSR_SET   = 3'b011,
-        CSR_CLEAR = 3'b100
+        MRET           = 2'b00,
+        CSR_READ_WRITE = 2'b01,
+        CSR_SET        = 2'b10,
+        CSR_CLEAR      = 2'b11
     } csr_op_t;
 
 //-------------------------------------------------------------------

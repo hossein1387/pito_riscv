@@ -8,27 +8,34 @@ module rv32_csr #(
     )(
     input  logic                      clk,        // Clock
     input  logic                      rst_n,      // Asynchronous reset active low
-    input  logic [11 : 0]             csr_addr_i, // csr register address
-    input  logic [31 : 0]             csr_wdata_i,// data to be written to csr
-    output logic [31 : 0]             csr_rdata_o,// data read from csr
+    input  logic [11 : 0]             csr_addr_i, // CSR register address
+    input  logic [31 : 0]             csr_wdata_i,// Data to be written to CSR
+    input  logic [2  : 0]             csr_op_i,   // CSR operation type
+    output logic [31 : 0]             csr_rdata_o,// Data read from CSR
     // interrupts
-    input  logic                      irq_i,      // external interrupt in (async)
+    input  logic                      irq_i,      // External interrupt in (async)
     input  logic                      time_irq_i, // Timer threw a interrupt (async)
-    input  logic                      ipi_i,      // inter processor interrupt (async)
+    input  logic                      ipi_i,      // Inter processor interrupt (async)
+
+    // Core and Cluster ID
+    input  logic [31 : 0]             boot_addr_i,// Address from which to start booting, mtvec is set to the same address
 
     // MVU interface
-    input  logic                      mvu_irq_i,  // mvu requestin an interrupt
+    input  logic                      mvu_irq_i,  // MVU requesting an interrupt
 
+    output exception_t                csr_exception_o,// Attempts to access a CSR without appropriate privilege
+                                                      // level or to write  a read-only register also
+                                                      // raises illegal instruction exceptions.
     input  logic [31 : 0]             pc_i,       // PC of instruction accessing the CSR
-    input  logic [31 : 0]             cause_i,    // exception code
-    input  logic [2  : 0]             csr_op_i,   // csr operation type
-    input  logic                      enable_cycle_count_i, // enable cycle count
+    input  logic [31 : 0]             cause_i,    // Exception code
+    input  logic                      enable_cycle_count_i, // Enable cycle count
     output logic [31 : 0]             csr_epc_o   // epc 
 );
 
     // internal signal to keep track of access exceptions
     logic [31:0]            csr_wdata, csr_rdata;
     logic                   read_access_exception;
+    logic                   update_access_exception;
     logic                   csr_we, csr_read;
     logic                   wfi_q, wfi_d;
     pito_pkg::csr_t         csr_addr;
@@ -41,10 +48,12 @@ module rv32_csr #(
     logic [31:0]            mtvec_q, mtvec_d;
     logic [31:0]            mepc_q, mepc_d;
     logic [31:0]            mtval_q, mtval_d;
-    logic [63:0]            csr_mcycle_q, csr_mcycle_d;
-    logic [63:0]            csr_instret_q, csr_instret_d;
+    logic [63:0]            mcycle_q, mcycle_d;
+    logic [63:0]            minstret_q, minstret_d;
     // return from M-mode exception
     logic  mret;  
+
+    logic        mtvec_rst_load_q;// used to determine whether we came out of reset
 
     // // MVU CSRs;
     // rv32_csr_t csr_mvu_wbaseptr   ;
@@ -92,25 +101,25 @@ module rv32_csr #(
             unique case (csr_addr)
                 // machine mode registers
                 pito_pkg::CSR_MVENDORID:          csr_rdata = 32'b0; // not implemented
-                pito_pkg::CSR_MARCHID:            csr_rdata = PITO_MARCHID;
-                pito_pkg::CSR_MIMPID:             csr_rdata = 32'b0; // not implemented
-                pito_pkg::CSR_MHARTID:            csr_rdata = PITO_HART_ID;
+                pito_pkg::CSR_MARCHID  :          csr_rdata = PITO_MARCHID;
+                pito_pkg::CSR_MIMPID   :          csr_rdata = 32'b0; // not implemented
+                pito_pkg::CSR_MHARTID  :          csr_rdata = PITO_HART_ID;
 
-                pito_pkg::CSR_MSTATUS:            csr_rdata = mstatus_q;
-                pito_pkg::CSR_MISA:               csr_rdata = ISA_CODE;
-                pito_pkg::CSR_MIE:                csr_rdata = mie_q;
-                pito_pkg::CSR_MTVEC:              csr_rdata = mtvec_q;
+                pito_pkg::CSR_MSTATUS  :          csr_rdata = mstatus_q;
+                pito_pkg::CSR_MISA     :          csr_rdata = ISA_CODE;
+                pito_pkg::CSR_MIE      :          csr_rdata = mie_q;
+                pito_pkg::CSR_MTVEC    :          csr_rdata = mtvec_q;
 
                 // pito_pkg::CSR_MSCRATCH:           csr_rdata = mscratch_q;
-                pito_pkg::CSR_MEPC:               csr_rdata = mepc_q;
-                pito_pkg::CSR_MCAUSE:             csr_rdata = mcause_q;
-                pito_pkg::CSR_MTVAL:              csr_rdata = mtval_q;
-                pito_pkg::CSR_MIP:                csr_rdata = mip_q;
+                pito_pkg::CSR_MEPC     :          csr_rdata = mepc_q;
+                pito_pkg::CSR_MCAUSE   :          csr_rdata = mcause_q;
+                pito_pkg::CSR_MTVAL    :          csr_rdata = mtval_q;
+                pito_pkg::CSR_MIP      :          csr_rdata = mip_q;
 
-                pito_pkg::CSR_MCYCLE:             csr_rdata = csr_mcycle_q[31:0];
-                pito_pkg::CSR_MINSTRET:           csr_rdata = csr_instret_q[31:0];
-                pito_pkg::CSR_MCYCLEH:            csr_rdata = csr_mcycle_q[63:32];
-                pito_pkg::CSR_MINSTRETH:          csr_rdata = csr_instret_q[63:32];
+                pito_pkg::CSR_MCYCLE   :         csr_rdata = mcycle_q[31:0];
+                pito_pkg::CSR_MINSTRET :         csr_rdata = minstret_q[31:0];
+                pito_pkg::CSR_MCYCLEH  :         csr_rdata = mcycle_q[63:32];
+                pito_pkg::CSR_MINSTRETH:         csr_rdata = minstret_q[63:32];
 
                 default: read_access_exception = 1'b1;
             endcase
@@ -126,11 +135,11 @@ module rv32_csr #(
         // --------------------
         // Counters
         // --------------------
-        cycle_d = cycle_q;
-        instret_d = instret_q;
+        mcycle_d = mcycle_q;
+        minstret_d = minstret_q;
         
-        if (enable_cycle_count_i) cycle_d = cycle_q + 1'b1;
-        else cycle_d = instret;
+        if (enable_cycle_count_i) mcycle_d = mcycle_q + 1'b1;
+        // else mcycle_d = instret;
 
         mstatus_d               = mstatus_q;
 
@@ -152,9 +161,12 @@ module rv32_csr #(
         mcause_d                = mcause_q;
         mtval_d                 = mtval_q;
 
+        // TODO: priv check
         // check for correct access rights and that we are writing
+
         if (csr_we) begin
-            unique case (csr_addr.address)
+            update_access_exception = 1'b0;
+            unique case (csr_addr)
                 pito_pkg::CSR_MSTATUS: begin
                     mstatus_d      = csr_wdata;
                     mstatus_d.xs   = 2'b0;
@@ -179,18 +191,18 @@ module rv32_csr #(
                 pito_pkg::CSR_MEPC:               mepc_d      = {csr_wdata[31:1], 1'b0};
                 pito_pkg::CSR_MCAUSE:             mcause_d    = csr_wdata;
                 pito_pkg::CSR_MTVAL:              mtval_d     = csr_wdata;
-                pito_pkg::CSR_MIP: begin
-                    mask = pito_pkg::MIP_SSIP | pito_pkg::MIP_STIP | pito_pkg::MIP_SEIP;
-                    mip_d = (mip_q & ~mask) | (csr_wdata & mask);
-                end
+                // pito_pkg::CSR_MIP: begin
+                //     mask = pito_pkg::MIP_SSIP | pito_pkg::MIP_STIP | pito_pkg::MIP_SEIP;
+                //     mip_d = (mip_q & ~mask) | (csr_wdata & mask);
+                // end
                 // performance counters
-                pito_pkg::CSR_MCYCLE:             cycle_d     = csr_wdata;
-                pito_pkg::CSR_MINSTRET:           instret     = csr_wdata;
-                pito_pkg::CSR_MCALL,
-                pito_pkg::CSR_MRET: begin
-                                        perf_data_o = csr_wdata;
-                                        perf_we_o   = 1'b1;
-                end
+                pito_pkg::CSR_MCYCLE:             mcycle_d     = csr_wdata;
+                // pito_pkg::CSR_MINSTRET:           instret     = csr_wdata;
+                // pito_pkg::CSR_MCALL,
+                // pito_pkg::CSR_MRET: begin
+                //                         perf_data_o = csr_wdata;
+                //                         perf_we_o   = 1'b1;
+                // end
                 default: update_access_exception = 1'b1;
             endcase
         end
@@ -219,7 +231,7 @@ module rv32_csr #(
         mstatus_d.mie  = 1'b0;
         mstatus_d.mpie = mstatus_q.mie;
         // save the previous privilege mode
-        mstatus_d.mpp  = priv_lvl_q;
+        // mstatus_d.mpp  = priv_lvl_q;
         mcause_d       = cause_i;
         // set epc
         mepc_d         = pc_i;
@@ -250,21 +262,40 @@ module rv32_csr #(
         mret      = 1'b0;
 
         unique case (csr_op)
-            CSR_MRET: begin
+            MRET: begin
                 // the return should not have any write or read side-effects
                 csr_we   = 1'b0;
                 csr_read = 1'b0;
                 mret     = 1'b1; // signal a return from machine mode
             end
-            CSR_WRITE: csr_wdata = csr_wdata_i;
-            CSR_READ:  csr_we    = 1'b0;
-            CSR_SET:   csr_wdata = csr_wdata_i | csr_rdata;
-            CSR_CLEAR: csr_wdata = (~csr_wdata_i) & csr_rdata;
+            CSR_READ_WRITE : begin
+                csr_wdata = csr_wdata_i;
+            end
+            CSR_SET        : csr_wdata = csr_wdata_i | csr_rdata;
+            CSR_CLEAR      : csr_wdata = (~csr_wdata_i) & csr_rdata;
             default: begin
                 csr_we   = 1'b0;
                 csr_read = 1'b0;
             end
         endcase
+    end
+
+
+//====================================================================
+//                  CSR Exception Control
+//====================================================================
+    always_comb begin : exception_ctrl
+        // ----------------------------------
+        // Illegal Access (decode exception)
+        // ----------------------------------
+        // we got an exception in one of the processes above
+        // throw an illegal instruction exception
+        if (update_access_exception || read_access_exception) begin
+            csr_exception_o.cause = pito_pkg::ILLEGAL_INSTR;
+            // we don't set the tval field as this will be set by the commit stage
+            // this spares the extra wiring from commit to CSR and back to commit
+            csr_exception_o.valid = 1'b1;
+        end
     end
 
 //====================================================================
@@ -273,21 +304,23 @@ module rv32_csr #(
     always_ff @(posedge clk or negedge rst_n) begin
         if (~rst_n) begin
             // machine mode registers
-            mstatus_q              <= (`XPR_LEN){1'b0};
+            mstatus_q              <= 32'b0;
             // set to boot address + direct mode + 4 byte offset which is the initial trap
-            mtvec_q                <= (`XPR_LEN){1'b0};
-            mip_q                  <= (`XPR_LEN){1'b0};
-            mie_q                  <= (`XPR_LEN){1'b0};
-            mepc_q                 <= (`XPR_LEN){1'b0};
-            mcause_q               <= (`XPR_LEN){1'b0};
-            mtval_q                <= (`XPR_LEN){1'b0};
+            mtvec_q                <= 32'b0;
+            mip_q                  <= 32'b0;
+            mie_q                  <= 32'b0;
+            mepc_q                 <= 32'b0;
+            mcause_q               <= 32'b0;
+            mtval_q                <= 32'b0;
             // timer and counters
-            cycle_q                <= 64'b0;
-            instret_q              <= 64'b0;
+            mcycle_q               <= 64'b0;
+            minstret_q             <= 64'b0;
             // wait for interrupt
             wfi_q                  <= 1'b0;
+            mtvec_rst_load_q       <= 1'b1;
         end else begin
             // machine mode registers
+            mtvec_rst_load_q       <= 1'b0;
             mstatus_q              <= mstatus_d;
             mtvec_q                <= mtvec_d;
             mip_q                  <= mip_d;
@@ -296,8 +329,8 @@ module rv32_csr #(
             mcause_q               <= mcause_d;
             mtval_q                <= mtval_d;
             // timer and counters
-            cycle_q                <= cycle_d;
-            instret_q              <= instret_d;
+            mcycle_q               <= mcycle_d;
+            minstret_q             <= minstret_d;
             // wait for interrupt
             wfi_q                  <= wfi_d;
         end

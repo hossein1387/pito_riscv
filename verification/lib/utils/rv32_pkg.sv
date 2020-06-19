@@ -248,6 +248,13 @@ typedef struct packed{
         logic         usip;  // user software interrupt-enable bit
     } mie_rv32_t;
 
+    // Only use struct when signals have same direction
+    // exception
+    typedef struct packed {
+         logic [31:0] cause; // cause of exception
+         logic        valid;
+    } exception_t;
+
 //-------------------------------------------------------------------
 //             RV32 abi register
 //-------------------------------------------------------------------

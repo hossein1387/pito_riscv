@@ -15,4 +15,5 @@
 ../../../vsrc/rv32_core.sv
 ../../../vsrc/rv32_next_pc.sv
 ../../../vsrc/rv32_csr.sv
+../../../vsrc/rv32_barrel_csrfiles.sv
 ./core_tester.sv

@@ -1,6 +1,7 @@
 `timescale 1 ps / 1 ps
 
 import rv32_pkg::*;
+import pito_pkg::*;
 
 
 module rv32_core (
@@ -99,6 +100,13 @@ rv32_opcode_enum_t rv32_ex_opcode;
 rv32_pc_cnt_t      rv32_ex_pc;
 rv32_imm_t         rv32_ex_imm;
 rv32_dmem_addr_t   rv32_ex_readd_addr;
+logic              rv32_ex_is_exception;
+logic              rv32_ex_is_csr;
+logic              rv32_ex_skip;
+// csrs
+csr_t              rv32_ex_csr_addr;
+csr_op_t           rv32_ex_csr_op;
+rv32_register_t    rv32_ex_csr_data;
 //====================================================================
 // WB stage wires
 //====================================================================
@@ -200,7 +208,7 @@ rv32_alu alu (
                         .z         (rv32_alu_z  )
 );
 
-rv32_csr csr(
+rv32_barrel_csrfiles csr(
 );
 
 rv32_next_pc rv32_next_pc_cal(
@@ -312,10 +320,36 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
 //====================================================================
 //                   Execute Stage
 //====================================================================
-    // assign rv32_ex_is_exception = ((rv32_dec_opcode == RV32_ECALL) || (rv32_dec_opcode == RV32_EBREAK)) ? 1'b1 : 1'b0;
-    // assign rv32_ex_is_csr       = ((rv32_dec_opcode == RV32_CSRRW ) || (rv32_dec_opcode==RV32_CSRRS ) || (rv32_dec_opcode==RV32_CSRRC ) ||
-    //                                (rv32_dec_opcode == RV32_CSRRWI) || (rv32_dec_opcode==RV32_CSRRSI) || (rv32_dec_opcode==RV32_CSRRCI)) ? 1'b1 : 1'b0;
-    // assign rv32_ex_skip         = rv32_ex_is_exception || rv32_ex_is_csr || (rv32_dec_opcode==RV32_NOP);
+    assign rv32_ex_is_exception = ((rv32_dec_opcode == RV32_ECALL) || (rv32_dec_opcode == RV32_EBREAK)) ? 1'b1 : 1'b0;
+    assign rv32_ex_is_csr       = ((rv32_dec_opcode == RV32_CSRRW ) || (rv32_dec_opcode==RV32_CSRRS ) || (rv32_dec_opcode==RV32_CSRRC ) ||
+                                   (rv32_dec_opcode == RV32_CSRRWI) || (rv32_dec_opcode==RV32_CSRRSI) || (rv32_dec_opcode==RV32_CSRRCI)) ? 1'b1 : 1'b0;
+    assign rv32_ex_skip         = rv32_ex_is_exception || rv32_ex_is_csr || (rv32_dec_opcode==RV32_NOP);
+
+
+//==================
+// CSR:
+//==================
+
+    assign rv32_ex_csr_addr     = pito_pkg::csr_t'(rv32_dec_instr[31:20]);
+    assign rv32_ex_csr_data     = ((rv32_dec_opcode == RV32_CSRRWI) || (rv32_dec_opcode==RV32_CSRRSI) || (rv32_dec_opcode==RV32_CSRRCI)) ?
+                                    rv32_dec_imm : rv32_regf_rd1;
+
+    always_comb begin
+        case (rv32_dec_opcode)
+             RV32_CSRRW  : rv32_ex_csr_op = pito_pkg::CSR_READ_WRITE;
+             RV32_CSRRS  : rv32_ex_csr_op = pito_pkg::CSR_SET;
+             RV32_CSRRC  : rv32_ex_csr_op = pito_pkg::CSR_CLEAR;
+             RV32_CSRRWI : rv32_ex_csr_op = pito_pkg::CSR_READ_WRITE;
+             RV32_CSRRSI : rv32_ex_csr_op = pito_pkg::CSR_SET;
+             RV32_CSRRCI : rv32_ex_csr_op = pito_pkg::CSR_CLEAR;
+             RV32_MRET   : rv32_ex_csr_op = pito_pkg::MRET;
+             default : rv32_ex_csr_op = RV32_UNKNOWN;
+        endcase
+    end
+
+//==================
+// ALU:
+//==================
 
     assign alu_src   = ((rv32_dec_opcode == RV32_SRL ) || (rv32_dec_opcode == RV32_SRA  ) || (rv32_dec_opcode == RV32_ADD ) ||
                         (rv32_dec_opcode == RV32_XOR ) || (rv32_dec_opcode == RV32_OR   ) || (rv32_dec_opcode == RV32_AND ) ||

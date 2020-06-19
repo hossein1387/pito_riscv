@@ -68,15 +68,14 @@ def parse_instr_def_file(file):
         lines = f.readlines()
         cnt = 0
         for line in lines:
-            if "32\'h" in line:
-                # import ipdb as pdb; pdb.set_trace()
-                line = ' '.join(line.split())
-                instr= line.split(" ")[1]
-                val  = line.split("32\'h")[-1][0:32][::-1] 
-                val  = val[30] + val[20] + val[12:15][::-1] + val[2:7][::-1] 
-                instr_dict[instr] = val
-                # print("[{0:2}] {1:12}:{2}".format(cnt, instr, val))
-                cnt += 1
+            # import ipdb as pdb; pdb.set_trace()
+            line = ''.join(line.split())
+            instr= line.split(":")[0]
+            val  = line.split(":")[-1][0:32][::-1] 
+            val  = val[30] + val[20] + val[12:15][::-1] + val[2:7][::-1] 
+            instr_dict[instr] = val
+            # print("[{0:2}] {1:12}:{2}".format(cnt, instr, val))
+            cnt += 1
     return instr_dict
 
 def replace_char(str, pos, val):
