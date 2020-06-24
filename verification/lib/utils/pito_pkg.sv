@@ -1,4 +1,7 @@
 package pito_pkg;
+    localparam int NUM_HARTS      = 8;
+    localparam int HART_CNT_WIDTH = $clog2(NUM_HARTS);
+
 
     localparam bit RVA = 1'b0; // Is Atomic extension enabled
     localparam bit RVC = 1'b0; // Is Compressed extension enabled
@@ -83,10 +86,11 @@ package pito_pkg;
 
 
     typedef enum logic [2:0] {
-        MRET           = 2'b00,
-        CSR_READ_WRITE = 2'b01,
-        CSR_SET        = 2'b10,
-        CSR_CLEAR      = 2'b11
+        MRET           = 3'b000,
+        CSR_READ_WRITE = 3'b001,
+        CSR_SET        = 3'b010,
+        CSR_CLEAR      = 3'b011,
+        CSR_UNKNOWN    = 3'b111
     } csr_op_t;
 
 //-------------------------------------------------------------------

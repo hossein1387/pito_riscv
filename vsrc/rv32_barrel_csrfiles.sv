@@ -1,7 +1,7 @@
-module rv32_barrel_csrfiles #(
-        parameter NUM_HARTS      = 8,
-        parameter HART_CNT_WIDTH = $clog2(NUM_HARTS)
-    )
+import pito_pkg::*;
+
+
+module rv32_barrel_csrfiles 
     (
 
         input  logic                      clk,        // Clock
@@ -19,7 +19,7 @@ module rv32_barrel_csrfiles #(
         input  logic [31 : 0]             boot_addr,// Address from which to start booting, mtvec is set to the same address
 
         // MVU interface
-        input  logic                      mvu_irq,  // MVU requesting an interrupt
+        input  logic [pito_pkg::HART_CNT_WIDTH-1:0] mvu_irq,  // MVU requesting an interrupt
 
         output exception_t                csr_exception,// Attempts to access a CSR without appropriate privilege
                                                           // level or to write  a read-only register also
@@ -29,7 +29,7 @@ module rv32_barrel_csrfiles #(
         input  logic                      enable_cycle_count, // Enable cycle count
         output logic [31 : 0]             csr_epc,  // epc 
 
-        input  logic [HART_CNT_WIDTH-1:0] hart_id_i // hart id for accessign the csr file
+        input  logic [pito_pkg::HART_CNT_WIDTH-1:0] hart_id_i // hart id for accessign the csr file
 );
 
 // Signals for connecting csr files to I/O:
@@ -46,32 +46,35 @@ logic[31 : 0 ] pc_sigs        [NUM_HARTS-1 : 0];
 logic[31 : 0 ] cause_sigs     [NUM_HARTS-1 : 0];
 logic          enable_cycle_count_sigs;
 
+logic [31 : 0] csr_rdata_sigs     [NUM_HARTS-1 : 0];
+exception_t    csr_exception_sigs [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_epc_sigs       [NUM_HARTS-1 : 0];
+
 assign enable_cycle_count_sigs = 1'b1;
 
 genvar hart_id;
     for(hart_id=0; hart_id<NUM_HARTS; hart_id++) begin
-        rv32_csr csrfile(
-                            .clk                 (clk                    ),
-                            .rst_n               (rst_n                  ),
-                            .csr_addr_i          (csr_addr_sigs[hart_id] ),
-                            .csr_wdata_i         (csr_wdata_sigs[hart_id]),
-                            .csr_op_i            (csr_op_sigs[hart_id]   ),
-                            .csr_rdata_o         (csr_rdata              ),
-                            .irq_i               (irq_sigs[hart_id ]     ),
-                            .time_irq_i          (time_irq_sigs[hart_id] ),
-                            .ipi_i               (ipi_sigs[hart_id]      ),
-                            .boot_addr_i         (boot_addr_sigs[hart_id]),
-                            .mvu_irq_i           (mvu_irq_sigs[hart_id]  ),
-                            .csr_exception_o     (csr_exception          ),
-                            .pc_i                (pc_sigs[hart_id]       ),
-                            .cause_i             (cause_sigs[hart_id]    ),
-                            .enable_cycle_count_i(enable_cycle_count_sigs),
-                            .csr_epc_o           (csr_epc                )
+        rv32_csr #(hart_id) csrfile(
+                            .clk                 (clk                        ),
+                            .rst_n               (rst_n                      ),
+                            .csr_addr_i          (csr_addr_sigs[hart_id]     ),
+                            .csr_wdata_i         (csr_wdata_sigs[hart_id]    ),
+                            .csr_op_i            (csr_op_sigs[hart_id]       ),
+                            .csr_rdata_o         (csr_rdata_sigs[hart_id]    ),
+                            .irq_i               (irq_sigs[hart_id ]         ),
+                            .time_irq_i          (time_irq_sigs[hart_id]     ),
+                            .ipi_i               (ipi_sigs[hart_id]          ),
+                            .boot_addr_i         (boot_addr_sigs[hart_id]    ),
+                            .mvu_irq_i           (mvu_irq_sigs[hart_id]      ),
+                            .csr_exception_o     (csr_exception_sigs[hart_id]),
+                            .pc_i                (pc_sigs[hart_id]           ),
+                            .cause_i             (cause_sigs[hart_id]        ),
+                            .enable_cycle_count_i(enable_cycle_count_sigs    ),
+                            .csr_epc_o           (csr_epc_sigs[hart_id]      )
                         );
     end
-endgenerate
 
-genvar hart_id;
+// genvar hart_id;
 generate 
   for (hart_id = 0; hart_id < NUM_HARTS; hart_id++)  begin
     assign csr_addr_sigs[hart_id]  = (hart_id==hart_id_i) ? csr_addr  : 0;
@@ -81,11 +84,18 @@ generate
     assign time_irq_sigs[hart_id]  = (hart_id==hart_id_i) ? time_irq  : 0;
     assign ipi_sigs[hart_id]       = (hart_id==hart_id_i) ? ipi       : 0;
     assign boot_addr_sigs[hart_id] = (hart_id==hart_id_i) ? boot_addr : 0;
-    assign mvu_irq_sigs[hart_id]   = (hart_id==hart_id_i) ? mvu_irq   : 0;
     assign pc_sigs[hart_id]        = (hart_id==hart_id_i) ? pc        : 0;
     assign cause_sigs[hart_id]     = (hart_id==hart_id_i) ? cause     : 0;
+
+    assign mvu_irq_sigs[hart_id]   = mvu_irq[hart_id];
+
   end
 endgenerate
+
+assign csr_rdata     = csr_rdata_sigs[hart_id_i];
+assign csr_exception = csr_exception_sigs[hart_id_i];
+assign csr_epc       = csr_epc_sigs[hart_id_i];
+
 
 
 endmodule

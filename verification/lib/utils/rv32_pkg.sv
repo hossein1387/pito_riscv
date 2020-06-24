@@ -169,7 +169,8 @@ typedef enum {
         RV32_EBREAK = {26'b0, 6'b101110}, //
         RV32_ERET   = {26'b0, 6'b101111},
         RV32_WFI    = {26'b0, 6'b110000},
-        RV32_NOP    = {26'b0, 6'b110001},
+        RV32_MRET   = {26'b0, 6'b110001},
+        RV32_NOP    = {26'b0, 6'b110010},
         RV32_UNKNOWN= {26'b0, 6'b111111}
     } rv32_opcode_enum_t;
 

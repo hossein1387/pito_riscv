@@ -1,5 +1,6 @@
 import utils::*;
 import rv32_utils::*;
+import pito_pkg::*;
 
 module csr_tester ();
 //==================================================================================================
@@ -21,17 +22,18 @@ module csr_tester ();
     logic              imem_w_en;
     logic              dmem_w_en;
     logic              pito_program;
-
+    logic [pito_pkg::HART_CNT_WIDTH-1:0] mvu_irq;
     rv32_core core(
-                    .rv32_io_clk       (clk            ),
-                    .rv32_io_rst_n     (rst_n          ),
-                    .rv32_io_imem_addr (imem_addr      ),
-                    .rv32_io_imem_data (imem_data      ),
-                    .rv32_io_dmem_addr (dmem_addr      ),
-                    .rv32_io_dmem_data (dmem_data      ),
-                    .rv32_io_imem_w_en (imem_w_en      ),
-                    .rv32_io_dmem_w_en (dmem_w_en      ),
-                    .rv32_io_program   (pito_program   )
+                    .pito_io_clk       (clk            ),
+                    .pito_io_rst_n     (rst_n          ),
+                    .pito_io_imem_addr (imem_addr      ),
+                    .pito_io_imem_data (imem_data      ),
+                    .pito_io_dmem_addr (dmem_addr      ),
+                    .pito_io_dmem_data (dmem_data      ),
+                    .pito_io_imem_w_en (imem_w_en      ),
+                    .pito_io_dmem_w_en (dmem_w_en      ),
+                    .pito_io_program   (pito_program   ),
+                    .mvu_irq_i         (mvu_irq        )
     );
 
     task write_to_dram(rv32_data_q instr_q);

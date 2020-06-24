@@ -336,4 +336,7 @@ module rv32_csr #(
         end
     end
 
+initial begin
+    $display("csr.hart[%1d] is activated!", PITO_HART_ID);
+end
 endmodule
