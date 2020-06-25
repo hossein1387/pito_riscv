@@ -41,6 +41,11 @@ module rv32_csr #(
     pito_pkg::csr_t         csr_addr;
     pito_pkg::csr_op_t      csr_op;
     // RV32 Machine Mode CSRs
+    logic [31:0]            mvendorid;
+    logic [31:0]            marchid;
+    logic [31:0]            mimpid;
+    logic [31:0]            mhartdid;
+    logic [31:0]            misa;
     rv32_pkg::status_rv32_t mstatus_q, mstatus_d;
     rv32_pkg::mip_rv32_t    mip_q, mip_d;
     rv32_pkg::mie_rv32_t    mie_q, mie_d;
@@ -82,11 +87,14 @@ module rv32_csr #(
     // rv32_csr_t csr_mvu_command    ;
     // rv32_csr_t csr_mvu_quant      ;
 
-
 //====================================================================
 //                    Assignments
 //====================================================================
-
+    assign mvendorid= 32'b0;// not implemented
+    assign marchid  = PITO_MARCHID;
+    assign mimpid   = 32'b0;// not implemented
+    assign mhartdid = PITO_HART_ID;
+    assign misa     = ISA_CODE;
     assign csr_addr = pito_pkg::csr_t'(csr_addr_i);
     assign csr_op   = pito_pkg::csr_op_t'(csr_op_i);
 //====================================================================
@@ -100,13 +108,13 @@ module rv32_csr #(
         if (csr_read) begin
             unique case (csr_addr)
                 // machine mode registers
-                pito_pkg::CSR_MVENDORID:          csr_rdata = 32'b0; // not implemented
-                pito_pkg::CSR_MARCHID  :          csr_rdata = PITO_MARCHID;
-                pito_pkg::CSR_MIMPID   :          csr_rdata = 32'b0; // not implemented
-                pito_pkg::CSR_MHARTID  :          csr_rdata = PITO_HART_ID;
+                pito_pkg::CSR_MVENDORID:          csr_rdata = mvendorid; 
+                pito_pkg::CSR_MARCHID  :          csr_rdata = marchid;
+                pito_pkg::CSR_MIMPID   :          csr_rdata = mimpid; 
+                pito_pkg::CSR_MHARTID  :          csr_rdata = mhartdid;
 
                 pito_pkg::CSR_MSTATUS  :          csr_rdata = mstatus_q;
-                pito_pkg::CSR_MISA     :          csr_rdata = ISA_CODE;
+                pito_pkg::CSR_MISA     :          csr_rdata = misa;
                 pito_pkg::CSR_MIE      :          csr_rdata = mie_q;
                 pito_pkg::CSR_MTVEC    :          csr_rdata = mtvec_q;
 

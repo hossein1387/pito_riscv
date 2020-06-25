@@ -10,7 +10,7 @@ package pito_pkg;
     localparam bit RVI = 1'b1; // Is Integer extension enabled
     localparam bit RVM = 1'b0; // Is M extension enabled
 
-    localparam logic [31:0] ISA_CODE = (RVA <<  0)  // A - Atomic Instructions extension
+    localparam logic [31:0] ISA_CODE =         (RVA <<  0)  // A - Atomic Instructions extension
                                              | (RVC <<  2)  // C - Compressed extension
                                              | (RVD <<  3)  // D - Double precsision floating-point extension
                                              | (RVF <<  5)  // F - Single precsision floating-point extension

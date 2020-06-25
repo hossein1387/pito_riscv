@@ -91,7 +91,36 @@ module csr_tester ();
             regs[i] = read_hart_reg_val(hart_id, i);
         end
         return regs;
-    endfunction : read_regs
+    endfunction
+
+    function rv32_csrfile_t read_csrs(int hart_id);
+        rv32_csrfile_t csrs;
+        pito_pkg::csr_t csr_addr;
+        for (int csr=0; csr<`NUM_CSR; csr++) begin
+            csr_addr = pito_pkg::csr_t'(csr);
+            case (csr_addr)
+                pito_pkg::CSR_MVENDORID: csrs[csr] = core.csr.genblk1[0].csrfile.mvendorid;
+                pito_pkg::CSR_MARCHID  : csrs[csr] = core.csr.genblk1[0].csrfile.marchid;
+                pito_pkg::CSR_MIMPID   : csrs[csr] = core.csr.genblk1[0].csrfile.mimpid;
+                pito_pkg::CSR_MHARTID  : csrs[csr] = core.csr.genblk1[0].csrfile.mhartdid;
+                pito_pkg::CSR_MSTATUS  : csrs[csr] = core.csr.genblk1[0].csrfile.mstatus_q;
+                pito_pkg::CSR_MISA     : csrs[csr] = core.csr.genblk1[0].csrfile.misa;
+                pito_pkg::CSR_MIE      : csrs[csr] = core.csr.genblk1[0].csrfile.mie_q;
+                pito_pkg::CSR_MTVEC    : csrs[csr] = core.csr.genblk1[0].csrfile.mtvec_q;
+                pito_pkg::CSR_MEPC     : csrs[csr] = core.csr.genblk1[0].csrfile.mepc_q;
+                pito_pkg::CSR_MCAUSE   : csrs[csr] = core.csr.genblk1[0].csrfile.mcause_q;
+                pito_pkg::CSR_MTVAL    : csrs[csr] = core.csr.genblk1[0].csrfile.mtval_q;
+                pito_pkg::CSR_MIP      : csrs[csr] = core.csr.genblk1[0].csrfile.mip_q;
+                pito_pkg::CSR_MCYCLE   : csrs[csr] = core.csr.genblk1[0].csrfile.mcycle_q[31:0];
+                pito_pkg::CSR_MINSTRET : csrs[csr] = core.csr.genblk1[0].csrfile.minstret_q[31:0];
+                pito_pkg::CSR_MCYCLEH  : csrs[csr] = core.csr.genblk1[0].csrfile.mcycle_q[63:32];
+                pito_pkg::CSR_MINSTRETH: csrs[csr] = core.csr.genblk1[0].csrfile.minstret_q[63:32];
+                default : csrs[csr] = 0;
+            endcase
+        end
+        return csrs;
+    endfunction 
+
 
 // TODO: A dirty hack for access values within DUT. A better way is to 
 // bind or use interface to correctly access the signals. For memory,
@@ -226,7 +255,7 @@ module csr_tester ();
             @(negedge clk);
             if (hart_valid == 1) begin
                 // $display($sformatf("instr: %s",rv32_wf_opcode.name));
-                rv32i_pred.predict(act_instr, instr, pc_cnt, pc_orig_cnt, read_regs(hart_id), read_dmem_word(instr, hart_id), hart_id);
+                rv32i_pred.predict(act_instr, instr, pc_cnt, pc_orig_cnt, read_regs(hart_id), read_csrs(hart_id), read_dmem_word(instr, hart_id), hart_id);
                 // $display("\n");
                 // @(posedge clk);
                 hart_valid = 0;

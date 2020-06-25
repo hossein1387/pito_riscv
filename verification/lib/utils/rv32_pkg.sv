@@ -20,6 +20,7 @@ typedef logic [12                      : 0 ] rv32_csr_t;
 typedef logic [4                       : 0 ] rv32_zimm_t;
 typedef logic [4                       : 0 ] rv32_shamt_t;
 typedef logic [`REG_ADDR_WIDTH-1       : 0 ] rv32_regfile_addr_t;
+typedef logic [`NUM_CSR-1:0][`XPR_LEN-1:0]   rv32_csrfile_t;
 typedef logic [`ALU_OPCODE_WIDTH-1     : 0 ] rv32_alu_op_t;
 typedef logic [`XPR_LEN-1              : 0 ] rv32_data_t;
 typedef logic [`PITO_INSTR_MEM_WIDTH-1 : 0 ] rv32_imem_addr_t;
@@ -173,6 +174,16 @@ typedef enum {
         RV32_NOP    = {26'b0, 6'b110010},
         RV32_UNKNOWN= {26'b0, 6'b111111}
     } rv32_opcode_enum_t;
+
+//-------------------------------------------------------------------
+//             RV32 CSR access type
+//-------------------------------------------------------------------
+typedef enum {
+        RV32_WIRI =0, // Read Only
+        RV32_WPRI =1, // Write Preserve Read Illegal
+        RV32_WLRL =2, // Write Legal Read Legal
+        RV32_WARL =3  // Write All Read Legal
+    } rv32_csr_access_enum_t;
 
 //-------------------------------------------------------------------
 //                     RV32 Insrtuction Decoded Format Mapping
