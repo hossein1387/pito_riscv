@@ -87,6 +87,38 @@ module rv32_csr #(
     logic [31:0] csr_mvu_command_q  , csr_mvu_command_d  ;
     logic [31:0] csr_mvu_quant_q    , csr_mvu_quant_d    ;
 
+
+    logic [31:0] csr_mvu_mul_mode_q  ,csr_mvu_mul_mode_d  ; // Config: multiply mode
+    logic [31:0] csr_mvu_acc_clr_q   ,csr_mvu_acc_clr_d   ; // Control: accumulator clear
+    logic [31:0] csr_mvu_acc_sh_q    ,csr_mvu_acc_sh_d    ; // Control: accumulator shift
+    logic [31:0] csr_mvu_max_en_q    ,csr_mvu_max_en_d    ; // Config: max pool enable
+    logic [31:0] csr_mvu_max_clr_q   ,csr_mvu_max_clr_d   ; // Config: max pool clear
+    logic [31:0] csr_mvu_max_pool_q  ,csr_mvu_max_pool_d  ; // Config: max pool mode
+    logic [31:0] csr_mvu_countdown_q ,csr_mvu_countdown_d ; // Config: number of clocks to countdown for given task
+    logic [31:0] csr_mvu_wprecision_q,csr_mvu_wprecision_d; // Config: weight precision
+    logic [31:0] csr_mvu_iprecision_q,csr_mvu_iprecision_d; // Config: input precision
+    logic [31:0] csr_mvu_oprecision_q,csr_mvu_oprecision_d; // Config: output precision
+    logic [31:0] csr_mvu_wbaseaddr_q ,csr_mvu_wbaseaddr_d ; // Config: weight memory base address
+    logic [31:0] csr_mvu_ibaseaddr_q ,csr_mvu_ibaseaddr_d ; // Config: data memory base address for input
+    logic [31:0] csr_mvu_obaseaddr_q ,csr_mvu_obaseaddr_d ; // Config: data memory base address for output
+    logic [31:0] csr_mvu_wstride_0_q ,csr_mvu_wstride_0_d ; // Config: weight stride in dimension 0 (x)
+    logic [31:0] csr_mvu_wstride_1_q ,csr_mvu_wstride_1_d ; // Config: weight stride in dimension 1 (y)
+    logic [31:0] csr_mvu_wstride_2_q ,csr_mvu_wstride_2_d ; // Config: weight stride in dimension 2 (z)
+    logic [31:0] csr_mvu_istride_0_q ,csr_mvu_istride_0_d ; // Config: input stride in dimension 0 (x)
+    logic [31:0] csr_mvu_istride_1_q ,csr_mvu_istride_1_d ; // Config: input stride in dimension 1 (y)
+    logic [31:0] csr_mvu_istride_2_q ,csr_mvu_istride_2_d ; // Config: input stride in dimension 2 (z)
+    logic [31:0] csr_mvu_ostride_0_q ,csr_mvu_ostride_0_d ; // Config: output stride in dimension 0 (x)
+    logic [31:0] csr_mvu_ostride_1_q ,csr_mvu_ostride_1_d ; // Config: output stride in dimension 1 (y)
+    logic [31:0] csr_mvu_ostride_2_q ,csr_mvu_ostride_2_d ; // Config: output stride in dimension 2 (z)
+    logic [31:0] csr_mvu_wlength_0_q ,csr_mvu_wlength_0_d ; // Config: weight length in dimension 0 (x)
+    logic [31:0] csr_mvu_wlength_1_q ,csr_mvu_wlength_1_d ; // Config: weight length in dimension 1 (y)
+    logic [31:0] csr_mvu_wlength_2_q ,csr_mvu_wlength_2_d ; // Config: weight length in dimension 2 (z)
+    logic [31:0] csr_mvu_ilength_0_q ,csr_mvu_ilength_0_d ; // Config: input length in dimension 0 (x)
+    logic [31:0] csr_mvu_ilength_1_q ,csr_mvu_ilength_1_d ; // Config: input length in dimension 1 (y)
+    logic [31:0] csr_mvu_ilength_2_q ,csr_mvu_ilength_2_d ; // Config: input length in dimension 2 (z)
+    logic [31:0] csr_mvu_olength_0_q ,csr_mvu_olength_0_d ; // Config: output length in dimension 0 (x)
+    logic [31:0] csr_mvu_olength_1_q ,csr_mvu_olength_1_d ; // Config: output length in dimension 1 (y)
+    logic [31:0] csr_mvu_olength_2_q ,csr_mvu_olength_2_d ; // Config: output length in dimension 2 (z)
 //====================================================================
 //                    Assignments
 //====================================================================
@@ -130,31 +162,37 @@ module rv32_csr #(
                 pito_pkg::CSR_MINSTRETH:         csr_rdata = minstret_q[63:32];
 
                 // MVU related csrs
-                pito_pkg::CSR_MVU_WBASEPTR :     csr_rdata = csr_mvu_wbaseptr_q;
-                pito_pkg::CSR_MVU_IBASEPTR :     csr_rdata = csr_mvu_ibaseptr_q;
-                pito_pkg::CSR_MVU_OBASEPTR :     csr_rdata = csr_mvu_obaseptr_q;
-                pito_pkg::CSR_MVU_WSTRIDE_0:     csr_rdata = csr_mvu_wstride_0_q;
-                pito_pkg::CSR_MVU_WSTRIDE_1:     csr_rdata = csr_mvu_wstride_1_q;
-                pito_pkg::CSR_MVU_WSTRIDE_2:     csr_rdata = csr_mvu_wstride_2_q;
-                pito_pkg::CSR_MVU_ISTRIDE_0:     csr_rdata = csr_mvu_istride_0_q;
-                pito_pkg::CSR_MVU_ISTRIDE_1:     csr_rdata = csr_mvu_istride_1_q;
-                pito_pkg::CSR_MVU_ISTRIDE_2:     csr_rdata = csr_mvu_istride_2_q;
-                pito_pkg::CSR_MVU_OSTRIDE_0:     csr_rdata = csr_mvu_ostride_0_q;
-                pito_pkg::CSR_MVU_OSTRIDE_1:     csr_rdata = csr_mvu_ostride_1_q;
-                pito_pkg::CSR_MVU_OSTRIDE_2:     csr_rdata = csr_mvu_ostride_2_q;
-                pito_pkg::CSR_MVU_WLENGTH_0:     csr_rdata = csr_mvu_wlength_0_q;
-                pito_pkg::CSR_MVU_WLENGTH_1:     csr_rdata = csr_mvu_wlength_1_q;
-                pito_pkg::CSR_MVU_WLENGTH_2:     csr_rdata = csr_mvu_wlength_2_q;
-                pito_pkg::CSR_MVU_ILENGTH_0:     csr_rdata = csr_mvu_ilength_0_q;
-                pito_pkg::CSR_MVU_ILENGTH_1:     csr_rdata = csr_mvu_ilength_1_q;
-                pito_pkg::CSR_MVU_ILENGTH_2:     csr_rdata = csr_mvu_ilength_2_q;
-                pito_pkg::CSR_MVU_OLENGTH_0:     csr_rdata = csr_mvu_olength_0_q;
-                pito_pkg::CSR_MVU_OLENGTH_1:     csr_rdata = csr_mvu_olength_1_q;
-                pito_pkg::CSR_MVU_OLENGTH_2:     csr_rdata = csr_mvu_olength_2_q;
-                pito_pkg::CSR_MVU_PRECISION:     csr_rdata = csr_mvu_precision_q;
-                pito_pkg::CSR_MVU_STATUS   :     csr_rdata = csr_mvu_status_q;
-                pito_pkg::CSR_MVU_COMMAND  :     csr_rdata = csr_mvu_command_q;
-                pito_pkg::CSR_MVU_QUANT    :     csr_rdata = csr_mvu_quant_q;
+                pito_pkg::CSR_MVU_MUL_MODE   :   csr_rdata = {30{1'b0}, csr_mvu_mul_mode_q[1:0]};
+                pito_pkg::CSR_MVU_ACC_CLR    :   csr_rdata = {31{1'b0}, csr_mvu_acc_clr_q[0]};
+                pito_pkg::CSR_MVU_ACC_SH     :   csr_rdata = {31{1'b0}, csr_mvu_acc_sh_q[0]};
+                pito_pkg::CSR_MVU_MAX_EN     :   csr_rdata = {31{1'b0}, csr_mvu_max_en_q[0]};
+                pito_pkg::CSR_MVU_MAX_CLR    :   csr_rdata = {31{1'b0}, csr_mvu_max_clr_q[0]};
+                pito_pkg::CSR_MVU_MAX_POOL   :   csr_rdata = {31{1'b0}, csr_mvu_max_pool_q[0]};
+                pito_pkg::CSR_MVU_COUNTDOWN  :   csr_rdata = {3{1'b0} , csr_mvu_countdown_q[28:0]} ;
+                pito_pkg::CSR_MVU_WPRECISION :   csr_rdata = {26{1'b0}, csr_mvu_wprecision_q[5:0]};
+                pito_pkg::CSR_MVU_IPRECISION :   csr_rdata = {26{1'b0}, csr_mvu_iprecision_q[5:0]};
+                pito_pkg::CSR_MVU_OPRECISION :   csr_rdata = {26{1'b0}, csr_mvu_oprecision_q[5:0]};
+                pito_pkg::CSR_MVU_WBASEADDR  :   csr_rdata = {23{1'b0}, csr_mvu_wbaseaddr_q[8:0]};
+                pito_pkg::CSR_MVU_IBASEADDR  :   csr_rdata = {17{1'b0}, csr_mvu_ibaseaddr_q[14:0]};
+                pito_pkg::CSR_MVU_OBASEADDR  :   csr_rdata = {17{1'b0}, csr_mvu_obaseaddr_q[14:0]};
+                pito_pkg::CSR_MVU_WSTRIDE_0  :   csr_rdata = {17{1'b0}, csr_mvu_wstride_0_q[14:0]};
+                pito_pkg::CSR_MVU_WSTRIDE_1  :   csr_rdata = {17{1'b0}, csr_mvu_wstride_1_q[14:0]};
+                pito_pkg::CSR_MVU_WSTRIDE_2  :   csr_rdata = {17{1'b0}, csr_mvu_wstride_2_q[14:0]};
+                pito_pkg::CSR_MVU_ISTRIDE_0  :   csr_rdata = {17{1'b0}, csr_mvu_istride_0_q[14:0]};
+                pito_pkg::CSR_MVU_ISTRIDE_1  :   csr_rdata = {17{1'b0}, csr_mvu_istride_1_q[14:0]};
+                pito_pkg::CSR_MVU_ISTRIDE_2  :   csr_rdata = {17{1'b0}, csr_mvu_istride_2_q[14:0]};
+                pito_pkg::CSR_MVU_OSTRIDE_0  :   csr_rdata = {17{1'b0}, csr_mvu_ostride_0_q[14:0]};
+                pito_pkg::CSR_MVU_OSTRIDE_1  :   csr_rdata = {17{1'b0}, csr_mvu_ostride_1_q[14:0]};
+                pito_pkg::CSR_MVU_OSTRIDE_2  :   csr_rdata = {17{1'b0}, csr_mvu_ostride_2_q[14:0]};
+                pito_pkg::CSR_MVU_WLENGTH_0  :   csr_rdata = {17{1'b0}, csr_mvu_wlength_0_q[14:0]};
+                pito_pkg::CSR_MVU_WLENGTH_1  :   csr_rdata = {17{1'b0}, csr_mvu_wlength_1_q[14:0]};
+                pito_pkg::CSR_MVU_WLENGTH_2  :   csr_rdata = {17{1'b0}, csr_mvu_wlength_2_q[14:0]};
+                pito_pkg::CSR_MVU_ILENGTH_0  :   csr_rdata = {17{1'b0}, csr_mvu_ilength_0_q[14:0]};
+                pito_pkg::CSR_MVU_ILENGTH_1  :   csr_rdata = {17{1'b0}, csr_mvu_ilength_1_q[14:0]};
+                pito_pkg::CSR_MVU_ILENGTH_2  :   csr_rdata = {17{1'b0}, csr_mvu_ilength_2_q[14:0]};
+                pito_pkg::CSR_MVU_OLENGTH_0  :   csr_rdata = {17{1'b0}, csr_mvu_olength_0_q[14:0]};
+                pito_pkg::CSR_MVU_OLENGTH_1  :   csr_rdata = {17{1'b0}, csr_mvu_olength_1_q[14:0]};
+                pito_pkg::CSR_MVU_OLENGTH_2  :   csr_rdata = {17{1'b0}, csr_mvu_olength_2_q[14:0]};
                 default: read_access_exception = 1'b1;
             endcase
         end
@@ -237,31 +275,38 @@ module rv32_csr #(
                 //                         perf_data_o = csr_wdata;
                 //                         perf_we_o   = 1'b1;
                 // end
-                pito_pkg::CSR_MVU_WBASEPTR : csr_mvu_wbaseptr_d = csr_wdata;
-                pito_pkg::CSR_MVU_IBASEPTR : csr_mvu_ibaseptr_d = csr_wdata;
-                pito_pkg::CSR_MVU_OBASEPTR : csr_mvu_obaseptr_d = csr_wdata;
-                pito_pkg::CSR_MVU_WSTRIDE_0: csr_mvu_wstride_0_d = csr_wdata;
-                pito_pkg::CSR_MVU_WSTRIDE_1: csr_mvu_wstride_1_d = csr_wdata;
-                pito_pkg::CSR_MVU_WSTRIDE_2: csr_mvu_wstride_2_d = csr_wdata;
-                pito_pkg::CSR_MVU_ISTRIDE_0: csr_mvu_istride_0_d = csr_wdata;
-                pito_pkg::CSR_MVU_ISTRIDE_1: csr_mvu_istride_1_d = csr_wdata;
-                pito_pkg::CSR_MVU_ISTRIDE_2: csr_mvu_istride_2_d = csr_wdata;
-                pito_pkg::CSR_MVU_OSTRIDE_0: csr_mvu_ostride_0_d = csr_wdata;
-                pito_pkg::CSR_MVU_OSTRIDE_1: csr_mvu_ostride_1_d = csr_wdata;
-                pito_pkg::CSR_MVU_OSTRIDE_2: csr_mvu_ostride_2_d = csr_wdata;
-                pito_pkg::CSR_MVU_WLENGTH_0: csr_mvu_wlength_0_d = csr_wdata;
-                pito_pkg::CSR_MVU_WLENGTH_1: csr_mvu_wlength_1_d = csr_wdata;
-                pito_pkg::CSR_MVU_WLENGTH_2: csr_mvu_wlength_2_d = csr_wdata;
-                pito_pkg::CSR_MVU_ILENGTH_0: csr_mvu_ilength_0_d = csr_wdata;
-                pito_pkg::CSR_MVU_ILENGTH_1: csr_mvu_ilength_1_d = csr_wdata;
-                pito_pkg::CSR_MVU_ILENGTH_2: csr_mvu_ilength_2_d = csr_wdata;
-                pito_pkg::CSR_MVU_OLENGTH_0: csr_mvu_olength_0_d = csr_wdata;
-                pito_pkg::CSR_MVU_OLENGTH_1: csr_mvu_olength_1_d = csr_wdata;
-                pito_pkg::CSR_MVU_OLENGTH_2: csr_mvu_olength_2_d = csr_wdata;
-                pito_pkg::CSR_MVU_PRECISION: csr_mvu_precision_d = csr_wdata;
-                pito_pkg::CSR_MVU_STATUS   : csr_mvu_status_d = csr_wdata;
-                pito_pkg::CSR_MVU_COMMAND  : csr_mvu_command_d = csr_wdata;
-                pito_pkg::CSR_MVU_QUANT    : csr_mvu_quant_d = csr_wdata;
+                // MVU related csrs
+                pito_pkg::CSR_MVU_MUL_MODE   :   csr_mvu_mul_mode_d   = {30{1'b0}, csr_wdata[1:0]};
+                pito_pkg::CSR_MVU_ACC_CLR    :   csr_mvu_acc_clr_d    = {31{1'b0}, csr_wdata[0]};
+                pito_pkg::CSR_MVU_ACC_SH     :   csr_mvu_acc_sh_d     = {31{1'b0}, csr_wdata[0]};
+                pito_pkg::CSR_MVU_MAX_EN     :   csr_mvu_max_en_d     = {31{1'b0}, csr_wdata[0]};
+                pito_pkg::CSR_MVU_MAX_CLR    :   csr_mvu_max_clr_d    = {31{1'b0}, csr_wdata[0]};
+                pito_pkg::CSR_MVU_MAX_POOL   :   csr_mvu_max_pool_d   = {31{1'b0}, csr_wdata[0]};
+                pito_pkg::CSR_MVU_COUNTDOWN  :   csr_mvu_countdown_d  = {3{1'b0} , csr_wdata[28:0]} ;
+                pito_pkg::CSR_MVU_WPRECISION :   csr_mvu_wprecision_d = {26{1'b0}, csr_wdata[5:0]};
+                pito_pkg::CSR_MVU_IPRECISION :   csr_mvu_iprecision_d = {26{1'b0}, csr_wdata[5:0]};
+                pito_pkg::CSR_MVU_OPRECISION :   csr_mvu_oprecision_d = {26{1'b0}, csr_wdata[5:0]};
+                pito_pkg::CSR_MVU_WBASEADDR  :   csr_mvu_wbaseaddr_d  = {23{1'b0}, csr_wdata[8:0]};
+                pito_pkg::CSR_MVU_IBASEADDR  :   csr_mvu_ibaseaddr_d  = {17{1'b0}, csr_wdata[14:0]};
+                pito_pkg::CSR_MVU_OBASEADDR  :   csr_mvu_obaseaddr_d  = {17{1'b0}, csr_wdata[14:0]};
+                pito_pkg::CSR_MVU_WSTRIDE_0  :   csr_mvu_wstride_0_d  = {17{1'b0}, csr_wdata[14:0]};
+                pito_pkg::CSR_MVU_WSTRIDE_1  :   csr_mvu_wstride_1_d  = {17{1'b0}, csr_wdata[14:0]};
+                pito_pkg::CSR_MVU_WSTRIDE_2  :   csr_mvu_wstride_2_d  = {17{1'b0}, csr_wdata[14:0]};
+                pito_pkg::CSR_MVU_ISTRIDE_0  :   csr_mvu_istride_0_d  = {17{1'b0}, csr_wdata[14:0]};
+                pito_pkg::CSR_MVU_ISTRIDE_1  :   csr_mvu_istride_1_d  = {17{1'b0}, csr_wdata[14:0]};
+                pito_pkg::CSR_MVU_ISTRIDE_2  :   csr_mvu_istride_2_d  = {17{1'b0}, csr_wdata[14:0]};
+                pito_pkg::CSR_MVU_OSTRIDE_0  :   csr_mvu_ostride_0_d  = {17{1'b0}, csr_wdata[14:0]};
+                pito_pkg::CSR_MVU_OSTRIDE_1  :   csr_mvu_ostride_1_d  = {17{1'b0}, csr_wdata[14:0]};
+                pito_pkg::CSR_MVU_OSTRIDE_2  :   csr_mvu_ostride_2_d  = {17{1'b0}, csr_wdata[14:0]};
+                pito_pkg::CSR_MVU_WLENGTH_0  :   csr_mvu_wlength_0_d  = {17{1'b0}, csr_wdata[14:0]};
+                pito_pkg::CSR_MVU_WLENGTH_1  :   csr_mvu_wlength_1_d  = {17{1'b0}, csr_wdata[14:0]};
+                pito_pkg::CSR_MVU_WLENGTH_2  :   csr_mvu_wlength_2_d  = {17{1'b0}, csr_wdata[14:0]};
+                pito_pkg::CSR_MVU_ILENGTH_0  :   csr_mvu_ilength_0_d  = {17{1'b0}, csr_wdata[14:0]};
+                pito_pkg::CSR_MVU_ILENGTH_1  :   csr_mvu_ilength_1_d  = {17{1'b0}, csr_wdata[14:0]};
+                pito_pkg::CSR_MVU_ILENGTH_2  :   csr_mvu_ilength_2_d  = {17{1'b0}, csr_wdata[14:0]};
+                pito_pkg::CSR_MVU_OLENGTH_0  :   csr_mvu_olength_0_d  = {17{1'b0}, csr_wdata[14:0]};
+                pito_pkg::CSR_MVU_OLENGTH_1  :   csr_mvu_olength_1_d  = {17{1'b0}, csr_wdata[14:0]};
+                pito_pkg::CSR_MVU_OLENGTH_2  :   csr_mvu_olength_2_d  = {17{1'b0}, csr_wdata[14:0]};
                 default: update_access_exception = 1'b1;
             endcase
         end
