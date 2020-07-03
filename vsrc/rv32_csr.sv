@@ -23,10 +23,7 @@ module rv32_csr #(
     // MVU interface
     input  logic                      mvu_irq_i,
     output logic [1:0]                csr_mvu_mul_mode  ,
-    output logic                      csr_mvu_acc_clr   ,
-    output logic                      csr_mvu_acc_sh    ,
     output logic                      csr_mvu_max_en    ,
-    output logic                      csr_mvu_max_clr   ,
     output logic                      csr_mvu_max_pool  ,
     output logic [28:0]               csr_mvu_countdown ,
     output logic [5:0]                csr_mvu_wprecision,
@@ -92,10 +89,7 @@ module rv32_csr #(
 
     // MVU CSRs;
     logic [31:0] csr_mvu_mul_mode_q  , csr_mvu_mul_mode_d  ; // Config: multiply mode
-    logic [31:0] csr_mvu_acc_clr_q   , csr_mvu_acc_clr_d   ; // Control: accumulator clear
-    logic [31:0] csr_mvu_acc_sh_q    , csr_mvu_acc_sh_d    ; // Control: accumulator shift
     logic [31:0] csr_mvu_max_en_q    , csr_mvu_max_en_d    ; // Config: max pool enable
-    logic [31:0] csr_mvu_max_clr_q   , csr_mvu_max_clr_d   ; // Config: max pool clear
     logic [31:0] csr_mvu_max_pool_q  , csr_mvu_max_pool_d  ; // Config: max pool mode
     logic [31:0] csr_mvu_countdown_q , csr_mvu_countdown_d ; // Config: number of clocks to countdown for given task
     logic [31:0] csr_mvu_wprecision_q, csr_mvu_wprecision_d; // Config: weight precision
@@ -134,10 +128,7 @@ module rv32_csr #(
     assign csr_op   = pito_pkg::csr_op_t'(csr_op_i);
 
     assign csr_mvu_mul_mode   = csr_mvu_mul_mode_q[1:0];
-    assign csr_mvu_acc_clr    = csr_mvu_acc_clr_q[0];
-    assign csr_mvu_acc_sh     = csr_mvu_acc_sh_q[0];
     assign csr_mvu_max_en     = csr_mvu_max_en_q[0];
-    assign csr_mvu_max_clr    = csr_mvu_max_clr_q[0];
     assign csr_mvu_max_pool   = csr_mvu_max_pool_q[0];
     assign csr_mvu_countdown  = csr_mvu_countdown_q[28:0];
     assign csr_mvu_wprecision = csr_mvu_wprecision_q[5:0];
@@ -198,10 +189,7 @@ module rv32_csr #(
 
                 // MVU related csrs
                 pito_pkg::CSR_MVU_MUL_MODE   :   csr_rdata = csr_mvu_mul_mode_q;
-                pito_pkg::CSR_MVU_ACC_CLR    :   csr_rdata = csr_mvu_acc_clr_q;
-                pito_pkg::CSR_MVU_ACC_SH     :   csr_rdata = csr_mvu_acc_sh_q;
                 pito_pkg::CSR_MVU_MAX_EN     :   csr_rdata = csr_mvu_max_en_q;
-                pito_pkg::CSR_MVU_MAX_CLR    :   csr_rdata = csr_mvu_max_clr_q;
                 pito_pkg::CSR_MVU_MAX_POOL   :   csr_rdata = csr_mvu_max_pool_q;
                 pito_pkg::CSR_MVU_COUNTDOWN  :   csr_rdata = csr_mvu_countdown_q;
                 pito_pkg::CSR_MVU_WPRECISION :   csr_rdata = csr_mvu_wprecision_q;
@@ -312,10 +300,7 @@ module rv32_csr #(
                 // end
                 // MVU related csrs
                 pito_pkg::CSR_MVU_MUL_MODE   :   csr_mvu_mul_mode_d   = csr_wdata;
-                pito_pkg::CSR_MVU_ACC_CLR    :   csr_mvu_acc_clr_d    = csr_wdata;
-                pito_pkg::CSR_MVU_ACC_SH     :   csr_mvu_acc_sh_d     = csr_wdata;
                 pito_pkg::CSR_MVU_MAX_EN     :   csr_mvu_max_en_d     = csr_wdata;
-                pito_pkg::CSR_MVU_MAX_CLR    :   csr_mvu_max_clr_d    = csr_wdata;
                 pito_pkg::CSR_MVU_MAX_POOL   :   csr_mvu_max_pool_d   = csr_wdata;
                 pito_pkg::CSR_MVU_COUNTDOWN  :   csr_mvu_countdown_d  = csr_wdata;
                 pito_pkg::CSR_MVU_WPRECISION :   csr_mvu_wprecision_d = csr_wdata;
@@ -474,10 +459,7 @@ module rv32_csr #(
             wfi_q                  <= wfi_d;
             // MVU related csrs
             csr_mvu_mul_mode_q     <= csr_mvu_mul_mode_d;
-            csr_mvu_acc_clr_q      <= csr_mvu_acc_clr_d;
-            csr_mvu_acc_sh_q       <= csr_mvu_acc_sh_d;
             csr_mvu_max_en_q       <= csr_mvu_max_en_d;
-            csr_mvu_max_clr_q      <= csr_mvu_max_clr_d;
             csr_mvu_max_pool_q     <= csr_mvu_max_pool_d;
             csr_mvu_countdown_q    <= csr_mvu_countdown_d;
             csr_mvu_wprecision_q   <= csr_mvu_wprecision_d;
