@@ -24,6 +24,7 @@ module rv32_barrel_csrfiles
         output exception_t                csr_exception,// Attempts to access a CSR without appropriate privilege
                                                           // level or to write  a read-only register also
                                                           // raises illegal instruction exceptions.
+        output logic [1  : 0]             csr_mvu_mul_mode,
         input  logic [31 : 0]             pc,       // PC of instruction accessing the CSR
         input  logic [31 : 0]             cause,    // Exception code
         input  logic                      enable_cycle_count, // Enable cycle count
@@ -50,6 +51,8 @@ logic [31 : 0] csr_rdata_sigs     [NUM_HARTS-1 : 0];
 exception_t    csr_exception_sigs [NUM_HARTS-1 : 0];
 logic [31 : 0] csr_epc_sigs       [NUM_HARTS-1 : 0];
 
+logic [1:0]    csr_mvu_mul_mode_sigs [NUM_HARTS-1 : 0];
+
 assign enable_cycle_count_sigs = 1'b1;
 
 genvar hart_id;
@@ -70,7 +73,8 @@ genvar hart_id;
                             .pc_i                (pc_sigs[hart_id]           ),
                             .cause_i             (cause_sigs[hart_id]        ),
                             .enable_cycle_count_i(enable_cycle_count_sigs    ),
-                            .csr_epc_o           (csr_epc_sigs[hart_id]      )
+                            .csr_epc_o           (csr_epc_sigs[hart_id]      ),
+                            .csr_mvu_mul_mode    (csr_mvu_mul_mode_sigs[hart_id]  )
                         );
     end
 
@@ -92,9 +96,10 @@ generate
   end
 endgenerate
 
-assign csr_rdata     = csr_rdata_sigs[hart_id_i];
-assign csr_exception = csr_exception_sigs[hart_id_i];
-assign csr_epc       = csr_epc_sigs[hart_id_i];
+assign csr_rdata        = csr_rdata_sigs[hart_id_i];
+assign csr_exception    = csr_exception_sigs[hart_id_i];
+assign csr_epc          = csr_epc_sigs[hart_id_i];
+assign csr_mvu_mul_mode = csr_mvu_mul_mode_sigs[hart_id_i];
 
 
 

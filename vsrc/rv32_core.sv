@@ -21,6 +21,8 @@ module rv32_core (
 
 );
 
+logic[1:0] mvu_mul_mode;
+
 //====================================================================
 // HART related signals
 //====================================================================
@@ -246,7 +248,8 @@ rv32_barrel_csrfiles csr(
                     .cause              (csr_cause             ),
                     .enable_cycle_count (csr_enable_cycle_count),
                     .csr_epc            (csr_epc               ),
-                    .hart_id_i          (rv32_hart_ex_cnt      )
+                    .hart_id_i          (rv32_hart_ex_cnt      ),
+                    .csr_mvu_mul_mode   (mvu_mul_mode          )
 );
 
 rv32_next_pc rv32_next_pc_cal(
@@ -604,6 +607,10 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
 
     // assign rv32_regf_wen = 1'b1;
 
+
+always_ff @(posedge mvu_mul_mode) begin
+    $display("Yay MVU csrs are connected!");
+end
 
 //====================================================================
 // Capture Stage
