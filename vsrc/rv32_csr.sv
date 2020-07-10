@@ -50,6 +50,8 @@ module rv32_csr #(
     output logic [14:0]               csr_mvu_olength_0 ,
     output logic [14:0]               csr_mvu_olength_1 ,
     output logic [14:0]               csr_mvu_olength_2 ,
+    output logic                      mvu_start,
+
     output exception_t                csr_exception_o,// Attempts to access a CSR without appropriate privilege
                                                       // level or to write  a read-only register also
                                                       // raises illegal instruction exceptions.
@@ -442,6 +444,7 @@ module rv32_csr #(
             // wait for interrupt
             wfi_q                  <= 1'b0;
             mtvec_rst_load_q       <= 1'b1;
+            mvu_start              <= 1'b0;
         end else begin
             // machine mode registers
             mtvec_rst_load_q       <= 1'b0;
@@ -486,6 +489,13 @@ module rv32_csr #(
             csr_mvu_olength_0_q    <= csr_mvu_olength_0_d;
             csr_mvu_olength_1_q    <= csr_mvu_olength_1_d;
             csr_mvu_olength_2_q    <= csr_mvu_olength_2_d;
+
+            if (csr_addr == pito_pkg::CSR_MVU_COUNTDOWN) begin
+                mvu_start <= 1'b1;
+            end else begin
+                mvu_start <= 1'b0;
+            end
+
         end
     end
 

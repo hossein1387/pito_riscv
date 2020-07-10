@@ -17,11 +17,39 @@ module rv32_core (
     input  logic              pito_io_program,
 
     // Interface with Accelerator (MVU)
-    input  logic [pito_pkg::HART_CNT_WIDTH-1:0] mvu_irq_i
+    input  logic [`PITO_NUM_HARTS-1   : 0] mvu_irq_i,
+    output logic [2*`PITO_NUM_HARTS-1 : 0] mvu_mul_mode,
+    output logic [`PITO_NUM_HARTS-1   : 0] mvu_max_en,
+    output logic [`PITO_NUM_HARTS-1   : 0] mvu_max_pool,
+    output logic [29*`PITO_NUM_HARTS-1: 0] mvu_countdown,
+    output logic [6*`PITO_NUM_HARTS-1 : 0] mvu_wprecision,
+    output logic [6*`PITO_NUM_HARTS-1 : 0] mvu_iprecision,
+    output logic [6*`PITO_NUM_HARTS-1 : 0] mvu_oprecision,
+    output logic [9*`PITO_NUM_HARTS-1 : 0] mvu_wbaseaddr,
+    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_ibaseaddr,
+    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_obaseaddr,
+    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_wstride_0,
+    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_wstride_1,
+    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_wstride_2,
+    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_istride_0,
+    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_istride_1,
+    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_istride_2,
+    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_ostride_0,
+    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_ostride_1,
+    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_ostride_2,
+    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_wlength_0,
+    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_wlength_1,
+    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_wlength_2,
+    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_ilength_0,
+    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_ilength_1,
+    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_ilength_2,
+    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_olength_0,
+    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_olength_1,
+    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_olength_2,
+    output logic [`PITO_NUM_HARTS-1   : 0] mvu_start
 
 );
 
-logic[1:0] mvu_mul_mode;
 
 //====================================================================
 // HART related signals
@@ -231,6 +259,7 @@ logic [31:0]   csr_epc;
 
 assign csr_enable_cycle_count = 1'b1;
 
+
 rv32_barrel_csrfiles csr(
                     .clk                (clk                   ),
                     .rst_n              (rst_n                 ),
@@ -244,13 +273,42 @@ rv32_barrel_csrfiles csr(
                     .boot_addr          (csr_boot_addr         ),
                     .mvu_irq            (mvu_irq_i             ),
                     .csr_exception      (csr_exception         ),
+                    .csr_mvu_mul_mode   (mvu_mul_mode          ),
+                    .csr_mvu_max_en     (mvu_max_en            ),
+                    .csr_mvu_max_pool   (mvu_max_pool          ),
+                    .csr_mvu_countdown  (mvu_countdown         ),
+                    .csr_mvu_wprecision (mvu_wprecision        ),
+                    .csr_mvu_iprecision (mvu_iprecision        ),
+                    .csr_mvu_oprecision (mvu_oprecision        ),
+                    .csr_mvu_wbaseaddr  (mvu_wbaseaddr         ),
+                    .csr_mvu_ibaseaddr  (mvu_ibaseaddr         ),
+                    .csr_mvu_obaseaddr  (mvu_obaseaddr         ),
+                    .csr_mvu_wstride_0  (mvu_wstride_0         ),
+                    .csr_mvu_wstride_1  (mvu_wstride_1         ),
+                    .csr_mvu_wstride_2  (mvu_wstride_2         ),
+                    .csr_mvu_istride_0  (mvu_istride_0         ),
+                    .csr_mvu_istride_1  (mvu_istride_1         ),
+                    .csr_mvu_istride_2  (mvu_istride_2         ),
+                    .csr_mvu_ostride_0  (mvu_ostride_0         ),
+                    .csr_mvu_ostride_1  (mvu_ostride_1         ),
+                    .csr_mvu_ostride_2  (mvu_ostride_2         ),
+                    .csr_mvu_wlength_0  (mvu_wlength_0         ),
+                    .csr_mvu_wlength_1  (mvu_wlength_1         ),
+                    .csr_mvu_wlength_2  (mvu_wlength_2         ),
+                    .csr_mvu_ilength_0  (mvu_ilength_0         ),
+                    .csr_mvu_ilength_1  (mvu_ilength_1         ),
+                    .csr_mvu_ilength_2  (mvu_ilength_2         ),
+                    .csr_mvu_olength_0  (mvu_olength_0         ),
+                    .csr_mvu_olength_1  (mvu_olength_1         ),
+                    .csr_mvu_olength_2  (mvu_olength_2         ),
+                    .mvu_start          (mvu_start             ),
                     .pc                 (rv32_dec_pc           ),
                     .cause              (csr_cause             ),
                     .enable_cycle_count (csr_enable_cycle_count),
                     .csr_epc            (csr_epc               ),
-                    .hart_id_i          (rv32_hart_dec_cnt     ),
-                    .csr_mvu_mul_mode   (mvu_mul_mode          )
+                    .hart_id_i          (rv32_hart_dec_cnt     )
 );
+
 
 rv32_next_pc rv32_next_pc_cal(
                         .rv32_alu_res     (rv32_wb_out         ),
