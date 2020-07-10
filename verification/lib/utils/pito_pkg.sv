@@ -56,7 +56,6 @@ package pito_pkg;
         CSR_MCALL          = 12'hB0C,  // Procedure call
         CSR_MRET           = 12'hB0D,  // Procedure Return
 
-acc_clr, acc_sh, max_clr
         // MVU CSRs            32-63
         CSR_MVU_MUL_MODE   = 12'hF20,            // Config: multiply mode
         CSR_MVU_MAX_EN     = 12'hF21,            // Config: max pool enable
