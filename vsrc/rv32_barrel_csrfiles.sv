@@ -27,8 +27,6 @@ module rv32_barrel_csrfiles #(
                                                           // level or to write  a read-only register also
                                                           // raises illegal instruction exceptions.
         output logic [2*NUM_HARTS-1 : 0]  csr_mvu_mul_mode,
-        output logic [NUM_HARTS-1   : 0]  csr_mvu_max_en    ,
-        output logic [NUM_HARTS-1   : 0]  csr_mvu_max_pool  ,
         output logic [29*NUM_HARTS-1: 0]  csr_mvu_countdown ,
         output logic [6*NUM_HARTS-1 : 0]  csr_mvu_wprecision,
         output logic [6*NUM_HARTS-1 : 0]  csr_mvu_iprecision,
@@ -134,8 +132,6 @@ genvar hart_id;
                             .enable_cycle_count_i(enable_cycle_count_sigs         ),
                             .csr_epc_o           (csr_epc_sigs[hart_id]           ),
                             .csr_mvu_mul_mode    (csr_mvu_mul_mode_sigs[hart_id]  ),
-                            .csr_mvu_max_en      (csr_mvu_max_en_sigs[hart_id]    ),
-                            .csr_mvu_max_pool    (csr_mvu_max_pool_sigs[hart_id]  ),
                             .csr_mvu_countdown   (csr_mvu_countdown_sigs[hart_id] ),
                             .csr_mvu_wprecision  (csr_mvu_wprecision_sigs[hart_id]),
                             .csr_mvu_iprecision  (csr_mvu_iprecision_sigs[hart_id]),
@@ -192,8 +188,6 @@ assign csr_epc        =   csr_epc_sigs[hart_id_i];
 generate 
     for (hart_id=0; hart_id<NUM_HARTS; hart_id++) begin
         assign csr_mvu_mul_mode  [ hart_id*2  +:  2] = csr_mvu_mul_mode_sigs[hart_id_i];
-        assign csr_mvu_max_en    [ hart_id*1  +:  1] = csr_mvu_max_en_sigs[hart_id_i];
-        assign csr_mvu_max_pool  [ hart_id*1  +:  1] = csr_mvu_max_pool_sigs[hart_id_i];
         assign csr_mvu_countdown [ hart_id*29 +: 29] = csr_mvu_countdown_sigs[hart_id_i];
         assign csr_mvu_wprecision[ hart_id*6  +:  6] = csr_mvu_wprecision_sigs[hart_id_i];
         assign csr_mvu_iprecision[ hart_id*6  +:  6] = csr_mvu_iprecision_sigs[hart_id_i];

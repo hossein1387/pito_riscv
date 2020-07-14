@@ -477,8 +477,6 @@ class RV32IPredictor extends BaseObj;
             pito_pkg::CSR_MCALL          : access = rv32_pkg::RV32_WLRL;
             pito_pkg::CSR_MRET           : access = rv32_pkg::RV32_WLRL;
             pito_pkg::CSR_MVU_MUL_MODE   : access = rv32_pkg::RV32_WLRL;
-            pito_pkg::CSR_MVU_MAX_EN     : access = rv32_pkg::RV32_WLRL;
-            pito_pkg::CSR_MVU_MAX_POOL   : access = rv32_pkg::RV32_WLRL;
             pito_pkg::CSR_MVU_COUNTDOWN  : access = rv32_pkg::RV32_WLRL;
             pito_pkg::CSR_MVU_WPRECISION : access = rv32_pkg::RV32_WLRL;
             pito_pkg::CSR_MVU_IPRECISION : access = rv32_pkg::RV32_WLRL;

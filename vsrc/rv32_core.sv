@@ -19,8 +19,6 @@ module rv32_core (
     // Interface with Accelerator (MVU)
     input  logic [`PITO_NUM_HARTS-1   : 0] mvu_irq_i,
     output logic [2*`PITO_NUM_HARTS-1 : 0] mvu_mul_mode,
-    output logic [`PITO_NUM_HARTS-1   : 0] mvu_max_en,
-    output logic [`PITO_NUM_HARTS-1   : 0] mvu_max_pool,
     output logic [29*`PITO_NUM_HARTS-1: 0] mvu_countdown,
     output logic [6*`PITO_NUM_HARTS-1 : 0] mvu_wprecision,
     output logic [6*`PITO_NUM_HARTS-1 : 0] mvu_iprecision,
@@ -274,8 +272,6 @@ rv32_barrel_csrfiles csr(
                     .mvu_irq            (mvu_irq_i             ),
                     .csr_exception      (csr_exception         ),
                     .csr_mvu_mul_mode   (mvu_mul_mode          ),
-                    .csr_mvu_max_en     (mvu_max_en            ),
-                    .csr_mvu_max_pool   (mvu_max_pool          ),
                     .csr_mvu_countdown  (mvu_countdown         ),
                     .csr_mvu_wprecision (mvu_wprecision        ),
                     .csr_mvu_iprecision (mvu_iprecision        ),
