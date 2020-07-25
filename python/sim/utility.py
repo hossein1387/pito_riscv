@@ -18,3 +18,4 @@ def get_bits(val, start, end, num_bits=32):
     mask.reverse()
     mask = ''.join(mask)
     return (int(mask, 2)&val)>>start
+
