@@ -277,7 +277,7 @@ def get_instr_str(inst, print_ = False):
     elif inst['opcode'] == "RV32_JAL":
         str_to_print = "{:5s} x{}, {}".format("jal", inst['rd'], inst['imm'])
     elif inst['opcode'] == "RV32_JALR":
-        str_to_print = "{:5s} x{}, ({})x{}".format("jalr", inst['rd'], inst['imm'], x['rs1'])
+        str_to_print = "{:5s} x{}, ({})x{}".format("jalr", inst['rd'], inst['imm'], inst['rs1'])
     elif inst['opcode'] == "RV32_BEQ":
         str_to_print = "{:5s} x{}, x{}, {}".format("beq", inst['rs1'], inst['rs2'], inst['imm'])
     elif inst['opcode'] == "RV32_BNE":
@@ -366,7 +366,7 @@ def get_instr_str(inst, print_ = False):
         str_to_print = "{:5s} x{}, {}, x{}".format("csrrci", inst['rd'], inst['csr'], inst['imm'])
     else:
         str_to_print = "{:5s}".format("unknown")
-        print(inst['opcode'])
+    str_to_print = "{:12s} {}".format(("0x" + '{:0{}X}'.format(int(inst['instr'][::-1], 2), 8)).lower(), str_to_print)
     if print_:
         print(str_to_print)
     else:
