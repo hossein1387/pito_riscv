@@ -11,21 +11,23 @@
 #include "riscv_test.h"
 #include "test_macros.h"
 
-# RVTEST_RV32U
-# RVTEST_CODE_BEGIN
+RVTEST_RV32U
+RVTEST_CODE_BEGIN
 
-	TEST_PASSFAIL
 
+TEST_MVU_CSR( 2, mhartid, 0);
+
+
+  TEST_PASSFAIL
 matmul_ret:
-	ebreak
-	ret
+    ebreak
+    ret
 
-# RVTEST_CODE_END
+RVTEST_CODE_END
 
-#   .data
-# RVTEST_DATA_BEGIN
+  .data
+RVTEST_DATA_BEGIN
 
-#   TEST_DATA
+  TEST_DATA
 
-# RVTEST_DATA_END
-
+RVTEST_DATA_END
