@@ -13,6 +13,41 @@ def hex_str_to_int(instr_str, slice_high, slice_low=None, signed=False):
         else:
             return int(instr_str[slice_low:slice_high+1][::-1], 2)
 
+rv32_abi = {
+    0  : "zero",
+    1  : "ra"  ,
+    2  : "sp"  ,
+    3  : "gp"  ,
+    4  : "tp"  ,
+    5  : "t0"  ,
+    6  : "t1"  ,
+    7  : "t2"  ,
+    8  : "s0"  ,
+    9  : "s1"  ,
+    10 : "a0"  ,
+    11 : "a1"  ,
+    12 : "a2"  ,
+    13 : "a3"  ,
+    14 : "a4"  ,
+    15 : "a5"  ,
+    16 : "a6"  ,
+    17 : "a7"  ,
+    18 : "s2"  ,
+    19 : "s3"  ,
+    20 : "s4"  ,
+    21 : "s5"  ,
+    22 : "s6"  ,
+    23 : "s7"  ,
+    24 : "s8"  ,
+    25 : "s9"  ,
+    26 : "s10" ,
+    27 : "s11" ,
+    28 : "t3"  ,
+    29 : "t4"  ,
+    30 : "t5"  ,
+    31 : "t6"  
+}
+
 csr_dict = {
     "111100010001": "CSR_MVENDORID",      # F11 
     "111100010010": "CSR_MARCHID",        # F12 
@@ -271,79 +306,79 @@ def decode(instruction):
 def get_instr_str(inst, print_ = False):
     str_to_print = ""
     if inst['opcode'] == "RV32_LUI":
-        str_to_print = "{:5s} x{}, {}".format("lui", inst['rd'], inst['imm'])
+        str_to_print = "{:5s} {}, {}".format("lui", rv32_abi[inst['rd']], inst['imm'])
     elif inst['opcode'] == "RV32_AUIPC":
-        str_to_print = "{:5s} x{}, {}".format("auipc", inst['rd'], inst['imm'])
+        str_to_print = "{:5s} {}, {}".format("auipc", rv32_abi[inst['rd']], inst['imm'])
     elif inst['opcode'] == "RV32_JAL":
-        str_to_print = "{:5s} x{}, {}".format("jal", inst['rd'], inst['imm'])
+        str_to_print = "{:5s} {}, {}".format("jal", rv32_abi[inst['rd']], inst['imm'])
     elif inst['opcode'] == "RV32_JALR":
-        str_to_print = "{:5s} x{}, ({})x{}".format("jalr", inst['rd'], inst['imm'], inst['rs1'])
+        str_to_print = "{:5s} {}, ({}){}".format("jalr", rv32_abi[inst['rd']], inst['imm'], rv32_abi[inst['rs1']])
     elif inst['opcode'] == "RV32_BEQ":
-        str_to_print = "{:5s} x{}, x{}, {}".format("beq", inst['rs1'], inst['rs2'], inst['imm'])
+        str_to_print = "{:5s} {}, {}, {}".format("beq", rv32_abi[inst['rs1']], rv32_abi[inst['rs2']], inst['imm'])
     elif inst['opcode'] == "RV32_BNE":
-        str_to_print = "{:5s} x{}, x{}, {}".format("bne", inst['rs1'], inst['rs2'], inst['imm'])
+        str_to_print = "{:5s} {}, {}, {}".format("bne", rv32_abi[inst['rs1']], rv32_abi[inst['rs2']], inst['imm'])
     elif inst['opcode'] == "RV32_BLT":
-        str_to_print = "{:5s} x{}, x{}, {}".format("blt", inst['rs1'], inst['rs2'], inst['imm'])
+        str_to_print = "{:5s} {}, {}, {}".format("blt", rv32_abi[inst['rs1']], rv32_abi[inst['rs2']], inst['imm'])
     elif inst['opcode'] == "RV32_BGE":
-        str_to_print = "{:5s} x{}, x{}, {}".format("bge", inst['rs1'], inst['rs2'], inst['imm'])
+        str_to_print = "{:5s} {}, {}, {}".format("bge", rv32_abi[inst['rs1']], rv32_abi[inst['rs2']], inst['imm'])
     elif inst['opcode'] == "RV32_BLTU":
-        str_to_print = "{:5s} x{}, x{}, {}".format("bltu", inst['rs1'], inst['rs2'], inst['imm'])
+        str_to_print = "{:5s} {}, {}, {}".format("bltu", rv32_abi[inst['rs1']], rv32_abi[inst['rs2']], inst['imm'])
     elif inst['opcode'] == "RV32_BGEU":
-        str_to_print = "{:5s} x{}, x{}, {}".format("bgeu", inst['rs1'], inst['rs2'], inst['imm'])
+        str_to_print = "{:5s} {}, {}, {}".format("bgeu", rv32_abi[inst['rs1']], rv32_abi[inst['rs2']], inst['imm'])
     elif inst['opcode'] == "RV32_LB":
-        str_to_print = "{:5s} x{}, ({})x{}".format("lb", inst['rd'], inst['imm'], inst['rs1'])
+        str_to_print = "{:5s} {}, ({}){}".format("lb", rv32_abi[inst['rd']], inst['imm'], rv32_abi[inst['rs1']])
     elif inst['opcode'] == "RV32_LH":
-        str_to_print = "{:5s} x{}, ({})x{}".format("lh", inst['rd'], inst['imm'], inst['rs1'])
+        str_to_print = "{:5s} {}, ({}){}".format("lh", rv32_abi[inst['rd']], inst['imm'], rv32_abi[inst['rs1']])
     elif inst['opcode'] == "RV32_LW":
-        str_to_print = "{:5s} x{}, ({})x{}".format("lw", inst['rd'], inst['imm'], inst['rs1'])
+        str_to_print = "{:5s} {}, ({}){}".format("lw", rv32_abi[inst['rd']], inst['imm'], rv32_abi[inst['rs1']])
     elif inst['opcode'] == "RV32_LBU":
-        str_to_print = "{:5s} x{}, ({})x{}".format("lbu", inst['rd'], inst['imm'], inst['rs1'])
+        str_to_print = "{:5s} {}, ({}){}".format("lbu", rv32_abi[inst['rd']], inst['imm'], rv32_abi[inst['rs1']])
     elif inst['opcode'] == "RV32_LHU":
-        str_to_print = "{:5s} x{}, ({})x{}".format("lhu", inst['rd'], inst['imm'], inst['rs1'])
+        str_to_print = "{:5s} {}, ({}){}".format("lhu", rv32_abi[inst['rd']], inst['imm'], rv32_abi[inst['rs1']])
     elif inst['opcode'] == "RV32_SB":
-        str_to_print = "{:5s} x{}, ({})x{}".format("sb", inst['rs2'], inst['imm'], inst['rs1'])
+        str_to_print = "{:5s} {}, ({}){}".format("sb", rv32_abi[inst['rs2']], inst['imm'], rv32_abi[inst['rs1']])
     elif inst['opcode'] == "RV32_SH":
-        str_to_print = "{:5s} x{}, ({})x{}".format("sh", inst['rs2'], inst['imm'], inst['rs1'])
+        str_to_print = "{:5s} {}, ({}){}".format("sh", rv32_abi[inst['rs2']], inst['imm'], rv32_abi[inst['rs1']])
     elif inst['opcode'] == "RV32_SW":
-        str_to_print = "{:5s} x{}, ({})x{}".format("sw", inst['rs2'], inst['imm'], inst['rs1'])
+        str_to_print = "{:5s} {}, ({}){}".format("sw", rv32_abi[inst['rs2']], inst['imm'], rv32_abi[inst['rs1']])
     elif inst['opcode'] == "RV32_ADDI":
-        str_to_print = "{:5s} x{}, x{}, {}".format("addi", inst['rd'], inst['rs1'], inst['imm'])
+        str_to_print = "{:5s} {}, {}, {}".format("addi", rv32_abi[inst['rd']], rv32_abi[inst['rs1']], inst['imm'])
     elif inst['opcode'] == "RV32_SLLI":
-        str_to_print = "{:5s} x{}, x{}, {}".format("slli", inst['rd'], inst['rs1'], inst['imm'])
+        str_to_print = "{:5s} {}, {}, {}".format("slli", rv32_abi[inst['rd']], rv32_abi[inst['rs1']], inst['imm'])
     elif inst['opcode'] == "RV32_SLTI":
-        str_to_print = "{:5s} x{}, x{}, {}".format("slti", inst['rd'], inst['rs1'], inst['imm'])
+        str_to_print = "{:5s} {}, {}, {}".format("slti", rv32_abi[inst['rd']], rv32_abi[inst['rs1']], inst['imm'])
     elif inst['opcode'] == "RV32_SLTIU":
-        str_to_print = "{:5s} x{}, x{}, {}".format("Sltiu", inst['rd'], inst['rs1'], inst['imm'])
+        str_to_print = "{:5s} {}, {}, {}".format("Sltiu", rv32_abi[inst['rd']], rv32_abi[inst['rs1']], inst['imm'])
     elif inst['opcode'] == "RV32_XORI":
-        str_to_print = "{:5s} x{}, x{}, {}".format("xori", inst['rd'], inst['rs1'], inst['imm'])
+        str_to_print = "{:5s} {}, {}, {}".format("xori", rv32_abi[inst['rd']], rv32_abi[inst['rs1']], inst['imm'])
     elif inst['opcode'] == "RV32_SRLI":
-        str_to_print = "{:5s} x{}, x{}, {}".format("srli", inst['rd'], inst['rs1'], inst['imm'])
+        str_to_print = "{:5s} {}, {}, {}".format("srli", rv32_abi[inst['rd']], rv32_abi[inst['rs1']], inst['imm'])
     elif inst['opcode'] == "RV32_SRAI":
-        str_to_print = "{:5s} x{}, x{}, {}".format("srai", inst['rd'], inst['rs1'], inst['imm'])
+        str_to_print = "{:5s} {}, {}, {}".format("srai", rv32_abi[inst['rd']], rv32_abi[inst['rs1']], inst['imm'])
     elif inst['opcode'] == "RV32_ORI":
-        str_to_print = "{:5s} x{}, x{}, {}".format("ori", inst['rd'], inst['rs1'], inst['imm'])
+        str_to_print = "{:5s} {}, {}, {}".format("ori", rv32_abi[inst['rd']], rv32_abi[inst['rs1']], inst['imm'])
     elif inst['opcode'] == "RV32_ANDI":
-        str_to_print = "{:5s} x{}, x{}, {}".format("andi", inst['rd'], inst['rs1'], inst['imm'])
+        str_to_print = "{:5s} {}, {}, {}".format("andi", rv32_abi[inst['rd']], rv32_abi[inst['rs1']], inst['imm'])
     elif inst['opcode'] == "RV32_ADD":
-        str_to_print = "{:5s} x{}, x{}, x{}".format("add", inst['rd'], inst['rs1'], inst['rs2'])
+        str_to_print = "{:5s} {}, {}, {}".format("add", rv32_abi[inst['rd']], rv32_abi[inst['rs1']], rv32_abi[inst['rs2']])
     elif inst['opcode'] == "RV32_SUB":
-        str_to_print = "{:5s} x{}, x{}, x{}".format("sub", inst['rd'], inst['rs1'], inst['rs2'])
+        str_to_print = "{:5s} {}, {}, {}".format("sub", rv32_abi[inst['rd']], rv32_abi[inst['rs1']], rv32_abi[inst['rs2']])
     elif inst['opcode'] == "RV32_SLL":
-        str_to_print = "{:5s} x{}, x{}, x{}".format("sll", inst['rd'], inst['rs1'], inst['rs2'])
+        str_to_print = "{:5s} {}, {}, {}".format("sll", rv32_abi[inst['rd']], rv32_abi[inst['rs1']], rv32_abi[inst['rs2']])
     elif inst['opcode'] == "RV32_SLT":
-        str_to_print = "{:5s} x{}, x{}, x{}".format("slt", inst['rd'], inst['rs1'], inst['rs2'])
+        str_to_print = "{:5s} {}, {}, {}".format("slt", rv32_abi[inst['rd']], rv32_abi[inst['rs1']], rv32_abi[inst['rs2']])
     elif inst['opcode'] == "RV32_SLTU":
-        str_to_print = "{:5s} x{}, x{}, x{}".format("Sltu", inst['rd'], inst['rs1'], inst['rs2'])
+        str_to_print = "{:5s} {}, {}, {}".format("Sltu", rv32_abi[inst['rd']], rv32_abi[inst['rs1']], rv32_abi[inst['rs2']])
     elif inst['opcode'] == "RV32_XOR":
-        str_to_print = "{:5s} x{}, x{}, x{}".format("xor", inst['rd'], inst['rs1'], inst['rs2'])
+        str_to_print = "{:5s} {}, {}, {}".format("xor", rv32_abi[inst['rd']], rv32_abi[inst['rs1']], rv32_abi[inst['rs2']])
     elif inst['opcode'] == "RV32_SRA":
-        str_to_print = "{:5s} x{}, x{}, x{}".format("sra", inst['rd'], inst['rs1'], inst['rs2'])
+        str_to_print = "{:5s} {}, {}, {}".format("sra", rv32_abi[inst['rd']], rv32_abi[inst['rs1']], rv32_abi[inst['rs2']])
     elif inst['opcode'] == "RV32_SRL":
-        str_to_print = "{:5s} x{}, x{}, x{}".format("srl", inst['rd'], inst['rs1'], inst['rs2'])
+        str_to_print = "{:5s} {}, {}, {}".format("srl", rv32_abi[inst['rd']], rv32_abi[inst['rs1']], rv32_abi[inst['rs2']])
     elif inst['opcode'] == "RV32_OR":
-        str_to_print = "{:5s} x{}, x{}, x{}".format("or", inst['rd'], inst['rs1'], inst['rs2'])
+        str_to_print = "{:5s} {}, {}, {}".format("or", rv32_abi[inst['rd']], rv32_abi[inst['rs1']], rv32_abi[inst['rs2']])
     elif inst['opcode'] == "RV32_AND":
-        str_to_print = "{:5s} x{}, x{}, x{}".format("and", inst['rd'], inst['rs1'], inst['rs2'])
+        str_to_print = "{:5s} {}, {}, {}".format("and", rv32_abi[inst['rd']], rv32_abi[inst['rs1']], rv32_abi[inst['rs2']])
     elif inst['opcode'] == "RV32_FENCE":
         str_to_print = "{:5s}".format("fence")
     elif inst['opcode'] == "RV32_FENCEI":
@@ -353,17 +388,17 @@ def get_instr_str(inst, print_ = False):
     elif inst['opcode'] == "RV32_EBREAK":
         str_to_print = "{:5s}".format("ebreak")
     elif inst['opcode'] == "RV32_CSRRW":
-        str_to_print = "{:5s} x{}, {}, x{}".format("csrrw", inst['rd'], inst['csr'], inst['rs1'])
+        str_to_print = "{:5s} {}, {}, {}".format("csrrw", rv32_abi[inst['rd']], inst['csr'], rv32_abi[inst['rs1']])
     elif inst['opcode'] == "RV32_CSRRS":
-        str_to_print = "{:5s} x{}, {}, x{}".format("csrrs", inst['rd'], inst['csr'], inst['rs1'])
+        str_to_print = "{:5s} {}, {}, {}".format("csrrs", rv32_abi[inst['rd']], inst['csr'], rv32_abi[inst['rs1']])
     elif inst['opcode'] == "RV32_CSRRC":
-        str_to_print = "{:5s} x{}, {}, x{}".format("csrrc", inst['rd'], inst['csr'], inst['rs1'])
+        str_to_print = "{:5s} {}, {}, {}".format("csrrc", rv32_abi[inst['rd']], inst['csr'], rv32_abi[inst['rs1']])
     elif inst['opcode'] == "RV32_CSRRWI":
-        str_to_print = "{:5s} x{}, {}, x{}".format("csrrwi", inst['rd'], inst['csr'], inst['imm'])
+        str_to_print = "{:5s} {}, {}, {}".format("csrrwi", rv32_abi[inst['rd']], inst['csr'], inst['imm'])
     elif inst['opcode'] == "RV32_CSRRSI":
-        str_to_print = "{:5s} x{}, {}, x{}".format("csrrsi", inst['rd'], inst['csr'], inst['imm'])
+        str_to_print = "{:5s} {}, {}, {}".format("csrrsi", rv32_abi[inst['rd']], inst['csr'], inst['imm'])
     elif inst['opcode'] == "RV32_CSRRCI":
-        str_to_print = "{:5s} x{}, {}, x{}".format("csrrci", inst['rd'], inst['csr'], inst['imm'])
+        str_to_print = "{:5s} {}, {}, {}".format("csrrci", rv32_abi[inst['rd']], inst['csr'], inst['imm'])
     else:
         str_to_print = "{:5s}".format("unknown")
     str_to_print = "{:12s} {}".format(("0x" + '{:0{}X}'.format(int(inst['instr'][::-1], 2), 8)).lower(), str_to_print)

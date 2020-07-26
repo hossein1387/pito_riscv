@@ -9,15 +9,20 @@ def parse_args():
     return vars(args)
 
 def decode_instruction_file(input_file):
+    stop_cnt = 0
+
     with open(input_file, 'r') as f:
         lines = f.readlines()
         for line in lines:
             line = line.split("\n")[0]
             # import ipdb as pdb; pdb.set_trace()
             decoded_instruction = rv32_decoder.decode(line)
-            print(rv32_decoder.get_instr_str(decoded_instruction))
-            # if decoded_instruction['opcode'] == "RV32_EBREAK":
-            #     break
+            decoded_instruction_str = rv32_decoder.get_instr_str(decoded_instruction)
+            if decoded_instruction_str == "0x00000013   addi  x0, x0, 0":
+                stop_cnt += 1
+                if stop_cnt>10:
+                    break
+            print(decoded_instruction_str)
 
 
 if __name__ == '__main__':
@@ -25,8 +30,9 @@ if __name__ == '__main__':
     instruction_format = args['input_fromat']
     instruction = ""
     if instruction_format == 'h':
-        instruction = bin(int(args['input'], 16))[2:].zfill(32)
-        decoded_instruction = rv32_decoder.decode(instruction)
+        decoded_instruction = rv32_decoder.decode(args['input'])
+        decoded_instruction_str = rv32_decoder.get_instr_str(decoded_instruction)
+        print(decoded_instruction_str)
     elif instruction_format == 'd':
         instruction = bin(int(args['input']))[2:].zfill(32)
         decoded_instruction = rv32_decoder.decode(instruction)
