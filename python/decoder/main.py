@@ -16,8 +16,8 @@ def decode_instruction_file(input_file):
             # import ipdb as pdb; pdb.set_trace()
             decoded_instruction = rv32_decoder.decode(line)
             print(rv32_decoder.get_instr_str(decoded_instruction))
-            if decoded_instruction['opcode'] == "RV32_EBREAK":
-                break
+            # if decoded_instruction['opcode'] == "RV32_EBREAK":
+            #     break
 
 
 if __name__ == '__main__':
