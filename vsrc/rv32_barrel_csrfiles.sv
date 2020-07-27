@@ -213,7 +213,8 @@ generate
         assign csr_mvu_olength_0 [ hart_id*15 +: 15] = csr_mvu_olength_0_sigs[hart_id_i];
         assign csr_mvu_olength_1 [ hart_id*15 +: 15] = csr_mvu_olength_1_sigs[hart_id_i];
         assign csr_mvu_olength_2 [ hart_id*15 +: 15] = csr_mvu_olength_2_sigs[hart_id_i];
-        assign mvu_start         [ hart_id*1  +:  1] = mvu_start_sigs[hart_id_i];
+        assign mvu_start         [ hart_id         ] = mvu_start_sigs[hart_id];
     end
 endgenerate
+
 endmodule
