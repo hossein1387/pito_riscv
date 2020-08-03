@@ -375,7 +375,7 @@ assign rst_n = pito_io_rst_n;
     always @(posedge clk) begin
         if(pito_io_rst_n == 1'b0) begin
             for (int i = 0; i < `PITO_NUM_HARTS; i++) begin
-                rv32_pc[i]  <= `RESET_ADDRESS;
+                rv32_pc[i]  <= `EOF_ADDRESS;
             end
         end else begin
             rv32_hart_fet_cnt <= rv32_hart_cnt;
@@ -384,8 +384,8 @@ assign rst_n = pito_io_rst_n;
             // instruction decoding. This decision is represented by pc_sel. Initially at 
             // reset, we set the pc_sel to PITO_PC_SEL_PLUS_4 so that the pc counter starts
             // executing instruction from memory.
-            if (rv32_pc[rv32_hart_cnt] == `RESET_ADDRESS) begin
-                rv32_pc[rv32_hart_cnt] <= rv32_hart_cnt << 12;
+            if (rv32_pc[rv32_hart_cnt] == `EOF_ADDRESS) begin
+                rv32_pc[rv32_hart_cnt] <= `RESET_ADDRESS; //rv32_hart_cnt << 12;
             end else begin
                 if (pc_sel[rv32_hart_cnt] == `PITO_PC_SEL_PLUS_4) begin
                     rv32_pc[rv32_hart_cnt] <= rv32_pc[rv32_hart_cnt] + 4;
