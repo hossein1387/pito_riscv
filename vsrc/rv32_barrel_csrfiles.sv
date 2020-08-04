@@ -26,32 +26,32 @@ module rv32_barrel_csrfiles #(
         output exception_t                csr_exception,// Attempts to access a CSR without appropriate privilege
                                                           // level or to write  a read-only register also
                                                           // raises illegal instruction exceptions.
-        output logic [2*NUM_HARTS-1 : 0]  csr_mvu_mul_mode,
-        output logic [29*NUM_HARTS-1: 0]  csr_mvu_countdown ,
-        output logic [6*NUM_HARTS-1 : 0]  csr_mvu_wprecision,
-        output logic [6*NUM_HARTS-1 : 0]  csr_mvu_iprecision,
-        output logic [6*NUM_HARTS-1 : 0]  csr_mvu_oprecision,
-        output logic [9*NUM_HARTS-1 : 0]  csr_mvu_wbaseaddr ,
-        output logic [15*NUM_HARTS-1: 0]  csr_mvu_ibaseaddr ,
-        output logic [15*NUM_HARTS-1: 0]  csr_mvu_obaseaddr ,
-        output logic [15*NUM_HARTS-1: 0]  csr_mvu_wstride_0 ,
-        output logic [15*NUM_HARTS-1: 0]  csr_mvu_wstride_1 ,
-        output logic [15*NUM_HARTS-1: 0]  csr_mvu_wstride_2 ,
-        output logic [15*NUM_HARTS-1: 0]  csr_mvu_istride_0 ,
-        output logic [15*NUM_HARTS-1: 0]  csr_mvu_istride_1 ,
-        output logic [15*NUM_HARTS-1: 0]  csr_mvu_istride_2 ,
-        output logic [15*NUM_HARTS-1: 0]  csr_mvu_ostride_0 ,
-        output logic [15*NUM_HARTS-1: 0]  csr_mvu_ostride_1 ,
-        output logic [15*NUM_HARTS-1: 0]  csr_mvu_ostride_2 ,
-        output logic [15*NUM_HARTS-1: 0]  csr_mvu_wlength_0 ,
-        output logic [15*NUM_HARTS-1: 0]  csr_mvu_wlength_1 ,
-        output logic [15*NUM_HARTS-1: 0]  csr_mvu_wlength_2 ,
-        output logic [15*NUM_HARTS-1: 0]  csr_mvu_ilength_0 ,
-        output logic [15*NUM_HARTS-1: 0]  csr_mvu_ilength_1 ,
-        output logic [15*NUM_HARTS-1: 0]  csr_mvu_ilength_2 ,
-        output logic [15*NUM_HARTS-1: 0]  csr_mvu_olength_0 ,
-        output logic [15*NUM_HARTS-1: 0]  csr_mvu_olength_1 ,
-        output logic [15*NUM_HARTS-1: 0]  csr_mvu_olength_2 ,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvu_wbaseaddr,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvu_ibaseaddr,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvu_obaseaddr,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvu_wstride_0,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvu_wstride_1,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvu_wstride_2,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvu_istride_0,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvu_istride_1,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvu_istride_2,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvu_ostride_0,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvu_ostride_1,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvu_ostride_2,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvu_wlength_0,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvu_wlength_1,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvu_wlength_2,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvu_ilength_0,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvu_ilength_1,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvu_ilength_2,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvu_olength_0,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvu_olength_1,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvu_olength_2,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvu_precision,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvu_status   ,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvu_command  ,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvu_quant    ,
+
         output logic [NUM_HARTS-1   : 0]  mvu_start,
     
         input  logic [31 : 0]             pc,       // PC of instruction accessing the CSR
@@ -80,35 +80,33 @@ logic [31 : 0] csr_rdata_sigs     [NUM_HARTS-1 : 0];
 exception_t    csr_exception_sigs [NUM_HARTS-1 : 0];
 logic [31 : 0] csr_epc_sigs       [NUM_HARTS-1 : 0];
 
-logic [ 1 : 0] csr_mvu_mul_mode_sigs  [NUM_HARTS-1 : 0];
-logic          csr_mvu_max_en_sigs    [NUM_HARTS-1 : 0];
-logic          csr_mvu_max_pool_sigs  [NUM_HARTS-1 : 0];
-logic [28 : 0] csr_mvu_countdown_sigs [NUM_HARTS-1 : 0];
-logic [ 5 : 0] csr_mvu_wprecision_sigs[NUM_HARTS-1 : 0];
-logic [ 5 : 0] csr_mvu_iprecision_sigs[NUM_HARTS-1 : 0];
-logic [ 5 : 0] csr_mvu_oprecision_sigs[NUM_HARTS-1 : 0];
-logic [ 8 : 0] csr_mvu_wbaseaddr_sigs [NUM_HARTS-1 : 0];
-logic [14 : 0] csr_mvu_ibaseaddr_sigs [NUM_HARTS-1 : 0];
-logic [14 : 0] csr_mvu_obaseaddr_sigs [NUM_HARTS-1 : 0];
-logic [14 : 0] csr_mvu_wstride_0_sigs [NUM_HARTS-1 : 0];
-logic [14 : 0] csr_mvu_wstride_1_sigs [NUM_HARTS-1 : 0];
-logic [14 : 0] csr_mvu_wstride_2_sigs [NUM_HARTS-1 : 0];
-logic [14 : 0] csr_mvu_istride_0_sigs [NUM_HARTS-1 : 0];
-logic [14 : 0] csr_mvu_istride_1_sigs [NUM_HARTS-1 : 0];
-logic [14 : 0] csr_mvu_istride_2_sigs [NUM_HARTS-1 : 0];
-logic [14 : 0] csr_mvu_ostride_0_sigs [NUM_HARTS-1 : 0];
-logic [14 : 0] csr_mvu_ostride_1_sigs [NUM_HARTS-1 : 0];
-logic [14 : 0] csr_mvu_ostride_2_sigs [NUM_HARTS-1 : 0];
-logic [14 : 0] csr_mvu_wlength_0_sigs [NUM_HARTS-1 : 0];
-logic [14 : 0] csr_mvu_wlength_1_sigs [NUM_HARTS-1 : 0];
-logic [14 : 0] csr_mvu_wlength_2_sigs [NUM_HARTS-1 : 0];
-logic [14 : 0] csr_mvu_ilength_0_sigs [NUM_HARTS-1 : 0];
-logic [14 : 0] csr_mvu_ilength_1_sigs [NUM_HARTS-1 : 0];
-logic [14 : 0] csr_mvu_ilength_2_sigs [NUM_HARTS-1 : 0];
-logic [14 : 0] csr_mvu_olength_0_sigs [NUM_HARTS-1 : 0];
-logic [14 : 0] csr_mvu_olength_1_sigs [NUM_HARTS-1 : 0];
-logic [14 : 0] csr_mvu_olength_2_sigs [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_mvu_wbaseaddr_sigs [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_mvu_ibaseaddr_sigs [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_mvu_obaseaddr_sigs [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_mvu_wstride_0_sigs [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_mvu_wstride_1_sigs [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_mvu_wstride_2_sigs [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_mvu_istride_0_sigs [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_mvu_istride_1_sigs [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_mvu_istride_2_sigs [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_mvu_ostride_0_sigs [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_mvu_ostride_1_sigs [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_mvu_ostride_2_sigs [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_mvu_wlength_0_sigs [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_mvu_wlength_1_sigs [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_mvu_wlength_2_sigs [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_mvu_ilength_0_sigs [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_mvu_ilength_1_sigs [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_mvu_ilength_2_sigs [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_mvu_olength_0_sigs [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_mvu_olength_1_sigs [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_mvu_olength_2_sigs [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_mvu_precision_sigs [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_mvu_status_sigs    [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_mvu_command_sigs   [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_mvu_quant_sigs     [NUM_HARTS-1 : 0];
 logic          mvu_start_sigs         [NUM_HARTS-1 : 0];
+
 
 assign enable_cycle_count_sigs = 1'b1;
 
@@ -131,11 +129,7 @@ genvar hart_id;
                             .cause_i             (cause_sigs[hart_id]             ),
                             .enable_cycle_count_i(enable_cycle_count_sigs         ),
                             .csr_epc_o           (csr_epc_sigs[hart_id]           ),
-                            .csr_mvu_mul_mode    (csr_mvu_mul_mode_sigs[hart_id]  ),
-                            .csr_mvu_countdown   (csr_mvu_countdown_sigs[hart_id] ),
-                            .csr_mvu_wprecision  (csr_mvu_wprecision_sigs[hart_id]),
-                            .csr_mvu_iprecision  (csr_mvu_iprecision_sigs[hart_id]),
-                            .csr_mvu_oprecision  (csr_mvu_oprecision_sigs[hart_id]),
+                            .mvu_start           (mvu_start_sigs[hart_id]         ),
                             .csr_mvu_wbaseaddr   (csr_mvu_wbaseaddr_sigs[hart_id] ),
                             .csr_mvu_ibaseaddr   (csr_mvu_ibaseaddr_sigs[hart_id] ),
                             .csr_mvu_obaseaddr   (csr_mvu_obaseaddr_sigs[hart_id] ),
@@ -157,9 +151,14 @@ genvar hart_id;
                             .csr_mvu_olength_0   (csr_mvu_olength_0_sigs[hart_id] ),
                             .csr_mvu_olength_1   (csr_mvu_olength_1_sigs[hart_id] ),
                             .csr_mvu_olength_2   (csr_mvu_olength_2_sigs[hart_id] ),
-                            .mvu_start           (mvu_start_sigs[hart_id]         )
+                            .csr_mvu_precision   (csr_mvu_precision_sigs[hart_id] ),
+                            .csr_mvu_status      (csr_mvu_status_sigs[hart_id]    ),
+                            .csr_mvu_command     (csr_mvu_command_sigs[hart_id]   ),
+                            .csr_mvu_quant       (csr_mvu_quant_sigs[hart_id]     )
                         );
     end
+
+
 
 // genvar hart_id;
 generate 
@@ -173,9 +172,7 @@ generate
     assign boot_addr_sigs[hart_id] = (hart_id==hart_id_i) ? boot_addr : 0;
     assign pc_sigs[hart_id]        = (hart_id==hart_id_i) ? pc        : 0;
     assign cause_sigs[hart_id]     = (hart_id==hart_id_i) ? cause     : 0;
-
     assign mvu_irq_sigs[hart_id]   = mvu_irq[hart_id];
-
   end
 endgenerate
 
@@ -187,33 +184,32 @@ assign csr_epc        =   csr_epc_sigs[hart_id_i];
 
 generate 
     for (hart_id=0; hart_id<NUM_HARTS; hart_id++) begin
-        assign csr_mvu_mul_mode  [ hart_id*2  +:  2] = csr_mvu_mul_mode_sigs[hart_id];
-        assign csr_mvu_countdown [ hart_id*29 +: 29] = csr_mvu_countdown_sigs[hart_id];
-        assign csr_mvu_wprecision[ hart_id*6  +:  6] = csr_mvu_wprecision_sigs[hart_id];
-        assign csr_mvu_iprecision[ hart_id*6  +:  6] = csr_mvu_iprecision_sigs[hart_id];
-        assign csr_mvu_oprecision[ hart_id*6  +:  6] = csr_mvu_oprecision_sigs[hart_id];
-        assign csr_mvu_wbaseaddr [ hart_id*9  +:  9] = csr_mvu_wbaseaddr_sigs[hart_id];
-        assign csr_mvu_ibaseaddr [ hart_id*15 +: 15] = csr_mvu_ibaseaddr_sigs[hart_id];
-        assign csr_mvu_obaseaddr [ hart_id*15 +: 15] = csr_mvu_obaseaddr_sigs[hart_id];
-        assign csr_mvu_wstride_0 [ hart_id*15 +: 15] = csr_mvu_wstride_0_sigs[hart_id];
-        assign csr_mvu_wstride_1 [ hart_id*15 +: 15] = csr_mvu_wstride_1_sigs[hart_id];
-        assign csr_mvu_wstride_2 [ hart_id*15 +: 15] = csr_mvu_wstride_2_sigs[hart_id];
-        assign csr_mvu_istride_0 [ hart_id*15 +: 15] = csr_mvu_istride_0_sigs[hart_id];
-        assign csr_mvu_istride_1 [ hart_id*15 +: 15] = csr_mvu_istride_1_sigs[hart_id];
-        assign csr_mvu_istride_2 [ hart_id*15 +: 15] = csr_mvu_istride_2_sigs[hart_id];
-        assign csr_mvu_ostride_0 [ hart_id*15 +: 15] = csr_mvu_ostride_0_sigs[hart_id];
-        assign csr_mvu_ostride_1 [ hart_id*15 +: 15] = csr_mvu_ostride_1_sigs[hart_id];
-        assign csr_mvu_ostride_2 [ hart_id*15 +: 15] = csr_mvu_ostride_2_sigs[hart_id];
-        assign csr_mvu_wlength_0 [ hart_id*15 +: 15] = csr_mvu_wlength_0_sigs[hart_id];
-        assign csr_mvu_wlength_1 [ hart_id*15 +: 15] = csr_mvu_wlength_1_sigs[hart_id];
-        assign csr_mvu_wlength_2 [ hart_id*15 +: 15] = csr_mvu_wlength_2_sigs[hart_id];
-        assign csr_mvu_ilength_0 [ hart_id*15 +: 15] = csr_mvu_ilength_0_sigs[hart_id];
-        assign csr_mvu_ilength_1 [ hart_id*15 +: 15] = csr_mvu_ilength_1_sigs[hart_id];
-        assign csr_mvu_ilength_2 [ hart_id*15 +: 15] = csr_mvu_ilength_2_sigs[hart_id];
-        assign csr_mvu_olength_0 [ hart_id*15 +: 15] = csr_mvu_olength_0_sigs[hart_id];
-        assign csr_mvu_olength_1 [ hart_id*15 +: 15] = csr_mvu_olength_1_sigs[hart_id];
-        assign csr_mvu_olength_2 [ hart_id*15 +: 15] = csr_mvu_olength_2_sigs[hart_id];
-        assign mvu_start         [ hart_id         ] = mvu_start_sigs[hart_id];
+        assign csr_mvu_wbaseaddr [hart_id*32 +: 32] = csr_mvu_wbaseaddr_sigs[hart_id];
+        assign csr_mvu_ibaseaddr [hart_id*32 +: 32] = csr_mvu_ibaseaddr_sigs[hart_id];
+        assign csr_mvu_obaseaddr [hart_id*32 +: 32] = csr_mvu_obaseaddr_sigs[hart_id];
+        assign csr_mvu_wstride_0 [hart_id*32 +: 32] = csr_mvu_wstride_0_sigs[hart_id];
+        assign csr_mvu_wstride_1 [hart_id*32 +: 32] = csr_mvu_wstride_1_sigs[hart_id];
+        assign csr_mvu_wstride_2 [hart_id*32 +: 32] = csr_mvu_wstride_2_sigs[hart_id];
+        assign csr_mvu_istride_0 [hart_id*32 +: 32] = csr_mvu_istride_0_sigs[hart_id];
+        assign csr_mvu_istride_1 [hart_id*32 +: 32] = csr_mvu_istride_1_sigs[hart_id];
+        assign csr_mvu_istride_2 [hart_id*32 +: 32] = csr_mvu_istride_2_sigs[hart_id];
+        assign csr_mvu_ostride_0 [hart_id*32 +: 32] = csr_mvu_ostride_0_sigs[hart_id];
+        assign csr_mvu_ostride_1 [hart_id*32 +: 32] = csr_mvu_ostride_1_sigs[hart_id];
+        assign csr_mvu_ostride_2 [hart_id*32 +: 32] = csr_mvu_ostride_2_sigs[hart_id];
+        assign csr_mvu_wlength_0 [hart_id*32 +: 32] = csr_mvu_wlength_0_sigs[hart_id];
+        assign csr_mvu_wlength_1 [hart_id*32 +: 32] = csr_mvu_wlength_1_sigs[hart_id];
+        assign csr_mvu_wlength_2 [hart_id*32 +: 32] = csr_mvu_wlength_2_sigs[hart_id];
+        assign csr_mvu_ilength_0 [hart_id*32 +: 32] = csr_mvu_ilength_0_sigs[hart_id];
+        assign csr_mvu_ilength_1 [hart_id*32 +: 32] = csr_mvu_ilength_1_sigs[hart_id];
+        assign csr_mvu_ilength_2 [hart_id*32 +: 32] = csr_mvu_ilength_2_sigs[hart_id];
+        assign csr_mvu_olength_0 [hart_id*32 +: 32] = csr_mvu_olength_0_sigs[hart_id];
+        assign csr_mvu_olength_1 [hart_id*32 +: 32] = csr_mvu_olength_1_sigs[hart_id];
+        assign csr_mvu_olength_2 [hart_id*32 +: 32] = csr_mvu_olength_2_sigs[hart_id];
+        assign csr_mvu_precision [hart_id*32 +: 32] = csr_mvu_precision_sigs[hart_id];
+        assign csr_mvu_status    [hart_id*32 +: 32] = csr_mvu_status_sigs[hart_id];
+        assign csr_mvu_command   [hart_id*32 +: 32] = csr_mvu_command_sigs[hart_id];
+        assign csr_mvu_quant     [hart_id*32 +: 32] = csr_mvu_quant_sigs[hart_id];
+        assign mvu_start         [ hart_id        ] = mvu_start_sigs[hart_id];
     end
 endgenerate
 

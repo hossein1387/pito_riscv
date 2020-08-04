@@ -1,4 +1,4 @@
-set_property display_limit 3000000 [current_wave_config]
+# set_property display_limit 3000000 [current_wave_config]
 set_property trace_limit   3000000 [current_sim]
 
 add_wave_group core
@@ -24,21 +24,21 @@ add_wave_group core
             add_wave_group -into RegFile RegFileTop
             add_wave -into RegFileTop {{/csr_tester/core/regfile}} 
             add_wave_group -into RegFile RegFile_0
-                add_wave -into RegFile_0 {{/csr_tester/core/regfile/\genblk1[0].regfile }} 
+                add_wave -into RegFile_0 {{/csr_tester/core/regfile/\genblk1[0].regfile /data}} 
             add_wave_group -into RegFile RegFile_1
-                add_wave -into RegFile_1 {{/csr_tester/core/regfile/\genblk1[1].regfile }} 
+                add_wave -into RegFile_1 {{/csr_tester/core/regfile/\genblk1[1].regfile /data}} 
             add_wave_group -into RegFile RegFile_2
-                add_wave -into RegFile_2 {{/csr_tester/core/regfile/\genblk1[2].regfile }} 
+                add_wave -into RegFile_2 {{/csr_tester/core/regfile/\genblk1[2].regfile /data}} 
             add_wave_group -into RegFile RegFile_3
-                add_wave -into RegFile_3 {{/csr_tester/core/regfile/\genblk1[3].regfile }} 
+                add_wave -into RegFile_3 {{/csr_tester/core/regfile/\genblk1[3].regfile /data}} 
             add_wave_group -into RegFile RegFile_4
-                add_wave -into RegFile_4 {{/csr_tester/core/regfile/\genblk1[4].regfile }} 
+                add_wave -into RegFile_4 {{/csr_tester/core/regfile/\genblk1[4].regfile /data}} 
             add_wave_group -into RegFile RegFile_5
-                add_wave -into RegFile_5 {{/csr_tester/core/regfile/\genblk1[5].regfile }} 
+                add_wave -into RegFile_5 {{/csr_tester/core/regfile/\genblk1[5].regfile /data}} 
             add_wave_group -into RegFile RegFile_6
-                add_wave -into RegFile_6 {{/csr_tester/core/regfile/\genblk1[6].regfile }} 
+                add_wave -into RegFile_6 {{/csr_tester/core/regfile/\genblk1[6].regfile /data}} 
             add_wave_group -into RegFile RegFile_7
-                add_wave -into RegFile_7 {{/csr_tester/core/regfile/\genblk1[7].regfile }} 
+                add_wave -into RegFile_7 {{/csr_tester/core/regfile/\genblk1[7].regfile /data}} 
         add_wave_group -into DecStage Decoder
             add_wave -into Decoder {{/csr_tester/core/rv32_dec_pc}}
             add_wave -into Decoder {{/csr_tester/core/rv32_dec_rs1}}
@@ -161,35 +161,43 @@ add_wave_group csr
     add_wave_group -into csr csr0
             add_wave -into csr0  {{/csr_tester/core/csr/\genblk1[0].csrfile /mvu_irq_i}}
             add_wave -into csr0  {{/csr_tester/core/csr/\genblk1[0].csrfile /mvu_start}}
-            add_wave -into csr0  {{/csr_tester/core/csr/\genblk1[0].csrfile /csr_mvu_countdown}}
+            add_wave -into csr0  {{/csr_tester/core/csr/\genblk1[0].csrfile /csr_mvu_command}}
+            add_wave -into csr0  {{/csr_tester/core/csr/\genblk1[0].csrfile /csr_mvu_precision}}
     add_wave_group -into csr csr1
             add_wave -into csr1  {{/csr_tester/core/csr/\genblk1[1].csrfile /mvu_irq_i}}
             add_wave -into csr1  {{/csr_tester/core/csr/\genblk1[1].csrfile /mvu_start}}
-            add_wave -into csr1  {{/csr_tester/core/csr/\genblk1[1].csrfile /csr_mvu_countdown}}
+            add_wave -into csr1  {{/csr_tester/core/csr/\genblk1[1].csrfile /csr_mvu_command}}
+            add_wave -into csr1  {{/csr_tester/core/csr/\genblk1[1].csrfile /csr_mvu_precision}}
     add_wave_group -into csr csr2
             add_wave -into csr2  {{/csr_tester/core/csr/\genblk1[2].csrfile /mvu_irq_i}}
             add_wave -into csr2  {{/csr_tester/core/csr/\genblk1[2].csrfile /mvu_start}}
-            add_wave -into csr2  {{/csr_tester/core/csr/\genblk1[2].csrfile /csr_mvu_countdown}}
+            add_wave -into csr2  {{/csr_tester/core/csr/\genblk1[2].csrfile /csr_mvu_command}}
+            add_wave -into csr2  {{/csr_tester/core/csr/\genblk1[2].csrfile /csr_mvu_precision}}
     add_wave_group -into csr csr3
             add_wave -into csr3  {{/csr_tester/core/csr/\genblk1[3].csrfile /mvu_irq_i}}
             add_wave -into csr3  {{/csr_tester/core/csr/\genblk1[3].csrfile /mvu_start}}
-            add_wave -into csr3  {{/csr_tester/core/csr/\genblk1[3].csrfile /csr_mvu_countdown}}
+            add_wave -into csr3  {{/csr_tester/core/csr/\genblk1[3].csrfile /csr_mvu_command}}
+            add_wave -into csr3  {{/csr_tester/core/csr/\genblk1[3].csrfile /csr_mvu_precision}}
     add_wave_group -into csr csr4
             add_wave -into csr4  {{/csr_tester/core/csr/\genblk1[4].csrfile /mvu_irq_i}}
             add_wave -into csr4  {{/csr_tester/core/csr/\genblk1[4].csrfile /mvu_start}}
-            add_wave -into csr4  {{/csr_tester/core/csr/\genblk1[4].csrfile /csr_mvu_countdown}}
+            add_wave -into csr4  {{/csr_tester/core/csr/\genblk1[4].csrfile /csr_mvu_command}}
+            add_wave -into csr4  {{/csr_tester/core/csr/\genblk1[4].csrfile /csr_mvu_precision}}
     add_wave_group -into csr csr5
             add_wave -into csr5  {{/csr_tester/core/csr/\genblk1[5].csrfile /mvu_irq_i}}
             add_wave -into csr5  {{/csr_tester/core/csr/\genblk1[5].csrfile /mvu_start}}
-            add_wave -into csr5  {{/csr_tester/core/csr/\genblk1[5].csrfile /csr_mvu_countdown}}
+            add_wave -into csr5  {{/csr_tester/core/csr/\genblk1[5].csrfile /csr_mvu_command}}
+            add_wave -into csr5  {{/csr_tester/core/csr/\genblk1[5].csrfile /csr_mvu_precision}}
     add_wave_group -into csr csr6
             add_wave -into csr6 {{/csr_tester/core/csr/\genblk1[6].csrfile /mvu_irq_i}}
             add_wave -into csr6 {{/csr_tester/core/csr/\genblk1[6].csrfile /mvu_start}}
-            add_wave -into csr6 {{/csr_tester/core/csr/\genblk1[6].csrfile /csr_mvu_countdown}}
+            add_wave -into csr6 {{/csr_tester/core/csr/\genblk1[6].csrfile /csr_mvu_command}}
+            add_wave -into csr6  {{/csr_tester/core/csr/\genblk1[6].csrfile /csr_mvu_precision}}
     add_wave_group -into csr csr7
             add_wave -into csr7 {{/csr_tester/core/csr/\genblk1[7].csrfile /mvu_irq_i}}
             add_wave -into csr7 {{/csr_tester/core/csr/\genblk1[7].csrfile /mvu_start}}
-            add_wave -into csr7 {{/csr_tester/core/csr/\genblk1[7].csrfile /csr_mvu_countdown}}
+            add_wave -into csr7 {{/csr_tester/core/csr/\genblk1[7].csrfile /csr_mvu_command}}
+            add_wave -into csr7  {{/csr_tester/core/csr/\genblk1[7].csrfile /csr_mvu_precision}}
 
 
 add_wave_group mems
