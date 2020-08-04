@@ -11,7 +11,7 @@ module rv32_decoder (
     output logic [`XPR_LEN-1          : 0 ] rv_rs1,
     output logic [`XPR_LEN-1          : 0 ] rv_rs2,
     output logic [`XPR_LEN-1          : 0 ] rv_rd,
-    output logic [3                   : 0 ] rv_shamt,
+    output logic [4                   : 0 ] rv_shamt,
     output logic [`XPR_LEN-1          : 0 ] rv_imm,
     output logic [`ALU_OPCODE_WIDTH-1 : 0 ] rv_alu_op,
     // output logic[3:0]             rv_fence_succ,
