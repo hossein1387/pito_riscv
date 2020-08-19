@@ -476,11 +476,6 @@ class RV32IPredictor extends BaseObj;
             pito_pkg::CSR_MINSTRETH      : access = rv32_pkg::RV32_WLRL;
             pito_pkg::CSR_MCALL          : access = rv32_pkg::RV32_WLRL;
             pito_pkg::CSR_MRET           : access = rv32_pkg::RV32_WLRL;
-            pito_pkg::CSR_MVU_MUL_MODE   : access = rv32_pkg::RV32_WLRL;
-            pito_pkg::CSR_MVU_COUNTDOWN  : access = rv32_pkg::RV32_WLRL;
-            pito_pkg::CSR_MVU_WPRECISION : access = rv32_pkg::RV32_WLRL;
-            pito_pkg::CSR_MVU_IPRECISION : access = rv32_pkg::RV32_WLRL;
-            pito_pkg::CSR_MVU_OPRECISION : access = rv32_pkg::RV32_WLRL;
             pito_pkg::CSR_MVU_WBASEADDR  : access = rv32_pkg::RV32_WLRL;
             pito_pkg::CSR_MVU_IBASEADDR  : access = rv32_pkg::RV32_WLRL;
             pito_pkg::CSR_MVU_OBASEADDR  : access = rv32_pkg::RV32_WLRL;
@@ -502,6 +497,10 @@ class RV32IPredictor extends BaseObj;
             pito_pkg::CSR_MVU_OLENGTH_0  : access = rv32_pkg::RV32_WLRL;
             pito_pkg::CSR_MVU_OLENGTH_1  : access = rv32_pkg::RV32_WLRL;
             pito_pkg::CSR_MVU_OLENGTH_2  : access = rv32_pkg::RV32_WLRL;
+            pito_pkg::CSR_MVU_PRECISION  : access = rv32_pkg::RV32_WLRL;
+            pito_pkg::CSR_MVU_STATUS     : access = rv32_pkg::RV32_WIRI;
+            pito_pkg::CSR_MVU_COMMAND    : access = rv32_pkg::RV32_WLRL;
+            pito_pkg::CSR_MVU_QUANT      : access = rv32_pkg::RV32_WLRL;
             default : access = rv32_pkg::RV32_WIRI;/* default */
         endcase
         return access;

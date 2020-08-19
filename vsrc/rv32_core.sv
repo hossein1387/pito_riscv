@@ -18,33 +18,33 @@ module rv32_core (
 
     // Interface with Accelerator (MVU)
     input  logic [`PITO_NUM_HARTS-1   : 0] mvu_irq_i,
-    output logic [2*`PITO_NUM_HARTS-1 : 0] mvu_mul_mode,
-    output logic [29*`PITO_NUM_HARTS-1: 0] mvu_countdown,
-    output logic [6*`PITO_NUM_HARTS-1 : 0] mvu_wprecision,
-    output logic [6*`PITO_NUM_HARTS-1 : 0] mvu_iprecision,
-    output logic [6*`PITO_NUM_HARTS-1 : 0] mvu_oprecision,
-    output logic [9*`PITO_NUM_HARTS-1 : 0] mvu_wbaseaddr,
-    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_ibaseaddr,
-    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_obaseaddr,
-    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_wstride_0,
-    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_wstride_1,
-    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_wstride_2,
-    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_istride_0,
-    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_istride_1,
-    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_istride_2,
-    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_ostride_0,
-    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_ostride_1,
-    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_ostride_2,
-    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_wlength_0,
-    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_wlength_1,
-    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_wlength_2,
-    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_ilength_0,
-    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_ilength_1,
-    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_ilength_2,
-    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_olength_0,
-    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_olength_1,
-    output logic [15*`PITO_NUM_HARTS-1: 0] mvu_olength_2,
-    output logic [`PITO_NUM_HARTS-1   : 0] mvu_start
+
+    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_wbaseaddr,
+    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_ibaseaddr,
+    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_obaseaddr,
+    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_wstride_0,
+    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_wstride_1,
+    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_wstride_2,
+    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_istride_0,
+    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_istride_1,
+    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_istride_2,
+    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_ostride_0,
+    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_ostride_1,
+    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_ostride_2,
+    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_wlength_0,
+    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_wlength_1,
+    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_wlength_2,
+    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_ilength_0,
+    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_ilength_1,
+    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_ilength_2,
+    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_olength_0,
+    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_olength_1,
+    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_olength_2,
+    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_precision,
+    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_status   ,
+    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_command  ,
+    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_quant    ,
+    output logic [`PITO_NUM_HARTS-1    : 0] mvu_start
 
 );
 
@@ -271,32 +271,31 @@ rv32_barrel_csrfiles csr(
                     .boot_addr          (csr_boot_addr         ),
                     .mvu_irq            (mvu_irq_i             ),
                     .csr_exception      (csr_exception         ),
-                    .csr_mvu_mul_mode   (mvu_mul_mode          ),
-                    .csr_mvu_countdown  (mvu_countdown         ),
-                    .csr_mvu_wprecision (mvu_wprecision        ),
-                    .csr_mvu_iprecision (mvu_iprecision        ),
-                    .csr_mvu_oprecision (mvu_oprecision        ),
-                    .csr_mvu_wbaseaddr  (mvu_wbaseaddr         ),
-                    .csr_mvu_ibaseaddr  (mvu_ibaseaddr         ),
-                    .csr_mvu_obaseaddr  (mvu_obaseaddr         ),
-                    .csr_mvu_wstride_0  (mvu_wstride_0         ),
-                    .csr_mvu_wstride_1  (mvu_wstride_1         ),
-                    .csr_mvu_wstride_2  (mvu_wstride_2         ),
-                    .csr_mvu_istride_0  (mvu_istride_0         ),
-                    .csr_mvu_istride_1  (mvu_istride_1         ),
-                    .csr_mvu_istride_2  (mvu_istride_2         ),
-                    .csr_mvu_ostride_0  (mvu_ostride_0         ),
-                    .csr_mvu_ostride_1  (mvu_ostride_1         ),
-                    .csr_mvu_ostride_2  (mvu_ostride_2         ),
-                    .csr_mvu_wlength_0  (mvu_wlength_0         ),
-                    .csr_mvu_wlength_1  (mvu_wlength_1         ),
-                    .csr_mvu_wlength_2  (mvu_wlength_2         ),
-                    .csr_mvu_ilength_0  (mvu_ilength_0         ),
-                    .csr_mvu_ilength_1  (mvu_ilength_1         ),
-                    .csr_mvu_ilength_2  (mvu_ilength_2         ),
-                    .csr_mvu_olength_0  (mvu_olength_0         ),
-                    .csr_mvu_olength_1  (mvu_olength_1         ),
-                    .csr_mvu_olength_2  (mvu_olength_2         ),
+                    .csr_mvu_wbaseaddr  (csr_mvu_wbaseaddr     ),
+                    .csr_mvu_ibaseaddr  (csr_mvu_ibaseaddr     ),
+                    .csr_mvu_obaseaddr  (csr_mvu_obaseaddr     ),
+                    .csr_mvu_wstride_0  (csr_mvu_wstride_0     ),
+                    .csr_mvu_wstride_1  (csr_mvu_wstride_1     ),
+                    .csr_mvu_wstride_2  (csr_mvu_wstride_2     ),
+                    .csr_mvu_istride_0  (csr_mvu_istride_0     ),
+                    .csr_mvu_istride_1  (csr_mvu_istride_1     ),
+                    .csr_mvu_istride_2  (csr_mvu_istride_2     ),
+                    .csr_mvu_ostride_0  (csr_mvu_ostride_0     ),
+                    .csr_mvu_ostride_1  (csr_mvu_ostride_1     ),
+                    .csr_mvu_ostride_2  (csr_mvu_ostride_2     ),
+                    .csr_mvu_wlength_0  (csr_mvu_wlength_0     ),
+                    .csr_mvu_wlength_1  (csr_mvu_wlength_1     ),
+                    .csr_mvu_wlength_2  (csr_mvu_wlength_2     ),
+                    .csr_mvu_ilength_0  (csr_mvu_ilength_0     ),
+                    .csr_mvu_ilength_1  (csr_mvu_ilength_1     ),
+                    .csr_mvu_ilength_2  (csr_mvu_ilength_2     ),
+                    .csr_mvu_olength_0  (csr_mvu_olength_0     ),
+                    .csr_mvu_olength_1  (csr_mvu_olength_1     ),
+                    .csr_mvu_olength_2  (csr_mvu_olength_2     ),
+                    .csr_mvu_precision  (csr_mvu_precision     ),
+                    .csr_mvu_status     (csr_mvu_status        ),
+                    .csr_mvu_command    (csr_mvu_command       ),
+                    .csr_mvu_quant      (csr_mvu_quant         ),
                     .mvu_start          (mvu_start             ),
                     .pc                 (rv32_dec_pc           ),
                     .cause              (csr_cause             ),
@@ -375,7 +374,7 @@ assign rst_n = pito_io_rst_n;
     always @(posedge clk) begin
         if(pito_io_rst_n == 1'b0) begin
             for (int i = 0; i < `PITO_NUM_HARTS; i++) begin
-                rv32_pc[i]  <= `RESET_ADDRESS;
+                rv32_pc[i]  <= `EOF_ADDRESS;
             end
         end else begin
             rv32_hart_fet_cnt <= rv32_hart_cnt;
@@ -384,8 +383,8 @@ assign rst_n = pito_io_rst_n;
             // instruction decoding. This decision is represented by pc_sel. Initially at 
             // reset, we set the pc_sel to PITO_PC_SEL_PLUS_4 so that the pc counter starts
             // executing instruction from memory.
-            if (rv32_pc[rv32_hart_cnt] == `RESET_ADDRESS) begin
-                rv32_pc[rv32_hart_cnt] <= rv32_hart_cnt << 12;
+            if (rv32_pc[rv32_hart_cnt] == `EOF_ADDRESS) begin
+                rv32_pc[rv32_hart_cnt] <= `RESET_ADDRESS; //rv32_hart_cnt << 12;
             end else begin
                 if (pc_sel[rv32_hart_cnt] == `PITO_PC_SEL_PLUS_4) begin
                     rv32_pc[rv32_hart_cnt] <= rv32_pc[rv32_hart_cnt] + 4;
