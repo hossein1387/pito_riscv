@@ -389,6 +389,16 @@ class RV32IPredictor extends BaseObj;
     int riscv_data_mem [logic[31:0]];
     int num_harts;
 
+    function new (Logger logger, rv32_data_q data_q, int num_harts);
+        super.new(logger);   // Calls 'new' method of parent class
+        this.num_harts = num_harts;
+        test_stat = '{pass_cnt: 0, fail_cnt: 0};
+        regf_model = new[num_harts];
+        csrf_model = new[`NUM_CSR];
+        init_regfile_model();
+        init_data_mem_model(data_q);
+    endfunction
+
     function init_regfile_model();
         int file_faults = $fopen (`REG_FILE_INIT, "r");
         integer scan_faults;
@@ -402,6 +412,15 @@ class RV32IPredictor extends BaseObj;
             reg_cnt += 1;
         end
     endfunction
+
+    function print_regfile_content(int hart_id);
+        int reg_val;
+        this.logger.print_banner($sformatf("REG_FILE[%0d]", hart_id));
+        for (int reg_num=0; reg_num < 32; reg_num++) begin
+            reg_val = regf_model[hart_id][reg_num];
+            this.logger.print($sformatf("[%4s]: %0d", rv32_abi_reg_s[reg_num], reg_val));
+        end
+    endfunction 
 
     function init_csrfile_model();
         int file_faults = $fopen (`CSR_FILE_INIT, "r");
@@ -425,15 +444,6 @@ class RV32IPredictor extends BaseObj;
         end
     endfunction 
 
-    function new (Logger logger, rv32_data_q data_q, int num_harts);
-        super.new(logger);   // Calls 'new' method of parent class
-        this.num_harts = num_harts;
-        test_stat = '{pass_cnt: 0, fail_cnt: 0};
-        regf_model = new[num_harts];
-        csrf_model = new[`NUM_CSR];
-        init_regfile_model();
-        init_data_mem_model(data_q);
-    endfunction
 
     function void report_result (bit is_riscv_test, rv32_data_q hart_ids_q);
         string res_str;
@@ -731,7 +741,7 @@ class RV32IPredictor extends BaseObj;
             end
             RV32_ADD    : begin
                 exp_val  = (rd==0) ? 0 : (regf_model[hart_id][rs1] + regf_model[hart_id][rs2]);
-                real_val =  regf[rd];
+                real_val = regf[rd];
                 info     = instr_str;
                 has_rf_update=1;
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
@@ -898,7 +908,7 @@ class RV32IPredictor extends BaseObj;
                 real_val = regf[rd];
                 info     = $sformatf("%s %18s",instr_str, csr_str);
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
-                exp_val  = regf_model[rs1];
+                exp_val  = regf_model[hart_id][rs1];
                 real_val = csrs[csr];
                 info     = $sformatf("%s %18s",instr_str, csr_str);
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
@@ -910,7 +920,7 @@ class RV32IPredictor extends BaseObj;
                 real_val = regf[rd];
                 info     = $sformatf("%s %18s",instr_str, csr_str);
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
-                exp_val  = regf_model[rs1] | csrs[csr];
+                exp_val  = regf_model[hart_id][rs1] | csrs[csr];
                 real_val = csrs[csr];
                 info     = $sformatf("%s %18s",instr_str, csr_str);
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
@@ -922,7 +932,7 @@ class RV32IPredictor extends BaseObj;
                 real_val = regf[rd];
                 info     = $sformatf("%s %18s",instr_str, csr_str);
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
-                exp_val  = (~regf_model[rs1]) & csrs[csr];
+                exp_val  = (~regf_model[hart_id][rs1]) & csrs[csr];
                 real_val = csrs[csr];
                 info     = $sformatf("%s %18s",instr_str, csr_str);
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
@@ -988,6 +998,7 @@ class RV32IPredictor extends BaseObj;
             endcase
             this.update_regf(has_rf_update, rd, exp_val, hart_id);
             this.update_csrf(has_csr_update, csr, exp_val, hart_id, csr_op);
+            // this.print_regfile_content(hart_id);
     endfunction
 
 endclass
@@ -1021,7 +1032,7 @@ endclass
             RV32_TYPE_B       : instr_str = $sformatf("%17s.%12s:        rs1=%4s rs2=  %4s imm=%4d", inst_type, opcode, rs1, rs2, imm);
             RV32_TYPE_U       : instr_str = $sformatf("%17s.%12s: rd=%4s rs1=%4s           imm=%4d", inst_type, opcode, rd, rs1, imm);
             RV32_TYPE_J       : instr_str = $sformatf("%17s.%12s: rd=%4s                imm=%4d", inst_type, opcode, rd, imm);
-            RV32_TYPE_NOP     : instr_str = $sformatf("%17s.%12s:                             ", inst_type, opcode);
+            RV32_TYPE_NOP     : instr_str = $sformatf("  %17s.%12s:                             ", inst_type, opcode);
             RV32_TYPE_UNKNOWN : instr_str = "!unknown instruction!";
         endcase
         return instr_str;
