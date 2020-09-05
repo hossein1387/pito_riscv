@@ -882,23 +882,29 @@ class RV32IPredictor extends BaseObj;
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
             end
             RV32_JAL    : begin
+                // check pc counter is set properly
                 exp_val  = pc_orig_cnt + signed'(imm<<1);
                 real_val = pc_cnt;
                 info     = instr_str;
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
+                // check return address is saved to rd
                 exp_val  = (rd==0) ? 0 : pc_orig_cnt + 4;
-                real_val = regf_model[hart_id][rd];
+                real_val = regf[rd];
+                // real_val = regf_model[hart_id][rd];
                 info     = instr_str;
                 has_rf_update=1;
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
             end
             RV32_JALR   : begin
+                // check pc counter is set properly
                 exp_val  = regf_model[hart_id][rs1] + signed'(imm);
                 real_val = pc_cnt;
                 info     = instr_str;
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
+                // check return address is saved to rd
                 exp_val  = (rd==0) ? 0 : pc_orig_cnt + 4;
-                real_val = regf_model[hart_id][rd];
+                real_val = regf[rd];
+                // real_val = regf_model[hart_id][rd];
                 info     = instr_str;
                 has_rf_update=1;
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);

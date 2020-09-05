@@ -203,7 +203,7 @@ typedef struct packed{
 //-------------------------------------------------------------------
     typedef struct packed {
         logic         sd;     // signal dirty state - read-only
-        logic [8:0]   wpri3;  // writes preserved reads ignored
+        logic [7:0]   wpri3;  // writes preserved reads ignored
         logic         tsr;    // trap sret
         logic         tw;     // time wait
         logic         tvm;    // trap virtual memory

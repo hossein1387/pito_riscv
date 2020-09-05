@@ -162,18 +162,18 @@ genvar hart_id;
 
 // genvar hart_id;
 generate 
-  for (hart_id = 0; hart_id < NUM_HARTS; hart_id++)  begin
-    assign csr_addr_sigs[hart_id]  = (hart_id==hart_id_i) ? csr_addr  : 0;
-    assign csr_wdata_sigs[hart_id] = (hart_id==hart_id_i) ? csr_wdata : 0;
-    assign csr_op_sigs[hart_id]    = (hart_id==hart_id_i) ? csr_op    : 0;
-    assign irq_sigs[hart_id]       = (hart_id==hart_id_i) ? irq       : 0;
-    assign time_irq_sigs[hart_id]  = (hart_id==hart_id_i) ? time_irq  : 0;
-    assign ipi_sigs[hart_id]       = (hart_id==hart_id_i) ? ipi       : 0;
-    assign boot_addr_sigs[hart_id] = (hart_id==hart_id_i) ? boot_addr : 0;
-    assign pc_sigs[hart_id]        = (hart_id==hart_id_i) ? pc        : 0;
-    assign cause_sigs[hart_id]     = (hart_id==hart_id_i) ? cause     : 0;
-    assign mvu_irq_sigs[hart_id]   = mvu_irq[hart_id];
-  end
+    for (hart_id = 0; hart_id < NUM_HARTS; hart_id++)  begin
+        assign csr_addr_sigs[hart_id]  = (hart_id==hart_id_i) ? csr_addr  : 0;
+        assign csr_wdata_sigs[hart_id] = (hart_id==hart_id_i) ? csr_wdata : 0;
+        assign csr_op_sigs[hart_id]    = (hart_id==hart_id_i) ? csr_op    : 3'b111; // Unknown for rest of the cycle
+        assign boot_addr_sigs[hart_id] = (hart_id==hart_id_i) ? boot_addr : 0;
+        assign pc_sigs[hart_id]        = (hart_id==hart_id_i) ? pc        : 0;
+        assign cause_sigs[hart_id]     = (hart_id==hart_id_i) ? cause     : 0;
+        assign mvu_irq_sigs[hart_id]   = mvu_irq[hart_id];
+        assign irq_sigs[hart_id]       = irq;
+        assign time_irq_sigs[hart_id]  = time_irq;
+        assign ipi_sigs[hart_id]       = ipi;
+    end
 endgenerate
 
 
