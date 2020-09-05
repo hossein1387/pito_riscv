@@ -243,7 +243,7 @@ rv32_alu alu (
                         .z         (rv32_alu_z  )
 );
 
-logic [31 : 0] csr_rdata;
+logic [31 : 0] csr_rdata, csr_ex_rdata;
 logic          csr_irq;
 logic          csr_timer_irq;
 logic          csr_ipi_irq;
@@ -256,6 +256,12 @@ logic [31:0]   csr_epc;
 
 
 assign csr_enable_cycle_count = 1'b1;
+// For now, we will tie these interrupts to ground since no
+// application needs them at the moment.
+assign csr_irq                = 1'b0;
+assign csr_timer_irq          = 1'b0;
+assign csr_ipi_irq            = 1'b0;
+assign csr_cause              = '0;
 
 
 rv32_barrel_csrfiles csr(
@@ -384,7 +390,8 @@ assign rst_n = pito_io_rst_n;
             // reset, we set the pc_sel to PITO_PC_SEL_PLUS_4 so that the pc counter starts
             // executing instruction from memory.
             if (rv32_pc[rv32_hart_cnt] == `EOF_ADDRESS) begin
-                rv32_pc[rv32_hart_cnt] <= `RESET_ADDRESS; //rv32_hart_cnt << 12;
+                // rv32_pc[rv32_hart_cnt] <= `RESET_ADDRESS; //rv32_hart_cnt << 12;
+                rv32_pc[rv32_hart_cnt] <= rv32_hart_cnt << 12;
             end else begin
                 if (pc_sel[rv32_hart_cnt] == `PITO_PC_SEL_PLUS_4) begin
                     rv32_pc[rv32_hart_cnt] <= rv32_pc[rv32_hart_cnt] + 4;
@@ -468,6 +475,7 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
             rv32_alu_rs1     <= rv32_regf_rd1;
             rv32_wb_rs2_skip <= rv32_regf_rd2;
             rv32_ex_rd       <= rv32_dec_rd;
+            csr_ex_rdata     <= csr_rdata;
             if ((rv32_dec_opcode == rv32_pkg::RV32_LB ) ||
                 (rv32_dec_opcode == rv32_pkg::RV32_LH ) ||
                 (rv32_dec_opcode == rv32_pkg::RV32_LW ) ||
@@ -497,7 +505,7 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
     assign is_exception = ((rv32_ex_opcode == rv32_pkg::RV32_ECALL) || (rv32_ex_opcode == rv32_pkg::RV32_EBREAK)) ? 1'b1 : 1'b0;
     assign is_csrrw     = ((rv32_ex_opcode == rv32_pkg::RV32_CSRRW ) || (rv32_ex_opcode==rv32_pkg::RV32_CSRRS ) || (rv32_ex_opcode==rv32_pkg::RV32_CSRRC ) ||
                            (rv32_ex_opcode == rv32_pkg::RV32_CSRRWI) || (rv32_ex_opcode==rv32_pkg::RV32_CSRRSI) || (rv32_ex_opcode==rv32_pkg::RV32_CSRRCI)) ? 1'b1 : 1'b0;
-    assign rv32_ex_res_val = (is_csrrw == 1'b1) ? csr_rdata : rv32_alu_res;
+    assign rv32_ex_res_val = (is_csrrw == 1'b1) ? csr_ex_rdata : rv32_alu_res;
 // The following circuit decides whether the write back to memory should
 // be skipped or not. The write back stage should be skipped only when the 
 // instruction is of type: NOT store
