@@ -1,0 +1,1 @@
+../common/riscv_hex_to_bin.py
