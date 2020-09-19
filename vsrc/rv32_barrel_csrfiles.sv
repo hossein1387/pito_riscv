@@ -54,11 +54,10 @@ module rv32_barrel_csrfiles #(
 
         output logic [NUM_HARTS-1   : 0]  mvu_start,
     
-        input  logic [31 : 0]             pc,       // PC of instruction accessing the CSR
+        input  logic [31 : 0]             pc[NUM_HARTS-1:0], // PC of instruction accessing the CSR
         input  logic [31 : 0]             cause,    // Exception code
         input  logic                      enable_cycle_count, // Enable cycle count
-        output logic [31 : 0]             csr_epc,  // epc 
-
+        output irq_evt_t [NUM_HARTS-1:0]  csr_irq_evt,
         input  logic [pito_pkg::HART_CNT_WIDTH-1:0] hart_id_i // hart id for accessign the csr file
 );
 
@@ -78,7 +77,6 @@ logic          enable_cycle_count_sigs;
 
 logic [31 : 0] csr_rdata_sigs     [NUM_HARTS-1 : 0];
 exception_t    csr_exception_sigs [NUM_HARTS-1 : 0];
-logic [31 : 0] csr_epc_sigs       [NUM_HARTS-1 : 0];
 
 logic [31 : 0] csr_mvu_wbaseaddr_sigs [NUM_HARTS-1 : 0];
 logic [31 : 0] csr_mvu_ibaseaddr_sigs [NUM_HARTS-1 : 0];
@@ -128,7 +126,7 @@ genvar hart_id;
                             .pc_i                (pc_sigs[hart_id]                ),
                             .cause_i             (cause_sigs[hart_id]             ),
                             .enable_cycle_count_i(enable_cycle_count_sigs         ),
-                            .csr_epc_o           (csr_epc_sigs[hart_id]           ),
+                            .csr_irq_evt         (csr_irq_evt[hart_id]            ),
                             .mvu_start           (mvu_start_sigs[hart_id]         ),
                             .csr_mvu_wbaseaddr   (csr_mvu_wbaseaddr_sigs[hart_id] ),
                             .csr_mvu_ibaseaddr   (csr_mvu_ibaseaddr_sigs[hart_id] ),
@@ -167,9 +165,9 @@ generate
         assign csr_wdata_sigs[hart_id] = (hart_id==hart_id_i) ? csr_wdata : 0;
         assign csr_op_sigs[hart_id]    = (hart_id==hart_id_i) ? csr_op    : 3'b111; // Unknown for rest of the cycle
         assign boot_addr_sigs[hart_id] = (hart_id==hart_id_i) ? boot_addr : 0;
-        assign pc_sigs[hart_id]        = (hart_id==hart_id_i) ? pc        : 0;
         assign cause_sigs[hart_id]     = (hart_id==hart_id_i) ? cause     : 0;
         assign mvu_irq_sigs[hart_id]   = mvu_irq[hart_id];
+        assign pc_sigs[hart_id]        = pc[hart_id];
         assign irq_sigs[hart_id]       = irq;
         assign time_irq_sigs[hart_id]  = time_irq;
         assign ipi_sigs[hart_id]       = ipi;
@@ -177,10 +175,8 @@ generate
 endgenerate
 
 
-assign csr_rdata      =   csr_rdata_sigs[hart_id_i];
-assign csr_exception  =   csr_exception_sigs[hart_id_i];
-assign csr_epc        =   csr_epc_sigs[hart_id_i];
-
+assign csr_rdata      = csr_rdata_sigs[hart_id_i];
+assign csr_exception  = csr_exception_sigs[hart_id_i];
 
 generate 
     for (hart_id=0; hart_id<NUM_HARTS; hart_id++) begin

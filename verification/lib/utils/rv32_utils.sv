@@ -297,14 +297,14 @@ class RV32IDecoder extends BaseObj;
         rv32_register_field_t rs1 = instr[19:15];
         rv32_register_field_t rs2 = instr[24:20];
         fnct3_t             funct3 = instr[14:12];
+        string funct3_str;
         rv32_inst_dec.rd             = rd;
         rv32_inst_dec.imm            = `PITO_NULL;
         rv32_inst_dec.inst_type      = RV32_TYPE_R;
         rv32_inst_dec.csr            = `PITO_NULL;
         rv32_inst_dec.rs1            = rs1;
         rv32_inst_dec.rs2            = rs2;
-        if          (opcode == 7'b0110011) begin
-            string funct3_str;
+        if (opcode == 7'b0110011) begin
             case (funct3)
                 3'b000  : begin if (instr[31:25]==7'b0000000) begin
                                   funct3_str = "add"; 
@@ -337,7 +337,10 @@ class RV32IDecoder extends BaseObj;
                 default : begin rv32_inst_dec.opcode = RV32_UNKNOWN; funct3_str = "unknown"; end
             endcase
             //rv32_inst_dec.ins_str = $sformatf("%8s.%7s: rd=%2d rs1=%2d rs2=  %2d          ", inst_type, funct3_str, rd, rs1, rs2);
-        end else                           begin
+        end else if (opcode == 7'b1110011) begin
+            rv32_inst_dec.opcode = RV32_MRET;
+            funct3_str           = "mret";
+        end else begin
             //rv32_inst_dec.ins_str = "!unknown instruction!";
             rv32_inst_dec.opcode = RV32_UNKNOWN;
         end
@@ -352,6 +355,9 @@ class RV32IDecoder extends BaseObj;
             decode_ins = dec_u_type(instr);
         end else if (opcode == 7'b1101111) begin // J-Type
             decode_ins = dec_j_type(instr);
+        end else if ((opcode == 7'b0110011) ||    // R-Type
+                    (instr == 32'h30200073)) begin//MERT
+            decode_ins = dec_r_type(instr);
         end else if ((opcode == 7'b1100111) || 
                      (opcode == 7'b0000011) || 
                      (opcode == 7'b0010011) || 
@@ -366,8 +372,6 @@ class RV32IDecoder extends BaseObj;
             decode_ins = dec_b_type(instr);
         end else if (opcode == 7'b0100011) begin // S-Type
             decode_ins = dec_s_type(instr);
-        end else if (opcode == 7'b0110011) begin // R-Type
-            decode_ins = dec_r_type(instr);
         end else begin
             decode_ins.opcode    = RV32_UNKNOWN;
             decode_ins.imm       = 0;
@@ -983,7 +987,14 @@ class RV32IPredictor extends BaseObj;
             end
             RV32_MRET: begin
                 csr_op   = pito_pkg::MRET;
-                this.logger.print($sformatf("checking %s  is WIP", instr_str));
+                exp_val  = csrf_model[CSR_MEPC];
+                real_val = csrs[CSR_MEPC];
+                info     = $sformatf("%s %18s --> checking epc is matching model epc",instr_str, csr_str);
+                check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
+                exp_val  = csrf_model[CSR_MEPC];
+                real_val = pc_cnt;
+                info     = $sformatf("%s %18s --> checking epc is written to pc",instr_str, csr_str);
+                check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
             end
             RV32_FENCEI, RV32_FENCE, RV32_ECALL, RV32_EBREAK, 
             RV32_ERET, RV32_WFI: begin

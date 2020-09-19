@@ -93,6 +93,12 @@ package pito_pkg;
         CSR_UNKNOWN    = 3'b111
     } csr_op_t;
 
+    typedef struct packed {
+         logic [HART_CNT_WIDTH:0] hart_id; // hart id that received an irq
+         logic [31:0] data; // data to be passed with the irq
+         logic        valid;
+    } irq_evt_t;
+
 //-------------------------------------------------------------------
 //                     PITO Interrupt and Exception Codes
 //-------------------------------------------------------------------

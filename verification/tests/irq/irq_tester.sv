@@ -300,15 +300,13 @@ module irq_tester();
     //         @(posedge clk);
     //     end
     // endtask
-    task automatic raise_irq();
-        for (int i=0; i<100; i++) @(negedge clk);
-        // for (int i=0; i<100; i++) begin
-            mvu_irq = 1;
-            logger.print($sformatf("Raising MVU IRQ"));
-            @(negedge clk);
-            mvu_irq = 0;
-            @(negedge clk);
-        // end
+    task automatic raise_irq(int hart_id);
+        #10us;
+        mvu_irq[hart_id] = 1;
+        logger.print($sformatf("Raising MVU IRQ on Hart[%0d]", hart_id));
+        #100ns;
+        mvu_irq[hart_id] = 0;
+        @(negedge clk);
     endtask
 
     initial begin
@@ -346,7 +344,8 @@ module irq_tester();
         // print_imem_region(0, 511);
         fork
             monitor_pito(instr_q, hart_ids_q);
-            raise_irq();
+            // testing irq on hart 0
+            raise_irq(0);
         join
         rv32i_pred.report_result(1, hart_ids_q);
         // print_imem_region( int'(`PITO_DATA_MEM_OFFSET), int'(`PITO_DATA_MEM_OFFSET+4), "char");

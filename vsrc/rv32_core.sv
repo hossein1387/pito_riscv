@@ -157,7 +157,6 @@ logic              rv32_wb_skip;
 rv32_register_t    rv32_wb_reg_pc;
 rv32_pc_cnt_t      rv32_wb_next_pc_val;
 rv32_data_t        rv32_wb_store_val;
-rv32_register_t    rv32_wb_csr_mepc;
 // rv32_dmem_addr_t   rv32_wb_readd_addr;
 logic [`PITO_DATA_MEM_WIDTH-1  : 0 ] rv32_wb_readd_addr;
 //====================================================================
@@ -252,8 +251,8 @@ logic[31:0]    csr_boot_addr;
 exception_t    csr_exception;
 logic [31:0]   csr_cause;
 logic          csr_enable_cycle_count;
-logic [31:0]   csr_epc;
 
+irq_evt_t [`PITO_NUM_HARTS-1:0] csr_irq_evt;
 
 assign csr_enable_cycle_count = 1'b1;
 // For now, we will tie these interrupts to ground since no
@@ -261,8 +260,13 @@ assign csr_enable_cycle_count = 1'b1;
 assign csr_irq                = 1'b0;
 assign csr_timer_irq          = 1'b0;
 assign csr_ipi_irq            = 1'b0;
-assign csr_cause              = '0;
+assign csr_cause              = 1'b0;
 
+genvar hart_cnt_gen_var;
+
+for (hart_cnt_gen_var = 0; hart_cnt_gen_var < `PITO_NUM_HARTS; hart_cnt_gen_var++) begin
+    assign csr_boot_addr[hart_cnt_gen_var*32 +: 32] = 32'b0;
+end
 
 rv32_barrel_csrfiles csr(
                     .clk                (clk                   ),
@@ -303,25 +307,25 @@ rv32_barrel_csrfiles csr(
                     .csr_mvu_command    (csr_mvu_command       ),
                     .csr_mvu_quant      (csr_mvu_quant         ),
                     .mvu_start          (mvu_start             ),
-                    .pc                 (rv32_dec_pc           ),
+                    .pc                 (rv32_pc               ),
                     .cause              (csr_cause             ),
                     .enable_cycle_count (csr_enable_cycle_count),
-                    .csr_epc            (csr_epc               ),
+                    .csr_irq_evt        (csr_irq_evt           ),
                     .hart_id_i          (rv32_hart_dec_cnt     )
 );
 
 
 rv32_next_pc rv32_next_pc_cal(
-                        .rv32_alu_res     (rv32_wb_out         ),
-                        .rv32_rs1         (rv32_wb_rs1         ),
-                        .rv32_imm         (rv32_wb_imm         ),
-                        .rv32_instr_opcode(rv32_wb_opcode      ),
-                        .rv32_cur_pc      (rv32_wb_pc          ),
-                        .rv32_csr_mepc    (rv32_wb_csr_mepc    ),
-                        .rv32_save_pc     (rv32_wb_save_pc     ),
-                        .rv32_has_new_pc  (rv32_wb_has_new_pc  ),
-                        .rv32_reg_pc      (rv32_wb_reg_pc      ),
-                        .rv32_next_pc_val (rv32_wb_next_pc_val )
+                        .csr_irq_evt      (csr_irq_evt[rv32_hart_wb_cnt]    ),
+                        .rv32_alu_res     (rv32_wb_out                      ),
+                        .rv32_rs1         (rv32_wb_rs1                      ),
+                        .rv32_imm         (rv32_wb_imm                      ),
+                        .rv32_instr_opcode(rv32_wb_opcode                   ),
+                        .rv32_cur_pc      (rv32_wb_pc                       ),
+                        .rv32_save_pc     (rv32_wb_save_pc                  ),
+                        .rv32_has_new_pc  (rv32_wb_has_new_pc               ),
+                        .rv32_reg_pc      (rv32_wb_reg_pc                   ),
+                        .rv32_next_pc_val (rv32_wb_next_pc_val              )
 );
 
 // pito uses seperate memory for instructions and data.
@@ -535,7 +539,6 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
             rv32_wb_imm       <= rv32_ex_imm;
             rv32_wb_rs1       <= rv32_ex_rs1;
             rv32_wb_rd        <= rv32_ex_rd;
-            rv32_wb_csr_mepc  <= csr_epc;
             rv32_dmem_w_en    <= 1'b0;
             rv32_wb_readd_addr<= rv32_ex_readd_addr;
             rv32_hart_wb_cnt  <= rv32_hart_ex_cnt;

@@ -54,7 +54,7 @@ module rv32_csr #(
     input  logic [31 : 0]             pc_i,       // PC of instruction accessing the CSR
     input  logic [31 : 0]             cause_i,    // Exception code
     input  logic                      enable_cycle_count_i, // Enable cycle count
-    output logic [31 : 0]             csr_epc_o   // epc 
+    output irq_evt_t                  csr_irq_evt
 );
 
     // internal signal to keep track of access exceptions
@@ -83,6 +83,9 @@ module rv32_csr #(
     // return from M-mode exception
     logic        mret;  
     logic        mvu_irq_valid;
+    logic        timer_irq_valid;
+    logic        ipi_irq_valid;
+    logic        is_irq;
 
     logic        mtvec_rst_load_q;// used to determine whether we came out of reset
 
@@ -149,8 +152,13 @@ module rv32_csr #(
     assign csr_mvu_status_q   = { {31{1'b0}}, csr_mvu_status};
     assign csr_mvu_command    = csr_mvu_command_q;
     assign csr_mvu_quant      = csr_mvu_quant_q;
-    assign mvu_irq_valid      = mstatus_q.mie & mip_q[pito_pkg::IRQ_MVU_INTR] & mie_q[pito_pkg::IRQ_MVU_INTR];
 
+    assign timer_irq_valid    = 1'b0; // not supported for now
+    assign ipi_irq_valid      = 1'b0; // not supported for now
+    assign mvu_irq_valid      = mstatus_q.mie & mip_q[pito_pkg::IRQ_MVU_INTR] & mie_q[pito_pkg::IRQ_MVU_INTR];
+    assign is_irq             = timer_irq_valid | ipi_irq_valid | mvu_irq_valid;
+    assign csr_irq_evt.hart_id= PITO_HART_ID;
+    assign csr_irq_evt.valid  = |mip_q;
 
 //====================================================================
 //                   CSR Read logic
@@ -219,7 +227,9 @@ module rv32_csr #(
 //====================================================================
 //                   CSR Write and update logic
 //====================================================================
-    logic [63:0] mask;
+    logic [31:0] mask;
+    logic is_mip_w;
+    assign is_mip_w = csr_we & (csr_addr == pito_pkg::CSR_MIP);
     always_comb begin : csr_update
 
         // --------------------
@@ -337,23 +347,22 @@ module rv32_csr #(
         // Timer interrupt pending, coming from platform timer
         mip_d[pito_pkg::IRQ_M_TIMER] = time_irq_i;
         // MVU interrupt pending, coming from MVU
-        mip_d[pito_pkg::IRQ_MVU_INTR] = mvu_irq_i | mip_q[pito_pkg::IRQ_MVU_INTR];
+        mip_d[pito_pkg::IRQ_MVU_INTR] = (is_mip_w) ? csr_wdata[pito_pkg::IRQ_MVU_INTR] : mvu_irq_i | mip_q[pito_pkg::IRQ_MVU_INTR];
 
-        // -----------------------
-        // Manage Exception Stack
-        // -----------------------
         // update exception CSRs
-        // we got an exception update cause, pc and stval register
         // update mstatus
-        // mstatus_d.mie  = 1'b0;
-        // mstatus_d.mpie = mstatus_q.mie;
-        // save the previous privilege mode
-        // mstatus_d.mpp  = priv_lvl_q;
-        mcause_d       = {mvu_irq_valid, {26{1'b0}}, cause_i[4:0]};
-        // set epc
-        mepc_d         = pc_i;
-        // set mtval or stval
-        mtval_d        =  32'b0;
+        if (is_irq) begin
+            // disable intterupts
+            mstatus_d.mie  = 1'b0;
+            // set irq cause
+            mcause_d       = {1'b1, {26{1'b0}}, cause_i[4:0]};
+            // set mepc
+            mepc_d         = pc_i;
+            // set mtval or stval
+            csr_irq_evt.data = mtvec_d;
+            // set mpie to mie 
+            mstatus_d.mpie = mstatus_q.mie;
+        end
 
         // ------------------------------
         // Return from Environment
@@ -366,6 +375,8 @@ module rv32_csr #(
             mstatus_d.mie  = mstatus_q.mpie;
             // set mpie to 1
             mstatus_d.mpie = 1'b1;
+            // return to where we got the interrupt
+            csr_irq_evt.data   = mepc_q;
         end
     end
 
@@ -416,6 +427,7 @@ module rv32_csr #(
         end
     end
 
+
 //====================================================================
 //                  Sequential Process
 //====================================================================
@@ -423,8 +435,7 @@ module rv32_csr #(
         if (~rst_n) begin
             // machine mode registers
             mstatus_q              <= 32'b0;
-            // set to boot address + direct mode + 4 byte offset which is the initial trap
-            // mtvec_q                <= 32'b0;
+            mtvec_q                <= 32'b0;
             mip_q                  <= 32'b0;
             mie_q                  <= 32'b0;
             mepc_q                 <= 32'b0;
@@ -437,6 +448,7 @@ module rv32_csr #(
             wfi_q                  <= 1'b0;
             mtvec_rst_load_q       <= 1'b1;
             mvu_start              <= 1'b0;
+            // csr pc valid signal
         end else begin
             // machine mode registers
             mtvec_rst_load_q       <= 1'b0;

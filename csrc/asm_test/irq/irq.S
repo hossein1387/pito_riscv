@@ -9,10 +9,24 @@
 
 #include "pito_def.h"
 
-jal   sp, enable_mvu_irq
-jal   sp, wait_for_mvu_irq
-jal   sp, mvu_irq_handler
-jal   sp, prog_end
+jal sp, enable_mvu_irq
+jal sp, __startup_code__
+jal sp, wait_for_mvu_irq
+# jal sp, mvu_irq_handler
+jal sp, prog_end
+
+
+# in startup code, we need to set the following:
+#   -> mtvec addresses
+#
+__startup_code__:
+    # addi x1, x0, pito_mtvec_mask
+    # creating mtvec mask
+    lui  a0, %hi(mvu_irq_handler)
+    addi a0, a0, %lo(mvu_irq_handler )
+    csrw mtvec, a0
+    addi ra, sp, 0
+    ret
 
 wait_for_mvu_irq:
     csrr t0, mcause
@@ -24,14 +38,17 @@ wait_for_mvu_irq:
     ret
 
 mvu_irq_handler:
-    # first things first, disable mvu intterupts while processing current irq.
-    jal ra, disable_mvu_irq
+    # first things first, clear mvu intterupts pending bit while processing current irq.
+    addi x1, x0, 1
+    slli x1, x1, 16
+    csrc mip, x1
     # do whatever to make MVU happy 
     addi x0, x0, 0
     # we can now start processing incoming interrupts
-    jal ra, enable_mvu_irq
-    addi ra, sp, 0
-    ret
+    addi gp, sp, 0
+    jal sp, enable_mvu_irq
+    addi ra, gp, 0
+    mret
 
 enable_mvu_irq:
     # make sure global interrupt is enabled
@@ -50,6 +67,10 @@ disable_mvu_irq:
     not t0, t0
     csrw mie, t0
     addi ra, sp, 0
+    ret
+
+clear_mvu_pending_irq:
+    csrrci x0, mip, 0
     ret
 
 # Done with our awesome program!
