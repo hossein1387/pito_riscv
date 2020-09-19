@@ -21,9 +21,7 @@ TEST_MVU_CSR( 1, misa, 0);
 # csrr t2, misa
 # csrr t3, mhartid
 
-TEST_MVU_CSR(2 , mvu_wprecision,  2 );
-TEST_MVU_CSR(3 , mvu_iprecision,  2 );
-TEST_MVU_CSR(4 , mvu_oprecision,  2 );
+TEST_MVU_CSR(2 , mvu_precision ,  2 );
 TEST_MVU_CSR(5 , mvu_wstride_0 , -4 );
 TEST_MVU_CSR(6 , mvu_wstride_1 ,  2 );
 TEST_MVU_CSR(7 , mvu_wstride_2 ,  0 );
@@ -42,10 +40,10 @@ TEST_MVU_CSR(19, mvu_ilength_2 ,  0 );
 TEST_MVU_CSR(20, mvu_olength_0 ,  2 );
 TEST_MVU_CSR(21, mvu_olength_1 ,  0 );
 TEST_MVU_CSR(22, mvu_olength_2 ,  0 );
-TEST_MVU_CSR(23, mvu_countdown , 36 );
+TEST_MVU_CSR(23, mvu_command   , 36 );
 
   TEST_PASSFAIL
-matmul_ret:
+mvu_csr_test_ret:
     ebreak
     ret
 
