@@ -18,7 +18,7 @@ module rv32_imm_gen (
              7'b0000011,
              7'b0010011,
              7'b0001111 : rv_imm = { {20{rv_instr[31]}}, rv_instr[31:20]}; 
-             7'b1110011 : rv_imm = { {27{1'b0}}, rv_instr[19:15]}; // CSRXI
+             7'b1110011 : rv_imm = { {27{rv_instr[19]}}, rv_instr[19:15]}; // CSRXI
              //RV32_TYPE_S
              7'b0100011 : rv_imm = { {20{rv_instr[31]}}, rv_instr[31:25], rv_instr[11:7]};
              //RV32_TYPE_B

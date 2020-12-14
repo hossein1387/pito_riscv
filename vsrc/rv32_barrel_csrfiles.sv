@@ -51,6 +51,12 @@ module rv32_barrel_csrfiles #(
         output logic [32*NUM_HARTS-1 : 0] csr_mvu_status   ,
         output logic [32*NUM_HARTS-1 : 0] csr_mvu_command  ,
         output logic [32*NUM_HARTS-1 : 0] csr_mvu_quant    ,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvu_wstride_3,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvu_istride_3,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvu_ostride_3,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvu_wlength_3,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvu_ilength_3,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvu_olength_3,
 
         output logic [NUM_HARTS-1   : 0]  mvu_start,
     
@@ -100,6 +106,12 @@ logic [31 : 0] csr_mvu_olength_0_sigs [NUM_HARTS-1 : 0];
 logic [31 : 0] csr_mvu_olength_1_sigs [NUM_HARTS-1 : 0];
 logic [31 : 0] csr_mvu_olength_2_sigs [NUM_HARTS-1 : 0];
 logic [31 : 0] csr_mvu_precision_sigs [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_mvu_wstride_3_sigs [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_mvu_istride_3_sigs [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_mvu_ostride_3_sigs [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_mvu_wlength_3_sigs [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_mvu_ilength_3_sigs [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_mvu_olength_3_sigs [NUM_HARTS-1 : 0];
 logic [31 : 0] csr_mvu_status_sigs    [NUM_HARTS-1 : 0];
 logic [31 : 0] csr_mvu_command_sigs   [NUM_HARTS-1 : 0];
 logic [31 : 0] csr_mvu_quant_sigs     [NUM_HARTS-1 : 0];
@@ -150,6 +162,12 @@ genvar hart_id;
                             .csr_mvu_olength_1   (csr_mvu_olength_1_sigs[hart_id] ),
                             .csr_mvu_olength_2   (csr_mvu_olength_2_sigs[hart_id] ),
                             .csr_mvu_precision   (csr_mvu_precision_sigs[hart_id] ),
+                            .csr_mvu_wstride_3   (csr_mvu_wstride_3_sigs[hart_id] ),
+                            .csr_mvu_istride_3   (csr_mvu_istride_3_sigs[hart_id] ),
+                            .csr_mvu_ostride_3   (csr_mvu_ostride_3_sigs[hart_id] ),
+                            .csr_mvu_wlength_3   (csr_mvu_wlength_3_sigs[hart_id] ),
+                            .csr_mvu_ilength_3   (csr_mvu_ilength_3_sigs[hart_id] ),
+                            .csr_mvu_olength_3   (csr_mvu_olength_3_sigs[hart_id] ),
                             .csr_mvu_status      (csr_mvu_status_sigs[hart_id]    ),
                             .csr_mvu_command     (csr_mvu_command_sigs[hart_id]   ),
                             .csr_mvu_quant       (csr_mvu_quant_sigs[hart_id]     )
@@ -202,6 +220,12 @@ generate
         assign csr_mvu_olength_1 [hart_id*32 +: 32] = csr_mvu_olength_1_sigs[hart_id];
         assign csr_mvu_olength_2 [hart_id*32 +: 32] = csr_mvu_olength_2_sigs[hart_id];
         assign csr_mvu_precision [hart_id*32 +: 32] = csr_mvu_precision_sigs[hart_id];
+        assign csr_mvu_wstride_3 [hart_id*32 +: 32] = csr_mvu_wstride_3_sigs[hart_id];
+        assign csr_mvu_istride_3 [hart_id*32 +: 32] = csr_mvu_istride_3_sigs[hart_id];
+        assign csr_mvu_ostride_3 [hart_id*32 +: 32] = csr_mvu_ostride_3_sigs[hart_id];
+        assign csr_mvu_wlength_3 [hart_id*32 +: 32] = csr_mvu_wlength_3_sigs[hart_id];
+        assign csr_mvu_ilength_3 [hart_id*32 +: 32] = csr_mvu_ilength_3_sigs[hart_id];
+        assign csr_mvu_olength_3 [hart_id*32 +: 32] = csr_mvu_olength_3_sigs[hart_id];
         assign csr_mvu_status    [hart_id*32 +: 32] = csr_mvu_status_sigs[hart_id];
         assign csr_mvu_command   [hart_id*32 +: 32] = csr_mvu_command_sigs[hart_id];
         assign csr_mvu_quant     [hart_id*32 +: 32] = csr_mvu_quant_sigs[hart_id];

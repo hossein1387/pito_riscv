@@ -81,7 +81,14 @@ package pito_pkg;
         CSR_MVU_PRECISION  = 12'hF35,            // Config precision
         CSR_MVU_STATUS     = 12'hF36,            // MVU status register
         CSR_MVU_COMMAND    = 12'hF37,            // MVU command register
-        CSR_MVU_QUANT      = 12'hF38             // Config quantizer
+        CSR_MVU_QUANT      = 12'hF38,            // Config quantizer
+        CSR_MVU_WSTRIDE_3  = 12'hF39,
+        CSR_MVU_ISTRIDE_3  = 12'hF3A,
+        CSR_MVU_OSTRIDE_3  = 12'hF3B,
+        CSR_MVU_WLENGTH_3  = 12'hF3C,
+        CSR_MVU_ILENGTH_3  = 12'hF3D,
+        CSR_MVU_OLENGTH_3  = 12'hF3E
+
     } csr_t;
 
 

@@ -27,21 +27,27 @@ module rv32_csr #(
     output logic [31:0]               csr_mvu_wstride_0 ,
     output logic [31:0]               csr_mvu_wstride_1 ,
     output logic [31:0]               csr_mvu_wstride_2 ,
+    output logic [31:0]               csr_mvu_wstride_3 ,
     output logic [31:0]               csr_mvu_istride_0 ,
     output logic [31:0]               csr_mvu_istride_1 ,
     output logic [31:0]               csr_mvu_istride_2 ,
+    output logic [31:0]               csr_mvu_istride_3 ,
     output logic [31:0]               csr_mvu_ostride_0 ,
     output logic [31:0]               csr_mvu_ostride_1 ,
     output logic [31:0]               csr_mvu_ostride_2 ,
+    output logic [31:0]               csr_mvu_ostride_3 ,
     output logic [31:0]               csr_mvu_wlength_0 ,
     output logic [31:0]               csr_mvu_wlength_1 ,
     output logic [31:0]               csr_mvu_wlength_2 ,
+    output logic [31:0]               csr_mvu_wlength_3 ,
     output logic [31:0]               csr_mvu_ilength_0 ,
     output logic [31:0]               csr_mvu_ilength_1 ,
+    output logic [31:0]               csr_mvu_ilength_3 ,
     output logic [31:0]               csr_mvu_ilength_2 ,
     output logic [31:0]               csr_mvu_olength_0 ,
     output logic [31:0]               csr_mvu_olength_1 ,
     output logic [31:0]               csr_mvu_olength_2 ,
+    output logic [31:0]               csr_mvu_olength_3 ,
     output logic [31:0]               csr_mvu_precision ,
     output logic [31:0]               csr_mvu_status    ,
     output logic [31:0]               csr_mvu_command   ,
@@ -96,26 +102,31 @@ module rv32_csr #(
     logic [31:0] csr_mvu_wstride_0_q , csr_mvu_wstride_0_d ; // Config: weight stride in dimension 0 (x)
     logic [31:0] csr_mvu_wstride_1_q , csr_mvu_wstride_1_d ; // Config: weight stride in dimension 1 (y)
     logic [31:0] csr_mvu_wstride_2_q , csr_mvu_wstride_2_d ; // Config: weight stride in dimension 2 (z)
+    logic [31:0] csr_mvu_wstride_3_q , csr_mvu_wstride_3_d ;
     logic [31:0] csr_mvu_istride_0_q , csr_mvu_istride_0_d ; // Config: input stride in dimension 0 (x)
     logic [31:0] csr_mvu_istride_1_q , csr_mvu_istride_1_d ; // Config: input stride in dimension 1 (y)
     logic [31:0] csr_mvu_istride_2_q , csr_mvu_istride_2_d ; // Config: input stride in dimension 2 (z)
+    logic [31:0] csr_mvu_istride_3_q , csr_mvu_istride_3_d ;
     logic [31:0] csr_mvu_ostride_0_q , csr_mvu_ostride_0_d ; // Config: output stride in dimension 0 (x)
     logic [31:0] csr_mvu_ostride_1_q , csr_mvu_ostride_1_d ; // Config: output stride in dimension 1 (y)
     logic [31:0] csr_mvu_ostride_2_q , csr_mvu_ostride_2_d ; // Config: output stride in dimension 2 (z)
+    logic [31:0] csr_mvu_ostride_3_q , csr_mvu_ostride_3_d ;
     logic [31:0] csr_mvu_wlength_0_q , csr_mvu_wlength_0_d ; // Config: weight length in dimension 0 (x)
     logic [31:0] csr_mvu_wlength_1_q , csr_mvu_wlength_1_d ; // Config: weight length in dimension 1 (y)
     logic [31:0] csr_mvu_wlength_2_q , csr_mvu_wlength_2_d ; // Config: weight length in dimension 2 (z)
+    logic [31:0] csr_mvu_wlength_3_q , csr_mvu_wlength_3_d ;
     logic [31:0] csr_mvu_ilength_0_q , csr_mvu_ilength_0_d ; // Config: input length in dimension 0 (x)
     logic [31:0] csr_mvu_ilength_1_q , csr_mvu_ilength_1_d ; // Config: input length in dimension 1 (y)
     logic [31:0] csr_mvu_ilength_2_q , csr_mvu_ilength_2_d ; // Config: input length in dimension 2 (z)
+    logic [31:0] csr_mvu_ilength_3_q , csr_mvu_ilength_3_d ;
     logic [31:0] csr_mvu_olength_0_q , csr_mvu_olength_0_d ; // Config: output length in dimension 0 (x)
     logic [31:0] csr_mvu_olength_1_q , csr_mvu_olength_1_d ; // Config: output length in dimension 1 (y)
+    logic [31:0] csr_mvu_olength_3_q , csr_mvu_olength_3_d ;
     logic [31:0] csr_mvu_olength_2_q , csr_mvu_olength_2_d ; // Config: output length in dimension 2 (z)    
     logic [31:0] csr_mvu_precision_q , csr_mvu_precision_d ; // Config: output precision
     logic [31:0] csr_mvu_status_q    , csr_mvu_status_d    ;
     logic [31:0] csr_mvu_command_q   , csr_mvu_command_d   ;
     logic [31:0] csr_mvu_quant_q     , csr_mvu_quant_d     ;
-
 //====================================================================
 //                    Assignments
 //====================================================================
@@ -133,21 +144,27 @@ module rv32_csr #(
     assign csr_mvu_wstride_0  = csr_mvu_wstride_0_q;
     assign csr_mvu_wstride_1  = csr_mvu_wstride_1_q;
     assign csr_mvu_wstride_2  = csr_mvu_wstride_2_q;
+    assign csr_mvu_wstride_3  = csr_mvu_wstride_3_q;
     assign csr_mvu_istride_0  = csr_mvu_istride_0_q;
     assign csr_mvu_istride_1  = csr_mvu_istride_1_q;
     assign csr_mvu_istride_2  = csr_mvu_istride_2_q;
+    assign csr_mvu_istride_3  = csr_mvu_istride_3_q;
     assign csr_mvu_ostride_0  = csr_mvu_ostride_0_q;
     assign csr_mvu_ostride_1  = csr_mvu_ostride_1_q;
     assign csr_mvu_ostride_2  = csr_mvu_ostride_2_q;
+    assign csr_mvu_ostride_3  = csr_mvu_ostride_3_q;
     assign csr_mvu_wlength_0  = csr_mvu_wlength_0_q;
     assign csr_mvu_wlength_1  = csr_mvu_wlength_1_q;
     assign csr_mvu_wlength_2  = csr_mvu_wlength_2_q;
+    assign csr_mvu_wlength_3  = csr_mvu_wlength_3_q;
     assign csr_mvu_ilength_0  = csr_mvu_ilength_0_q;
     assign csr_mvu_ilength_1  = csr_mvu_ilength_1_q;
     assign csr_mvu_ilength_2  = csr_mvu_ilength_2_q;
+    assign csr_mvu_ilength_3  = csr_mvu_ilength_3_q;
     assign csr_mvu_olength_0  = csr_mvu_olength_0_q;
     assign csr_mvu_olength_1  = csr_mvu_olength_1_q;
     assign csr_mvu_olength_2  = csr_mvu_olength_2_q;
+    assign csr_mvu_olength_3  = csr_mvu_olength_3_q;
     assign csr_mvu_precision  = csr_mvu_precision_q;
     assign csr_mvu_status_q   = { {31{1'b0}}, csr_mvu_status};
     assign csr_mvu_command    = csr_mvu_command_q;
@@ -217,7 +234,12 @@ module rv32_csr #(
                 pito_pkg::CSR_MVU_STATUS     :   csr_rdata = csr_mvu_status_q;
                 pito_pkg::CSR_MVU_COMMAND    :   csr_rdata = csr_mvu_command_q;
                 pito_pkg::CSR_MVU_QUANT      :   csr_rdata = csr_mvu_quant_q;
-
+                pito_pkg::CSR_MVU_WSTRIDE_3  :   csr_rdata = csr_mvu_wstride_3_q;
+                pito_pkg::CSR_MVU_ISTRIDE_3  :   csr_rdata = csr_mvu_istride_3_q;
+                pito_pkg::CSR_MVU_OSTRIDE_3  :   csr_rdata = csr_mvu_ostride_3_q;
+                pito_pkg::CSR_MVU_WLENGTH_3  :   csr_rdata = csr_mvu_wlength_3_q;
+                pito_pkg::CSR_MVU_ILENGTH_3  :   csr_rdata = csr_mvu_ilength_3_q;
+                pito_pkg::CSR_MVU_OLENGTH_3  :   csr_rdata = csr_mvu_olength_3_q;
 
                 default: read_access_exception = 1'b1;
             endcase
@@ -329,6 +351,12 @@ module rv32_csr #(
                 pito_pkg::CSR_MVU_PRECISION  :   csr_mvu_precision_d  = csr_wdata;
                 pito_pkg::CSR_MVU_COMMAND    :   csr_mvu_command_d    = csr_wdata;
                 pito_pkg::CSR_MVU_QUANT      :   csr_mvu_quant_d      = csr_wdata;
+                pito_pkg::CSR_MVU_WSTRIDE_3  :   csr_mvu_wstride_3_d  = csr_wdata;
+                pito_pkg::CSR_MVU_ISTRIDE_3  :   csr_mvu_istride_3_d  = csr_wdata;
+                pito_pkg::CSR_MVU_OSTRIDE_3  :   csr_mvu_ostride_3_d  = csr_wdata;
+                pito_pkg::CSR_MVU_WLENGTH_3  :   csr_mvu_wlength_3_d  = csr_wdata;
+                pito_pkg::CSR_MVU_ILENGTH_3  :   csr_mvu_ilength_3_d  = csr_wdata;
+                pito_pkg::CSR_MVU_OLENGTH_3  :   csr_mvu_olength_3_d  = csr_wdata;
 
                 default: update_access_exception = 1'b1;
             endcase
@@ -487,7 +515,12 @@ module rv32_csr #(
             csr_mvu_olength_1_q    <= csr_mvu_olength_1_d;
             csr_mvu_olength_2_q    <= csr_mvu_olength_2_d;
             csr_mvu_precision_q    <= csr_mvu_precision_d;
-
+            csr_mvu_wstride_3_q    <= csr_mvu_wstride_3_d;
+            csr_mvu_istride_3_q    <= csr_mvu_istride_3_d;
+            csr_mvu_ostride_3_q    <= csr_mvu_ostride_3_d;
+            csr_mvu_wlength_3_q    <= csr_mvu_wlength_3_d;
+            csr_mvu_ilength_3_q    <= csr_mvu_ilength_3_d;
+            csr_mvu_olength_3_q    <= csr_mvu_olength_3_d;
             csr_mvu_precision_q    <= csr_mvu_precision_d;
             csr_mvu_command_q      <= csr_mvu_command_d  ;
             csr_mvu_quant_q        <= csr_mvu_quant_d    ;

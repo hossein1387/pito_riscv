@@ -515,6 +515,12 @@ class RV32IPredictor extends BaseObj;
             pito_pkg::CSR_MVU_STATUS     : access = rv32_pkg::RV32_WIRI;
             pito_pkg::CSR_MVU_COMMAND    : access = rv32_pkg::RV32_WLRL;
             pito_pkg::CSR_MVU_QUANT      : access = rv32_pkg::RV32_WLRL;
+            pito_pkg::CSR_MVU_WSTRIDE_3  : access = rv32_pkg::RV32_WLRL;
+            pito_pkg::CSR_MVU_ISTRIDE_3  : access = rv32_pkg::RV32_WLRL;
+            pito_pkg::CSR_MVU_OSTRIDE_3  : access = rv32_pkg::RV32_WLRL;
+            pito_pkg::CSR_MVU_WLENGTH_3  : access = rv32_pkg::RV32_WLRL;
+            pito_pkg::CSR_MVU_ILENGTH_3  : access = rv32_pkg::RV32_WLRL;
+            pito_pkg::CSR_MVU_OLENGTH_3  : access = rv32_pkg::RV32_WLRL;
             default : access = rv32_pkg::RV32_WIRI;/* default */
         endcase
         return access;
@@ -1072,5 +1078,5 @@ endclass
         end
         return instr_q;
     endfunction
-
+    
 endpackage: rv32_utils
