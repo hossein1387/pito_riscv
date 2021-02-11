@@ -1,4 +1,4 @@
-class interface_tester extends base_testbench;
+class interface_tester extends testbench_base;
 
     function new(Logger logger, string firmware, virtual pito_interface inf);
         super.new(logger, firmware, inf);

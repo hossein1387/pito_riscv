@@ -1,5 +1,8 @@
 
+
+//================================================================
 // hard coded HDL paths for verification 
+//================================================================
  
 `define hdl_path_top testbench_top.core
 `define hdl_path_regf `hdl_path_top.regfile.genblk1
