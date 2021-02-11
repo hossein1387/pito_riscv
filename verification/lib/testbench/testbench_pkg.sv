@@ -1,17 +1,15 @@
 package testbench_pkg;
 
-class BaseObj;
-    Logger logger;
-   function new (Logger logger);
-      this.logger = logger;
-   endfunction
-endclass
+import utils::*;
+import rv32_utils::*;
+import pito_pkg::*;
+import monitor_pkg::*;
 
 class base_testbench extends BaseObj;
 
     string firmware;
     pito_interface inf;
-    rv32_data_q instr_q;
+    rv32_data_q::rv32_data_q instr_q;
     monitor_pkg::pito_monitor monitor;
     int hart_ids_q[$]; // hart id to monitor
 
@@ -74,18 +72,50 @@ class base_testbench extends BaseObj;
             @(posedge inf.clk);
             inf.pito_io_imem_w_en = 1'b1;
             @(posedge inf.clk);
-            for (int addr=0; addr<this.instr_q.size(); addr++) begin
+            for (int addr=0; addr<instr_q.size(); addr++) begin
                 @(posedge inf.clk);
-                inf.pito_io_imem_data = this.instr_q[addr];
+                inf.pito_io_imem_data = instr_q[addr];
                 inf.pito_io_imem_addr = addr;
                 if(log_to_console) begin
-                    logger.print($sformatf("[%4d]: 0x%8h     %s", addr, this.instr_q[addr], get_instr_str(rv32i_dec.decode_instr(this.instr_q[addr]))));
+                    logger.print($sformatf("[%4d]: 0x%8h     %s", addr, instr_q[addr], get_instr_str(rv32i_dec.decode_instr(instr_q[addr]))));
                 end
             end
             @(posedge inf.clk);
             inf.pito_io_imem_w_en = 1'b0;
         end
     endtask
+
+    virtual task tb_setup();
+        logger.print_banner("Testbench Setup Phase");
+        // Put DUT to reset and relax memory interface
+        inf.pito_io_rst_n     = 1'b1;
+        inf.pito_io_dmem_w_en = 1'b0;
+        inf.pito_io_imem_w_en = 1'b0;
+        inf.pito_io_imem_addr = 32'b0;
+        inf.pito_io_dmem_addr = 32'b0;
+        inf.pito_io_program   = 0;
+        inf.mvu_irq_i         = 0;
+
+        @(posedge inf.clk);
+        pito_inf.pito_io_rst_n = 1'b0;
+        @(posedge inf.clk);
+
+        this.write_instr_to_ram(instr_q, 1, 0);
+        this.write_to_dram(instr_q);
+
+        @(posedge inf.clk);
+        pito_inf.pito_io_rst_n = 1'b1;
+        @(posedge inf.clk);
+
+        logger.print("Setup Phase Done ...")
+    endtask
+
+    virtual task run();
+        logger.print_banner("Testbench Run phase");
+        logger.print("Run Method is not implemented")
+        logger.print("Run phase done ...")
+    endtask 
+
 endclass
 
 endpackage

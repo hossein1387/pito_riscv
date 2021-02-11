@@ -1,6 +1,7 @@
 import utils::*;
 import rv32_utils::*;
 import pito_pkg::*;
+// `include "../../lib/utils/testbench_macros.svh"
 
 module irq_tester();
 //==================================================================================================

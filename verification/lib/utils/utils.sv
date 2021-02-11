@@ -55,6 +55,16 @@ class Logger;  /* base class*/;
     endfunction
 
 endclass
+
+
+// Base class to construct verification components
+class BaseObj;
+    Logger logger;
+   function new (Logger logger);
+      this.logger = logger;
+   endfunction
+endclass
+
 //==================================================================================================
 // Struct test_stats_t
 // Defines a struct that holds test statistics 
