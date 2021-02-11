@@ -1,6 +1,6 @@
 
 interface pito_interface(input logic clk);
-    import rv32_utils::*;
+    import rv32_pkg::*;
     import pito_pkg::*;
     logic              pito_io_rst_n;  // Synchronous reset active low
     rv32_imem_addr_t   pito_io_imem_addr;

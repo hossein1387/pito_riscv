@@ -1,12 +1,11 @@
-package monitor_pkg;
-
 import rv32_utils::*;
 import utils::*;
 import pito_pkg::*;
+import rv32_pkg::*;
 
 class pito_monitor extends BaseObj;
 
-    pito_interface inf;
+    virtual pito_interface inf;
     rv32_utils::RV32IDecoder rv32i_dec;
     rv32_utils::RV32IPredictor rv32i_pred;
     rv32_pkg::rv32_data_q instr_q;
@@ -227,5 +226,3 @@ class pito_monitor extends BaseObj;
         logger.print($sformatf("Exception signal was received from HART[%0d] code name: %s", hart_id, `hdl_path_top.rv32_wf_opcode.name));
     endtask
 endclass
-
-endpackage

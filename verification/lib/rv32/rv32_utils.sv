@@ -388,8 +388,8 @@ class RV32IPredictor extends BaseObj;
         test_stat = '{pass_cnt: 0, fail_cnt: 0};
         regf_model = new[num_harts];
         csrf_model = new[`NUM_CSR];
-        init_regfile_model();
-        init_data_mem_model(data_q);
+        void'(init_regfile_model());
+        void'(init_data_mem_model(data_q));
     endfunction
 
     function init_regfile_model();
@@ -1008,8 +1008,8 @@ class RV32IPredictor extends BaseObj;
                 this.logger.print($sformatf("Test Fail [0x%8h: %s] Unknown Instruction, pc=%4h", act_instr, instr_str, pc_orig_cnt));
             end
             endcase
-            this.update_regf(has_rf_update, rd, exp_val, hart_id);
-            this.update_csrf(has_csr_update, csr, exp_val, hart_id, csr_op);
+            void'(this.update_regf(has_rf_update, rd, exp_val, hart_id));
+            void'(this.update_csrf(has_csr_update, csr, exp_val, hart_id, csr_op));
             // this.print_regfile_content(hart_id);
     endfunction
 

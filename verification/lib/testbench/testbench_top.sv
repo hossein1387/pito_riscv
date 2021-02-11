@@ -1,5 +1,4 @@
 import utils::*;
-import testbench_pkg::*;
 
 module testbench_top();
 //==================================================================================================
@@ -12,14 +11,15 @@ module testbench_top();
     logic clk;
     pito_interface pito_inf(clk);
     rv32_core core(pito_inf.system_interface);
-    base_testbench tb;
+    interface_tester tb;
 
     initial begin
         logger = new(sim_log_file);
-        tb = new base_testbench(logger, program_hex_file, pito_inf.tb_interface);
+        tb = new(logger, program_hex_file, pito_inf.tb_interface);
 
         tb.tb_setup();
         tb.run();
+        tb.report();
         $finish();
 
     end

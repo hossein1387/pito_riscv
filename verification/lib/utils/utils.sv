@@ -118,7 +118,7 @@ typedef struct packed
 function void print_result(test_stats_t test_stat, print_verbosity_t verbosity=VERB_LOW, Logger logger=null);
     if (logger == null) begin
         `print_banner("INFO", "Test results", verbosity)
-        `test_print("INFO", $sformatf("Total Number of tests  = %0d\n", test_stat.pass_cnt+test_stat.fail_cnt), verbosity)
+        `test_print("INFO", $sformatf("Total Number of tests  = %0d", test_stat.pass_cnt+test_stat.fail_cnt), verbosity)
         `test_print("INFO", $sformatf("Number of passed tests = %0d", test_stat.pass_cnt), verbosity)
         `test_print("INFO", $sformatf("Number of failed tests = %0d\n", test_stat.fail_cnt), verbosity)
     end else begin

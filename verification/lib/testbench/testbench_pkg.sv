@@ -1,26 +1,25 @@
-package testbench_pkg;
-
 import utils::*;
+import rv32_pkg::*;
 import rv32_utils::*;
 import pito_pkg::*;
-import monitor_pkg::*;
 
 class base_testbench extends BaseObj;
 
     string firmware;
-    pito_interface inf;
-    rv32_data_q::rv32_data_q instr_q;
-    monitor_pkg::pito_monitor monitor;
+    virtual pito_interface inf;
+    rv32_pkg::rv32_data_q instr_q;
+    pito_monitor monitor;
     int hart_ids_q[$]; // hart id to monitor
+    rv32_utils::RV32IDecoder rv32i_dec;
+    test_stats_t test_stat;
 
     function new (Logger logger, string firmware, virtual pito_interface inf);
-        super.new (logger);
+        super.new(logger);
         this.firmware = firmware;
         this.inf = inf;
         // read hex file and store the first n words to the ram
-        instr_q = process_hex_file(program_hex_file, logger, `NUM_INSTR_WORDS); 
+        instr_q = process_hex_file(firmware, logger, `NUM_INSTR_WORDS); 
         
-
         // Initialize harts in the system
         for (int i=0; i<`PITO_NUM_HARTS; i++) begin
             hart_ids_q.push_back(0);
@@ -29,8 +28,8 @@ class base_testbench extends BaseObj;
         hart_ids_q[0] = 1;
 
         monitor = new(this.logger, this.instr_q, this.inf, this.hart_ids_q);
+        this.rv32i_dec = new(this.logger);
     endfunction
-
 
     function automatic rv32_data_q process_hex_file(string hex_file, Logger logger, int nwords);
         int fd = $fopen (hex_file, "r");
@@ -52,7 +51,7 @@ class base_testbench extends BaseObj;
 
     task write_data_to_ram(rv32_data_q data_q);
         for (int i=0; i<data_q.size(); i++) begin
-            core.d_mem.bram_32Kb_inst.inst.native_mem_module.blk_mem_gen_v8_4_3_inst.memory[i] = data_q[i];
+            `hdl_path_dmem[i] = data_q[i];
         end
     endtask
 
@@ -63,9 +62,9 @@ class base_testbench extends BaseObj;
         end
         if (backdoor == 1) begin
             for (int addr=0 ; addr<this.instr_q.size(); addr++) begin
-                core.i_mem.bram_32Kb_inst.inst.native_mem_module.blk_mem_gen_v8_4_3_inst.memory[addr] = this.instr_q[addr];
+                `hdl_path_imem[addr] = this.instr_q[addr];
                 if(log_to_console) begin
-                    logger.print($sformatf("[%4d]: 0x%8h     %s", addr, this.instr_q[addr], get_instr_str(rv32i_dec.decode_instr(this.instr_q[addr]))));
+                    logger.print($sformatf("[%4d]: 0x%8h     %s", addr, this.instr_q[addr], rv32_utils::get_instr_str(rv32i_dec.decode_instr(this.instr_q[addr]))));
                 end
             end
         end else begin
@@ -77,7 +76,7 @@ class base_testbench extends BaseObj;
                 inf.pito_io_imem_data = instr_q[addr];
                 inf.pito_io_imem_addr = addr;
                 if(log_to_console) begin
-                    logger.print($sformatf("[%4d]: 0x%8h     %s", addr, instr_q[addr], get_instr_str(rv32i_dec.decode_instr(instr_q[addr]))));
+                    logger.print($sformatf("[%4d]: 0x%8h     %s", addr, instr_q[addr], rv32_utils::get_instr_str(rv32i_dec.decode_instr(instr_q[addr]))));
                 end
             end
             @(posedge inf.clk);
@@ -97,25 +96,28 @@ class base_testbench extends BaseObj;
         inf.mvu_irq_i         = 0;
 
         @(posedge inf.clk);
-        pito_inf.pito_io_rst_n = 1'b0;
+        inf.pito_io_rst_n = 1'b0;
         @(posedge inf.clk);
 
-        this.write_instr_to_ram(instr_q, 1, 0);
-        this.write_to_dram(instr_q);
+        this.write_instr_to_ram(1, 0);
+        this.write_data_to_ram(instr_q);
 
         @(posedge inf.clk);
-        pito_inf.pito_io_rst_n = 1'b1;
+        inf.pito_io_rst_n = 1'b1;
         @(posedge inf.clk);
 
-        logger.print("Setup Phase Done ...")
+        logger.print("Setup Phase Done ...");
     endtask
 
     virtual task run();
         logger.print_banner("Testbench Run phase");
-        logger.print("Run Method is not implemented")
-        logger.print("Run phase done ...")
+        logger.print("Run method is not implemented");
+        logger.print("Run phase done ...");
+    endtask 
+
+    virtual task report();
+        logger.print_banner("Testbench Report phase");
+        print_result(test_stat);
     endtask 
 
 endclass
-
-endpackage
