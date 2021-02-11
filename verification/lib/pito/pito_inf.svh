@@ -1,8 +1,7 @@
-import rv32_utils::*;
-import pito_pkg::*;
-
 
 interface pito_interface(input logic clk);
+    import rv32_utils::*;
+    import pito_pkg::*;
     logic              pito_io_rst_n;  // Synchronous reset active low
     rv32_imem_addr_t   pito_io_imem_addr;
     rv32_instr_t       pito_io_imem_data;
@@ -51,49 +50,49 @@ interface pito_interface(input logic clk);
 //=================================================
 // Modport for Testbench interface 
 //=================================================
-modport  tb_interface (    
-                         input  clk,    // Clock
-                         input  pito_io_rst_n,  // Synchronous reset active low
-                         input  pito_io_imem_addr,
-                         input  pito_io_imem_data,
-                         input  pito_io_dmem_addr,
-                         input  pito_io_dmem_data,
-                         input  pito_io_imem_w_en,
-                         input  pito_io_dmem_w_en,
-                         input  pito_io_program,
-                         input  mvu_irq_i,
-                         output csr_mvu_wbaseaddr,
-                         output csr_mvu_ibaseaddr,
-                         output csr_mvu_obaseaddr,
-                         output csr_mvu_wstride_0,
-                         output csr_mvu_wstride_1,
-                         output csr_mvu_wstride_2,
-                         output csr_mvu_wstride_3,
-                         output csr_mvu_istride_0,
-                         output csr_mvu_istride_1,
-                         output csr_mvu_istride_2,
-                         output csr_mvu_istride_3,
-                         output csr_mvu_ostride_0,
-                         output csr_mvu_ostride_1,
-                         output csr_mvu_ostride_2,
-                         output csr_mvu_ostride_3,
-                         output csr_mvu_wlength_0,
-                         output csr_mvu_wlength_1,
-                         output csr_mvu_wlength_2,
-                         output csr_mvu_wlength_3,
-                         output csr_mvu_ilength_0,
-                         output csr_mvu_ilength_1,
-                         output csr_mvu_ilength_2,
-                         output csr_mvu_ilength_3,
-                         output csr_mvu_olength_0,
-                         output csr_mvu_olength_1,
-                         output csr_mvu_olength_2,
-                         output csr_mvu_olength_3,
-                         output csr_mvu_precision,
-                         output csr_mvu_status   ,
-                         output csr_mvu_command  ,
-                         output csr_mvu_quant    ,
-                         output mvu_start        
+modport  tb_interface (
+                        input  clk,    // Clock
+                        input  pito_io_rst_n,  // Synchronous reset active low
+                        input  pito_io_imem_addr,
+                        input  pito_io_imem_data,
+                        input  pito_io_dmem_addr,
+                        input  pito_io_dmem_data,
+                        input  pito_io_imem_w_en,
+                        input  pito_io_dmem_w_en,
+                        input  pito_io_program,
+                        input  mvu_irq_i,
+                        output csr_mvu_wbaseaddr,
+                        output csr_mvu_ibaseaddr,
+                        output csr_mvu_obaseaddr,
+                        output csr_mvu_wstride_0,
+                        output csr_mvu_wstride_1,
+                        output csr_mvu_wstride_2,
+                        output csr_mvu_wstride_3,
+                        output csr_mvu_istride_0,
+                        output csr_mvu_istride_1,
+                        output csr_mvu_istride_2,
+                        output csr_mvu_istride_3,
+                        output csr_mvu_ostride_0,
+                        output csr_mvu_ostride_1,
+                        output csr_mvu_ostride_2,
+                        output csr_mvu_ostride_3,
+                        output csr_mvu_wlength_0,
+                        output csr_mvu_wlength_1,
+                        output csr_mvu_wlength_2,
+                        output csr_mvu_wlength_3,
+                        output csr_mvu_ilength_0,
+                        output csr_mvu_ilength_1,
+                        output csr_mvu_ilength_2,
+                        output csr_mvu_ilength_3,
+                        output csr_mvu_olength_0,
+                        output csr_mvu_olength_1,
+                        output csr_mvu_olength_2,
+                        output csr_mvu_olength_3,
+                        output csr_mvu_precision,
+                        output csr_mvu_status   ,
+                        output csr_mvu_command  ,
+                        output csr_mvu_quant    ,
+                        output mvu_start        
 );
 
 //=================================================

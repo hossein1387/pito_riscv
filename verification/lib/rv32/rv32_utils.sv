@@ -2,20 +2,10 @@ package rv32_utils;
 import utils::*;
 import rv32_pkg::*;
 import pito_pkg::*;
-// `include "../../../vsrc/rv32_types.svh"
 
 //==================================================================================================
 // RV32IDecoder class used for verification and simulation purposes 
 //==================================================================================================
-
-class BaseObj;
-    Logger logger;
-
-   function new (Logger logger);
-      this.logger = logger;
-   endfunction
-
-endclass
 
 class RV32IDecoder extends BaseObj;
 
@@ -42,7 +32,6 @@ class RV32IDecoder extends BaseObj;
         rv32_inst_dec.rd  = `PITO_NULL;
         return rv32_inst_dec;
     endfunction
-
 
     function rv32_inst_dec_t dec_u_type (rv32_instr_t instr);
         rv32_inst_dec_t rv32_inst_dec;
@@ -1026,57 +1015,39 @@ class RV32IPredictor extends BaseObj;
 
 endclass
 
-    function automatic string reg_file_to_str(rv32_regfile_t regfile);
-        int NUM_ROWS = 4;
-        int NUM_COLS = 8;
-        string reg_vals = "";
-        for (int i=0; i< NUM_ROWS; i++) begin
-            for (int j=0; j< NUM_COLS; j++) begin
-                reg_vals = $sformatf("%s[%4s]:0x%8h  ", reg_vals, rv32_abi_reg_s[i*NUM_COLS+j], regfile[i*NUM_COLS+j]);
-            end
-            reg_vals = $sformatf("%s\n", reg_vals);
+function automatic string reg_file_to_str(rv32_regfile_t regfile);
+    int NUM_ROWS = 4;
+    int NUM_COLS = 8;
+    string reg_vals = "";
+    for (int i=0; i< NUM_ROWS; i++) begin
+        for (int j=0; j< NUM_COLS; j++) begin
+            reg_vals = $sformatf("%s[%4s]:0x%8h  ", reg_vals, rv32_abi_reg_s[i*NUM_COLS+j], regfile[i*NUM_COLS+j]);
         end
-        return reg_vals;
-    endfunction
+        reg_vals = $sformatf("%s\n", reg_vals);
+    end
+    return reg_vals;
+endfunction
 
-    function automatic string get_instr_str(rv32_inst_dec_t instr);
-        string instr_str;
-        string   opcode    = instr.opcode.name        ;
-        rv32_imm_t imm     = instr.imm                ;
-        rv32_csr_t csr     = instr.csr                ;
-        string   rs1       = rv32_abi_reg_s[instr.rs1];
-        string   rs2       = rv32_abi_reg_s[instr.rs2];
-        string   rd        = rv32_abi_reg_s[instr.rd ];
-        string   inst_type = instr.inst_type.name     ;
-        case (instr.inst_type)
-            RV32_TYPE_R       : instr_str = $sformatf("%17s.%12s: rd=%4s rs1=%4s rs2=  %4s          ", inst_type, opcode, rd, rs1, rs2);
-            RV32_TYPE_I       : instr_str = $sformatf("%17s.%12s: rd=%4s rs1=%4s           imm=%4d", inst_type, opcode, rd, rs1, imm);
-            RV32_TYPE_S       : instr_str = $sformatf("%17s.%12s:        rs1=%4s rs2=  %4s imm=%4d", inst_type, opcode, rs1, rs2, imm);
-            RV32_TYPE_B       : instr_str = $sformatf("%17s.%12s:        rs1=%4s rs2=  %4s imm=%4d", inst_type, opcode, rs1, rs2, imm);
-            RV32_TYPE_U       : instr_str = $sformatf("%17s.%12s: rd=%4s rs1=%4s           imm=%4d", inst_type, opcode, rd, rs1, imm);
-            RV32_TYPE_J       : instr_str = $sformatf("%17s.%12s: rd=%4s                imm=%4d", inst_type, opcode, rd, imm);
-            RV32_TYPE_NOP     : instr_str = $sformatf("  %17s.%12s:                             ", inst_type, opcode);
-            RV32_TYPE_UNKNOWN : instr_str = "!unknown instruction!";
-        endcase
-        return instr_str;
-    endfunction
+function automatic string get_instr_str(rv32_inst_dec_t instr);
+    string instr_str;
+    string   opcode    = instr.opcode.name        ;
+    rv32_imm_t imm     = instr.imm                ;
+    rv32_csr_t csr     = instr.csr                ;
+    string   rs1       = rv32_abi_reg_s[instr.rs1];
+    string   rs2       = rv32_abi_reg_s[instr.rs2];
+    string   rd        = rv32_abi_reg_s[instr.rd ];
+    string   inst_type = instr.inst_type.name     ;
+    case (instr.inst_type)
+        RV32_TYPE_R       : instr_str = $sformatf("%17s.%12s: rd=%4s rs1=%4s rs2=  %4s          ", inst_type, opcode, rd, rs1, rs2);
+        RV32_TYPE_I       : instr_str = $sformatf("%17s.%12s: rd=%4s rs1=%4s           imm=%4d", inst_type, opcode, rd, rs1, imm);
+        RV32_TYPE_S       : instr_str = $sformatf("%17s.%12s:        rs1=%4s rs2=  %4s imm=%4d", inst_type, opcode, rs1, rs2, imm);
+        RV32_TYPE_B       : instr_str = $sformatf("%17s.%12s:        rs1=%4s rs2=  %4s imm=%4d", inst_type, opcode, rs1, rs2, imm);
+        RV32_TYPE_U       : instr_str = $sformatf("%17s.%12s: rd=%4s rs1=%4s           imm=%4d", inst_type, opcode, rd, rs1, imm);
+        RV32_TYPE_J       : instr_str = $sformatf("%17s.%12s: rd=%4s                imm=%4d", inst_type, opcode, rd, imm);
+        RV32_TYPE_NOP     : instr_str = $sformatf("  %17s.%12s:                             ", inst_type, opcode);
+        RV32_TYPE_UNKNOWN : instr_str = "!unknown instruction!";
+    endcase
+    return instr_str;
+endfunction
 
-    function automatic rv32_data_q process_hex_file(string hex_file, Logger logger, int nwords);
-        int fd = $fopen (hex_file, "r");
-        string instr_str, temp, line;
-        rv32_data_q instr_q;
-        int word_cnt = 0;
-        if (fd)  begin logger.print($sformatf("%s was opened successfully : %0d", hex_file, fd)); end
-        else     begin logger.print($sformatf("%s was NOT opened successfully : %0d", hex_file, fd)); $finish(); end
-        while (!$feof(fd) && word_cnt<nwords) begin
-            temp = $fgets(line, fd);
-            if (line.substr(0, 1) != "//") begin
-                instr_str = line.substr(0, 7);
-                instr_q.push_back(rv32_instr_t'(instr_str.atohex()));
-                word_cnt += 1;
-            end
-        end
-        return instr_q;
-    endfunction
-    
 endpackage: rv32_utils

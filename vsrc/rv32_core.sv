@@ -3,55 +3,7 @@
 import rv32_pkg::*;
 import pito_pkg::*;
 
-
-module rv32_core (
-    // Core interface
-    input  logic              pito_io_clk,    // Clock
-    input  logic              pito_io_rst_n,  // Synchronous reset active low
-    input  rv32_imem_addr_t   pito_io_imem_addr,
-    input  rv32_instr_t       pito_io_imem_data,
-    input  rv32_dmem_addr_t   pito_io_dmem_addr,
-    input  rv32_data_t        pito_io_dmem_data,
-    input  logic              pito_io_imem_w_en,
-    input  logic              pito_io_dmem_w_en,
-    input  logic              pito_io_program,
-
-    // Interface with Accelerator (MVU)
-    input  logic [`PITO_NUM_HARTS-1   : 0] mvu_irq_i,
-
-    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_wbaseaddr,
-    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_ibaseaddr,
-    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_obaseaddr,
-    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_wstride_0,
-    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_wstride_1,
-    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_wstride_2,
-    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_wstride_3,
-    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_istride_0,
-    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_istride_1,
-    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_istride_2,
-    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_istride_3,
-    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_ostride_0,
-    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_ostride_1,
-    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_ostride_2,
-    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_ostride_3,
-    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_wlength_0,
-    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_wlength_1,
-    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_wlength_2,
-    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_wlength_3,
-    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_ilength_0,
-    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_ilength_1,
-    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_ilength_2,
-    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_ilength_3,
-    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_olength_0,
-    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_olength_1,
-    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_olength_2,
-    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_olength_3,
-    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_precision,
-    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_status   ,
-    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_command  ,
-    output logic [32*`PITO_NUM_HARTS-1 : 0] csr_mvu_quant    ,
-    output logic [`PITO_NUM_HARTS-1    : 0] mvu_start        
-);
+module rv32_core (pito_interface.system_interface inf);
 
 
 //====================================================================
@@ -284,40 +236,40 @@ rv32_barrel_csrfiles csr(
                     .time_irq           (csr_timer_irq         ),
                     .ipi                (csr_ipi_irq           ),
                     .boot_addr          (csr_boot_addr         ),
-                    .mvu_irq            (mvu_irq_i             ),
+                    .mvu_irq            (inf.mvu_irq_i         ),
                     .csr_exception      (csr_exception         ),
-                    .csr_mvu_wbaseaddr  (csr_mvu_wbaseaddr     ),
-                    .csr_mvu_ibaseaddr  (csr_mvu_ibaseaddr     ),
-                    .csr_mvu_obaseaddr  (csr_mvu_obaseaddr     ),
-                    .csr_mvu_wstride_0  (csr_mvu_wstride_0     ),
-                    .csr_mvu_wstride_1  (csr_mvu_wstride_1     ),
-                    .csr_mvu_wstride_2  (csr_mvu_wstride_2     ),
-                    .csr_mvu_wstride_3  (csr_mvu_wstride_3     ),
-                    .csr_mvu_istride_0  (csr_mvu_istride_0     ),
-                    .csr_mvu_istride_1  (csr_mvu_istride_1     ),
-                    .csr_mvu_istride_2  (csr_mvu_istride_2     ),
-                    .csr_mvu_istride_3  (csr_mvu_istride_3     ),
-                    .csr_mvu_ostride_0  (csr_mvu_ostride_0     ),
-                    .csr_mvu_ostride_1  (csr_mvu_ostride_1     ),
-                    .csr_mvu_ostride_3  (csr_mvu_ostride_3     ),
-                    .csr_mvu_ostride_2  (csr_mvu_ostride_2     ),
-                    .csr_mvu_wlength_0  (csr_mvu_wlength_0     ),
-                    .csr_mvu_wlength_1  (csr_mvu_wlength_1     ),
-                    .csr_mvu_wlength_2  (csr_mvu_wlength_2     ),
-                    .csr_mvu_wlength_3  (csr_mvu_wlength_3     ),
-                    .csr_mvu_ilength_0  (csr_mvu_ilength_0     ),
-                    .csr_mvu_ilength_1  (csr_mvu_ilength_1     ),
-                    .csr_mvu_ilength_2  (csr_mvu_ilength_2     ),
-                    .csr_mvu_ilength_3  (csr_mvu_ilength_3     ),
-                    .csr_mvu_olength_0  (csr_mvu_olength_0     ),
-                    .csr_mvu_olength_1  (csr_mvu_olength_1     ),
-                    .csr_mvu_olength_2  (csr_mvu_olength_2     ),
-                    .csr_mvu_olength_3  (csr_mvu_olength_3     ),
-                    .csr_mvu_precision  (csr_mvu_precision     ),
-                    .csr_mvu_status     (csr_mvu_status        ),
-                    .csr_mvu_command    (csr_mvu_command       ),
-                    .csr_mvu_quant      (csr_mvu_quant         ),
-                    .mvu_start          (mvu_start             ),
+                    .csr_mvu_wbaseaddr  (inf.csr_mvu_wbaseaddr ),
+                    .csr_mvu_ibaseaddr  (inf.csr_mvu_ibaseaddr ),
+                    .csr_mvu_obaseaddr  (inf.csr_mvu_obaseaddr ),
+                    .csr_mvu_wstride_0  (inf.csr_mvu_wstride_0 ),
+                    .csr_mvu_wstride_1  (inf.csr_mvu_wstride_1 ),
+                    .csr_mvu_wstride_2  (inf.csr_mvu_wstride_2 ),
+                    .csr_mvu_wstride_3  (inf.csr_mvu_wstride_3 ),
+                    .csr_mvu_istride_0  (inf.csr_mvu_istride_0 ),
+                    .csr_mvu_istride_1  (inf.csr_mvu_istride_1 ),
+                    .csr_mvu_istride_2  (inf.csr_mvu_istride_2 ),
+                    .csr_mvu_istride_3  (inf.csr_mvu_istride_3 ),
+                    .csr_mvu_ostride_0  (inf.csr_mvu_ostride_0 ),
+                    .csr_mvu_ostride_1  (inf.csr_mvu_ostride_1 ),
+                    .csr_mvu_ostride_3  (inf.csr_mvu_ostride_3 ),
+                    .csr_mvu_ostride_2  (inf.csr_mvu_ostride_2 ),
+                    .csr_mvu_wlength_0  (inf.csr_mvu_wlength_0 ),
+                    .csr_mvu_wlength_1  (inf.csr_mvu_wlength_1 ),
+                    .csr_mvu_wlength_2  (inf.csr_mvu_wlength_2 ),
+                    .csr_mvu_wlength_3  (inf.csr_mvu_wlength_3 ),
+                    .csr_mvu_ilength_0  (inf.csr_mvu_ilength_0 ),
+                    .csr_mvu_ilength_1  (inf.csr_mvu_ilength_1 ),
+                    .csr_mvu_ilength_2  (inf.csr_mvu_ilength_2 ),
+                    .csr_mvu_ilength_3  (inf.csr_mvu_ilength_3 ),
+                    .csr_mvu_olength_0  (inf.csr_mvu_olength_0 ),
+                    .csr_mvu_olength_1  (inf.csr_mvu_olength_1 ),
+                    .csr_mvu_olength_2  (inf.csr_mvu_olength_2 ),
+                    .csr_mvu_olength_3  (inf.csr_mvu_olength_3 ),
+                    .csr_mvu_precision  (inf.csr_mvu_precision ),
+                    .csr_mvu_status     (inf.csr_mvu_status    ),
+                    .csr_mvu_command    (inf.csr_mvu_command   ),
+                    .csr_mvu_quant      (inf.csr_mvu_quant     ),
+                    .mvu_start          (inf.mvu_start         ),
                     .pc                 (rv32_pc               ),
                     .cause              (csr_cause             ),
                     .enable_cycle_count (csr_enable_cycle_count),
@@ -343,25 +295,25 @@ rv32_next_pc rv32_next_pc_cal(
 // The instruction memory can be written to from io ports
 // The data memory can be read from internal logic but can
 // be written by io or internal logic. To program the data
-// one should use pito_io_program signal so that the write 
+// one should use inf.pito_io_program signal so that the write 
 // control signals can be passed to io ports. Note, for 
 // instruction  memory, one can program (write into) 
-// instruction memory  just by using pito_io_imem_w_en since 
+// instruction memory  just by using inf.pito_io_imem_w_en since 
 // all the write  operations are done by io ports and all 
 // the reads are done by internal logic.
 
 rv32_instruction_memory i_mem(
                         .clock     (clk               ),
-                        .data      (pito_io_imem_data ),
+                        .data      (inf.pito_io_imem_data ),
                         .rdaddress (rv32_i_addr       ),
-                        .wraddress (pito_io_imem_addr ),
-                        .wren      (pito_io_imem_w_en ),
+                        .wraddress (inf.pito_io_imem_addr ),
+                        .wren      (inf.pito_io_imem_w_en ),
                         .q         (rv32_instr        )
     );
 
-assign rv32_dw_addr = (pito_io_program) ? pito_io_dmem_addr : rv32_dmem_addr;
-assign rv32_dw_data = (pito_io_program) ? pito_io_dmem_data : rv32_dmem_data;
-assign rv32_dw_en   = (pito_io_program) ? pito_io_dmem_w_en : rv32_dmem_w_en;
+assign rv32_dw_addr = (inf.pito_io_program) ? inf.pito_io_dmem_addr : rv32_dmem_addr;
+assign rv32_dw_data = (inf.pito_io_program) ? inf.pito_io_dmem_data : rv32_dmem_data;
+assign rv32_dw_en   = (inf.pito_io_program) ? inf.pito_io_dmem_w_en : rv32_dmem_w_en;
 
 rv32_data_memory d_mem(
                         .clock     (clk         ),
@@ -375,15 +327,15 @@ rv32_data_memory d_mem(
 // for now, we access 32 bit at a time
 assign rv32_dr_addr = rv32_ex_readd_addr>>2;
 // connect io clock and reset to internal logic
-assign clk   = pito_io_clk;
-assign rst_n = pito_io_rst_n;
+assign clk   = inf.clk;
+assign rst_n = inf.pito_io_rst_n;
 
 //====================================================================
 //                   Barreled HART counter
 //====================================================================
 // A strict round robin scheduler for implementing barreling
     always @(posedge clk) begin
-        if(pito_io_rst_n == 1'b0) begin
+        if(rst_n == 1'b0) begin
             rv32_hart_cnt <= 0;
         end else begin
              rv32_hart_cnt <= rv32_hart_cnt + 1;
@@ -393,7 +345,7 @@ assign rst_n = pito_io_rst_n;
 //                   Fetch Stage
 //====================================================================
     always @(posedge clk) begin
-        if(pito_io_rst_n == 1'b0) begin
+        if(inf.pito_io_rst_n == 1'b0) begin
             for (int i = 0; i < `PITO_NUM_HARTS; i++) begin
                 rv32_pc[i]  <= `EOF_ADDRESS;
             end
@@ -425,7 +377,7 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
     // Decoder samples instruction right from the memory (no registering)
     assign rv32_dec_instr = rv32_instr;
     always @(posedge clk) begin
-        // if(pito_io_rst_n == 1'b0) begin
+        // if(inf.pito_io_rst_n == 1'b0) begin
         //     rv32_dec_pc <= 0;
         // end else begin
             rv32_dec_pc       <= rv32_pc[rv32_hart_fet_cnt];
@@ -475,7 +427,7 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
                         (rv32_dec_opcode == rv32_pkg::RV32_BGE ) || (rv32_dec_opcode == rv32_pkg::RV32_BLTU ) || (rv32_dec_opcode == rv32_pkg::RV32_BGEU) ||
                         (rv32_dec_opcode == rv32_pkg::RV32_SUB ) ) ? `PITO_ALU_SRC_RS2 : `PITO_ALU_SRC_IMM ;
     always @(posedge clk) begin
-        // if(pito_io_rst_n == 1'b0) begin
+        // if(inf.pito_io_rst_n == 1'b0) begin
         //     rv32_ex_pc    <= 0;
         //     rv32_ex_readd_addr  <= 0;
         // end else begin
@@ -538,7 +490,7 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
     end
 
     always @(posedge clk) begin
-        // if(pito_io_rst_n == 1'b0) begin
+        // if(inf.pito_io_rst_n == 1'b0) begin
         //     rv32_wb_pc     <= 0;
         //     rv32_wb_instr  <= {32{1'b0}};
         //     rv32_dmem_w_en <= 1'b0;
@@ -620,7 +572,7 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
     end
 
     always @(posedge clk) begin
-        // if(pito_io_rst_n == 1'b0) begin
+        // if(inf.pito_io_rst_n == 1'b0) begin
         //     rv32_regf_wa <= 0;
         //     for (int i=0; i<`PITO_NUM_HARTS; i++) begin
         //         rv32_wf_pc[i] <= 0;
@@ -697,7 +649,7 @@ logic is_end;
 assign is_end = ((rv32_wf_opcode ==  rv32_pkg::RV32_ECALL) || (rv32_wf_opcode ==  rv32_pkg::RV32_EBREAK)) ? 1'b1 : 1'b0;
 
     always @(posedge clk) begin
-        if(pito_io_rst_n == 1'b0) begin
+        if(inf.pito_io_rst_n == 1'b0) begin
             rv32_cap_pc     <= 0;
         end else begin
             rv32_cap_pc      <= rv32_wf_pc[rv32_hart_wf_cnt];

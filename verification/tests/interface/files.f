@@ -1,9 +1,11 @@
 ../../../vsrc/rv32_defines.svh
+../../lib/utils/testbench_macros.svh
 ../../lib/utils/rv32_pkg.sv
 ../../lib/utils/pito_pkg.sv
 ../../lib/utils/utils.sv
 ../../lib/utils/rv32_utils.sv
-../../lib/utils/pito_inf.sv
+../../lib/utils/pito_inf.svh
+../../lib/utils/monitor_pkg.sv
 ../../../vsrc/rv32_instr.svh
 ../../../vsrc/rv32_imm_gen.sv
 ../../../vsrc/rv32_decoder.sv
