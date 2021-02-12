@@ -2,20 +2,21 @@ import utils::*;
 
 module testbench_top();
 //==================================================================================================
-// Global Variables
-    localparam CLOCK_SPEED          = 50; // 10MHZ
+// Test variables
+    localparam CLOCK_SPEED = 50; // 10MHZ
     Logger logger;
-    string program_hex_file = "test.hex";
-    string sim_log_file     = "csr_tester.log";
+    string firmware = "test.hex";
+    string sim_log_file = "csr_tester.log";
 //==================================================================================================
     logic clk;
     pito_interface pito_inf(clk);
     rv32_core core(pito_inf.system_interface);
-    interface_tester tb;
+    // interface_tester tb;
+    core_tester tb;
 
     initial begin
         logger = new(sim_log_file);
-        tb = new(logger, program_hex_file, pito_inf.tb_interface);
+        tb = new(logger, firmware, pito_inf.tb_interface);
 
         tb.tb_setup();
         tb.run();

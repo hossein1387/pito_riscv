@@ -382,7 +382,7 @@ class RV32IPredictor extends BaseObj;
     int riscv_data_mem [logic[31:0]];
     int num_harts;
 
-    function new (Logger logger, rv32_data_q data_q, int num_harts);
+    function new (Logger logger, rv32_data_q data_q, int num_harts, test_stats_t test_stat);
         super.new(logger);   // Calls 'new' method of parent class
         this.num_harts = num_harts;
         test_stat = '{pass_cnt: 0, fail_cnt: 0};
@@ -448,6 +448,11 @@ class RV32IPredictor extends BaseObj;
             end
         end
     endfunction : report_result
+
+    function test_stats_t get_results();
+        return test_stat;
+    endfunction
+
 
     function update_regf(bit has_update, rv32_register_field_t rd, int val, int hart_id);
         if (has_update) begin

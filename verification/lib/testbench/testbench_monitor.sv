@@ -11,12 +11,12 @@ class pito_monitor extends BaseObj;
     rv32_pkg::rv32_data_q instr_q;
     int hart_ids_q[$]; // hart id to monitor
 
-    function new (Logger logger, rv32_pkg::rv32_data_q instr_q, virtual pito_interface pito_inf, int hart_ids_q[$]);
+    function new (Logger logger, rv32_pkg::rv32_data_q instr_q, virtual pito_interface pito_inf, int hart_ids_q[$], test_stats_t test_stat);
         super.new (logger);   // Calls 'new' method of parent class
         this.inf = pito_inf;
         this.instr_q = instr_q;
         this.rv32i_dec = new(this.logger);
-        this.rv32i_pred = new(this.logger, this.instr_q, `PITO_NUM_HARTS);
+        this.rv32i_pred = new(this.logger, this.instr_q, `PITO_NUM_HARTS, test_stat);
         this.hart_ids_q = hart_ids_q;
     endfunction
 
@@ -33,6 +33,10 @@ class pito_monitor extends BaseObj;
             default : return 0;
         endcase
     endfunction 
+
+    function test_stats_t get_results();
+        return this.rv32i_pred.get_results();
+    endfunction
 
     function rv32_regfile_t read_regs(int hart_id);
         rv32_regfile_t regs;
@@ -196,7 +200,7 @@ class pito_monitor extends BaseObj;
         rv32_pc_cnt_t   pc_cnt, pc_orig_cnt;
         int hart_id;
         int hart_valid = 0;
-        logger.print_banner("Starting Monitor Task");
+        logger.print("Starting Monitor Task");
         logger.print("Monitoring the following harts:");
 
         while(`hdl_path_top.is_end == 1'b0) begin
@@ -225,4 +229,5 @@ class pito_monitor extends BaseObj;
         end
         logger.print($sformatf("Exception signal was received from HART[%0d] code name: %s", hart_id, `hdl_path_top.rv32_wf_opcode.name));
     endtask
+
 endclass

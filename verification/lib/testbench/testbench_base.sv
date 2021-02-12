@@ -13,21 +13,24 @@ class testbench_base extends BaseObj;
     rv32_utils::RV32IDecoder rv32i_dec;
     test_stats_t test_stat;
 
-    function new (Logger logger, string firmware, virtual pito_interface inf);
+    function new (Logger logger, string firmware, virtual pito_interface inf, int hart_mon_en[$]={});
         super.new(logger);
         this.firmware = firmware;
         this.inf = inf;
         // read hex file and store the first n words to the ram
         instr_q = process_hex_file(firmware, logger, `NUM_INSTR_WORDS); 
-        
-        // Initialize harts in the system
-        for (int i=0; i<`PITO_NUM_HARTS; i++) begin
-            hart_ids_q.push_back(0);
+        // Check if user has requested to monitor any particular hart/s
+        if (hart_mon_en.size()==0) begin
+            // Initialize harts in the system
+            for (int i=0; i<`PITO_NUM_HARTS; i++) begin
+                hart_ids_q.push_back(0);
+            end
+            // Enables those to monitor:
+            hart_ids_q[0] = 1;
+        end else begin
+            this.hart_ids_q = hart_mon_en;
         end
-        // Enables those to monitor:
-        hart_ids_q[0] = 1;
-
-        monitor = new(this.logger, this.instr_q, this.inf, this.hart_ids_q);
+        monitor = new(this.logger, this.instr_q, this.inf, this.hart_ids_q, this.test_stat);
         this.rv32i_dec = new(this.logger);
     endfunction
 
@@ -87,6 +90,7 @@ class testbench_base extends BaseObj;
     virtual task tb_setup();
         logger.print_banner("Testbench Setup Phase");
         // Put DUT to reset and relax memory interface
+        logger.print("Putting DUT to reset mode");
         inf.pito_io_rst_n     = 1'b1;
         inf.pito_io_dmem_w_en = 1'b0;
         inf.pito_io_imem_w_en = 1'b0;
@@ -116,8 +120,9 @@ class testbench_base extends BaseObj;
     endtask 
 
     virtual task report();
+        test_stats_t test_stat = this.monitor.get_results();
         logger.print_banner("Testbench Report phase");
-        print_result(test_stat);
+        print_result(test_stat, VERB_LOW, logger);
     endtask 
 
 endclass
