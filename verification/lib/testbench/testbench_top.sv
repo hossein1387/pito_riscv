@@ -5,7 +5,6 @@ module testbench_top();
 // Test variables
     localparam CLOCK_SPEED = 50; // 10MHZ
     Logger logger;
-    string firmware = "test.hex";
     string sim_log_file = "csr_tester.log";
 //==================================================================================================
     logic clk;
@@ -16,7 +15,7 @@ module testbench_top();
 
     initial begin
         logger = new(sim_log_file);
-        tb = new(logger, firmware, pito_inf.tb_interface);
+        tb = new(logger, pito_inf.tb_interface);
 
         tb.tb_setup();
         tb.run();

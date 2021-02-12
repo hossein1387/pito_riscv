@@ -13,7 +13,7 @@ class testbench_base extends BaseObj;
     rv32_utils::RV32IDecoder rv32i_dec;
     test_stats_t test_stat;
 
-    function new (Logger logger, string firmware, virtual pito_interface inf, int hart_mon_en[$]={});
+    function new (Logger logger, virtual pito_interface inf, string firmware="Null.txt", int hart_mon_en[$]={});
         super.new(logger);
         this.firmware = firmware;
         this.inf = inf;
