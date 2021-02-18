@@ -61,7 +61,7 @@ class Logger;
 
 endclass
 
-
+//==================================================================================================
 // Base class to construct verification components
 class BaseObj;
     Logger logger;

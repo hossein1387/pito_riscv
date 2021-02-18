@@ -12,11 +12,15 @@ class testbench_base extends BaseObj;
     int hart_ids_q[$]; // hart id to monitor
     rv32_utils::RV32IDecoder rv32i_dec;
     test_stats_t test_stat;
+    tb_config cfg;
 
-    function new (Logger logger, virtual pito_interface inf, string firmware="Null.txt", int hart_mon_en[$]={});
+    function new (Logger logger, virtual pito_interface inf, int hart_mon_en[$]={});
         super.new(logger);
-        this.firmware = firmware;
+        cfg = new(logger);
+        cfg.parse_args();
+        this.firmware = cfg.firmware;
         this.inf = inf;
+
         // read hex file and store the first n words to the ram
         instr_q = process_hex_file(firmware, logger, `NUM_INSTR_WORDS); 
         // Check if user has requested to monitor any particular hart/s
