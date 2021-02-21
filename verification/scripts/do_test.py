@@ -5,7 +5,6 @@ import sys
 import argparse
 import subprocess
 import utility as util
-import config as cfg
 #=======================================================================
 # Globals
 #=======================================================================
