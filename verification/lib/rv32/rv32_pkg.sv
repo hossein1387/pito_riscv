@@ -1,5 +1,5 @@
 package rv32_pkg;
-
+`include "rv32_defines.svh"
 //-------------------------------------------------------------------
 // Forward Decleration:
 //-------------------------------------------------------------------
@@ -270,7 +270,7 @@ typedef struct packed{
 //             RV32 abi register
 //-------------------------------------------------------------------
 const int rv32_abi_reg_i [string] = 
-{
+'{
     "zero" : 0 ,
     "ra"   : 1 ,
     "sp"   : 2 ,
@@ -306,7 +306,7 @@ const int rv32_abi_reg_i [string] =
 } ;
 
 const string rv32_abi_reg_s [int] = 
-{
+'{
      0  : "zero",
      1  : "ra"  ,
      2  : "sp"  ,
