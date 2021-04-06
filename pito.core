@@ -48,6 +48,8 @@ targets:
         description: Simulate the design
         tools: 
             xsim:
-                xelab_options: [--debug, typical, --timescale, 1ns/1ns, -L, secureip -L, unisims_ver -L, unimacro_ver, blk_mem_gen_v8_4_3]
+                xelab_options: [--debug,typical, -L, secureip, -L, unisims_ver, -L, unimacro_ver, -L, work.glbl, -L, blk_mem_gen_v8_4_3, --timescale, 1ps/1ps]
                 xsim_options: []
         toplevel: testbench_top
+
+ 
