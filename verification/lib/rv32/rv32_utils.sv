@@ -1,4 +1,5 @@
 package rv32_utils;
+`include "rv32_defines.svh"
 import utils::*;
 import rv32_pkg::*;
 import pito_pkg::*;

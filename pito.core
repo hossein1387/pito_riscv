@@ -1,6 +1,7 @@
 CAPI=2:
 name : ::pito:0
 description: Barrel RISC-V core to control an array of Matrix Vector Units
+
 filesets:
     rtl:
         files:
@@ -31,26 +32,22 @@ filesets:
             - verification/lib/rv32/rv32_utils.sv
             - verification/lib/pito/pito_inf.svh:
                 is_include_file: true
-            - verification/lib/testbench/testbench_monitor.sv
+            - verification/lib/pito/pito_monitor.sv
             - verification/lib/testbench/testbench_config.sv
             - verification/lib/testbench/testbench_base.sv
             - verification/tests/core/core_tester.sv
             - verification/lib/testbench/testbench_top.sv
         file_type : systemVerilogSource
 targets:
-  verilator:
-    default_tool : verilator
-    filesets: [tb, rtl]
-    tools:
-      verilator:
-        mode : cc
-        verilator_options :
-          - --unroll-count 256
-          - -Wno-fatal
-          - -LDFLAGS
-          - "-lfesvr"
-          - -CFLAGS
-          - "-std=c++11"
-          - -Wall
-          - --trace
-    toplevel : [testbench_top]
+    sim:
+        default_tool: xsim 
+        filesets:
+            - tb
+            - rtl
+        toplevel: [rv32_core]
+        description: Simulate the design
+        tools: 
+            xsim:
+                xelab_options: [--debug, typical, --timescale, 1ns/1ns, -L, secureip -L, unisims_ver -L, unimacro_ver, blk_mem_gen_v8_4_3]
+                xsim_options: []
+        toplevel: testbench_top

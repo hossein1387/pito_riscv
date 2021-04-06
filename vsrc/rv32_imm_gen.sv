@@ -1,4 +1,4 @@
-// `include "rv32_defines.svh"
+`include "rv32_defines.svh"
 // `include "rv32_types.svh"
 
 `timescale 1 ps / 1 ps

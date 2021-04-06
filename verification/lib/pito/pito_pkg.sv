@@ -1,9 +1,8 @@
 package pito_pkg;
+`include "rv32_defines.svh"
 
 localparam int NUM_HARTS      = 8;
 localparam int HART_CNT_WIDTH = $clog2(NUM_HARTS);
-
-
 localparam bit RVA = 1'b0; // Is Atomic extension enabled
 localparam bit RVC = 1'b0; // Is Compressed extension enabled
 localparam bit RVD = 1'b0; // Is Double extension enabled

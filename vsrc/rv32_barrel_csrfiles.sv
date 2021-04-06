@@ -1,7 +1,4 @@
-import pito_pkg::*;
-
-
-module rv32_barrel_csrfiles #(
+module rv32_barrel_csrfiles import rv32_pkg::*;import pito_pkg::*; #(
         parameter NUM_HARTS = 8
     ) 
     (

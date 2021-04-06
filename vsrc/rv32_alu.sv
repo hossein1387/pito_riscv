@@ -1,4 +1,5 @@
 `timescale 1 ps / 1 ps
+`include "rv32_defines.svh"
 import rv32_pkg::*;
 
 module rv32_alu (

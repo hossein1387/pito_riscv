@@ -1,9 +1,11 @@
+`include "rv32_defines.svh"
+`include "testbench_macros.svh"
 import utils::*;
 import rv32_pkg::*;
 import rv32_utils::*;
 import pito_pkg::*;
 
-class testbench_base extends BaseObj;
+class pito_testbench_base extends BaseObj;
 
     string firmware;
     virtual pito_interface inf;

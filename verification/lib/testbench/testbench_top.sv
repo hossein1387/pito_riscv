@@ -1,6 +1,4 @@
-import utils::*;
-
-module testbench_top();
+module testbench_top import utils::*; ();
 //==================================================================================================
 // Test variables
     localparam CLOCK_SPEED = 50; // 10MHZ
