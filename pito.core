@@ -77,6 +77,7 @@ targets:
             xsim:
                 xelab_options: [--debug,typical, -L, secureip, -L, unisims_ver, -L, unimacro_ver, -L, work.glbl, -L, blk_mem_gen_v8_4_3, --timescale, 1ps/1ps]
                 xsim_options: []
+        parameters: [firmware]
         toplevel: testbench_top
     synth:
         description: Synthesize the design for an FPGA board
@@ -88,4 +89,8 @@ targets:
           vivado:
             part: xcku040-fbva676-2-e
         toplevel: [rv32_core]
-        
+parameters:
+    firmware:
+        datatype  : file
+        default   : add.hex
+        paramtype : plusarg
