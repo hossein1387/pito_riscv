@@ -1,4 +1,4 @@
-../../../vsrc/rv32_defines.svh
+../../lib/rv32/rv32_defines.svh
 ../../lib/testbench/testbench_macros.svh
 ../../lib/rv32/rv32_pkg.sv
 ../../lib/pito/pito_pkg.sv
