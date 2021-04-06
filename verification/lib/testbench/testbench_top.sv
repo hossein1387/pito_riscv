@@ -1,5 +1,5 @@
 `include "pito_inf.svh"
-
+`include "core_tester.sv"
 module testbench_top import utils::*; ();
 //==================================================================================================
 // Test variables

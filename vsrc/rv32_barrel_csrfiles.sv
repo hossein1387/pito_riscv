@@ -15,7 +15,7 @@ module rv32_barrel_csrfiles import rv32_pkg::*;import pito_pkg::*; #(
         input  logic                      ipi,      // Inter processor interrupt (async)
 
         // Core and Cluster ID
-        input  logic [31 : 0]             boot_addr,// Address from which to start booting, mtvec is set to the same address
+        input  logic [32*NUM_HARTS-1 : 0] boot_addr,// Address from which to start booting, mtvec is set to the same address
 
         // MVU interface
         input  logic [NUM_HARTS-1:0]      mvu_irq,  // MVU requesting an interrupt
