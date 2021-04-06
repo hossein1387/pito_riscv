@@ -92,5 +92,5 @@ targets:
 parameters:
     firmware:
         datatype  : file
-        default   : add.hex
+        default   : /users/hemmat/MyRepos/pito_riscv/verification/tests/core/firmwares/add.hex
         paramtype : plusarg
