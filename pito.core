@@ -41,6 +41,8 @@ filesets:
             - vsrc/rv32_csr.sv
             - vsrc/rv32_barrel_csrfiles.sv
         file_type : systemVerilogSource
+            - blk_mem_gen_v8_4_3.v
+        file_type : verilogSource
     xdc:
         files:
             - synthesis/constraint_files/pito_core.xdc
@@ -84,6 +86,6 @@ targets:
         default_tool: vivado
         tools:
           vivado:
-            part: xc7a200tsbg484-1
+            part: xcku040-fbva676-2-e
         toplevel: [rv32_core]
         
