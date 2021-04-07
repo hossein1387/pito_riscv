@@ -41,6 +41,8 @@ filesets:
             - vsrc/rv32_csr.sv
             - vsrc/rv32_barrel_csrfiles.sv
         file_type : systemVerilogSource
+            - ip/xilinx/bram_32Kb.xci
+        file_type: xci
             - blk_mem_gen_v8_4_3.v
         file_type : verilogSource
     xdc:
