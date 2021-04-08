@@ -21,6 +21,7 @@ filesets:
             - vsrc/rv32_barrel_csrfiles.sv
         file_type : systemVerilogSource
     synth:
+        file_type : systemVerilogSource
         files:
             - verification/lib/pito/pito_inf.svh:
                 is_include_file: true
@@ -30,7 +31,6 @@ filesets:
                 is_include_file: true
             - vsrc/rv32_imm_gen.sv
             - vsrc/rv32_decoder.sv
-            - vsrc/bram_32Kb.v
             - vsrc/rv32_data_memory.sv
             - vsrc/rv32_instruction_memory.sv
             - vsrc/rv32_alu.sv
@@ -40,11 +40,12 @@ filesets:
             - vsrc/rv32_next_pc.sv
             - vsrc/rv32_csr.sv
             - vsrc/rv32_barrel_csrfiles.sv
-        file_type : systemVerilogSource
-            - ip/xilinx/bram_32Kb.xci
-        file_type: xci
-            - blk_mem_gen_v8_4_3.v
-        file_type : verilogSource
+            - vsrc/blk_mem_gen_v8_4.v:
+                file_type : verilogSource
+            - vsrc/bram_32Kb.v:
+                file_type : verilogSource
+            - ip/xilinx/bram_32Kb.xci:
+                file_type: xci
     xdc:
         files:
             - synthesis/constraint_files/pito_core.xdc
