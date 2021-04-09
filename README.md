@@ -27,9 +27,16 @@ For synthesis:
     
     fusesoc run --target=synth pito
 
-To debug in GUI mode:
+To open sim in GUI mode:
 
-    cd build/pito_0/
+    cd build/pito_0/sim-vivado/ 
+    make run-gui
 
-And then open the vivado project for synthesis or simulation. Make sure you have run simulation or synthesis atleast once, otherwise fusesoc would not create a 
+And for synthesis:
+
+    cd build/pito_0/synth-vivado/ 
+    make build-gui
+
+
+This should open the project for you. Make sure you have run simulation or synthesis atleast once, otherwise fusesoc would not create a 
 project file for you.
