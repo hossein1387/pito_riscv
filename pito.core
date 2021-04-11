@@ -46,10 +46,8 @@ filesets:
                 file_type : verilogSource
             - ip/xilinx/bram_32Kb.xci:
                 file_type: xci
-    xdc:
-        files:
-            - synthesis/constraint_files/pito_core.xdc
-        file_type: xdc
+            - synthesis/constraint_files/pito_core.xdc:
+                file_type: xdc
     tb:
         files:
             - verification/lib/rv32/rv32_defines.svh: 
@@ -86,7 +84,6 @@ targets:
         description: Synthesize the design for an FPGA board
         filesets:
             - synth
-            - xdc
         default_tool: vivado
         tools:
           vivado:
