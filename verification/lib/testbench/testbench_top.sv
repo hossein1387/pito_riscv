@@ -37,7 +37,7 @@ module testbench_top import utils::*; ();
 
     initial begin
         #1ms;
-        $display("Simulation took more than expected ( more than 600ms)");
+        $display("Simulation took more than expected ( more than 1ms)");
         $finish();
     end
 endmodule
