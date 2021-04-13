@@ -201,8 +201,8 @@ class pito_monitor extends BaseObj;
         int hart_id;
         int hart_valid = 0;
         logger.print("Starting Monitor Task");
-        logger.print("Monitoring the following harts:");
-
+        // logger.print("Monitoring the following harts:");
+        this.sync_with_dut();
         while(`hdl_path_top.is_end == 1'b0) begin
             // logger.print($sformatf("pc=%d       decode:%s", `hdl_path_top.rv32_dec_pc, `hdl_path_top.rv32_dec_opcode.name));
             // logger.print($sformatf("%s",read_regs()));
