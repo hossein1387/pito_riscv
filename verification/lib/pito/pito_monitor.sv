@@ -163,7 +163,7 @@ class pito_monitor extends BaseObj;
         int NUM_WAIT_CYCELS = 100*`PITO_NUM_HARTS;
         rv32_inst_dec_t exp_instr = rv32i_dec.decode_instr(this.instr_q[0]);
         rv32_inst_dec_t act_instr; 
-        logger.print($sformatf("Attempt to Sync with DUT hart id %1d...", this.hart_ids_q));
+        logger.print($sformatf("Attempt to Sync with DUT hart id %1d...", this.hart_ids_q[0]));
         for (int cycle=0; cycle<NUM_WAIT_CYCELS; cycle++) begin
             logger.print($sformatf("hart id=%1d", `hdl_path_top.rv32_hart_wf_cnt));
             if (this.hart_ids_q[`hdl_path_top.rv32_hart_wf_cnt] == 1) begin
@@ -202,10 +202,14 @@ class pito_monitor extends BaseObj;
         rv32_pc_cnt_t   pc_cnt, pc_orig_cnt;
         int hart_id;
         int hart_valid = 0;
-        this.sync_with_dut();
         logger.print("Starting Monitor Task");
         logger.print("Monitoring the following harts:");
-
+        foreach(this.hart_ids_q[i]) begin
+            if (this.hart_ids_q[i]==1) begin
+                logger.print($sformatf("\tHart[%0d]", i));
+            end
+        end
+        this.sync_with_dut();
         while(`hdl_path_top.is_end == 1'b0) begin
             // logger.print($sformatf("pc=%d       decode:%s", `hdl_path_top.rv32_dec_pc, `hdl_path_top.rv32_dec_opcode.name));
             // logger.print($sformatf("%s",read_regs()));
