@@ -77,7 +77,7 @@ targets:
         tools: 
             xsim:
                 xelab_options: [--debug,typical, -L, secureip, -L, unisims_ver, -L, unimacro_ver, -L, work.glbl, -L, blk_mem_gen_v8_4_3, --timescale, 1ps/1ps]
-                xsim_options: []
+                xsim_options: [--testplusarg, firmware=/users/hemmat/MyRepos/pito_riscv/verification/tests/core/firmwares/add.hex]
         parameters: [firmware]
         toplevel: testbench_top
     synth:
