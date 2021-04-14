@@ -1,3 +1,4 @@
+`timescale 1ns/1ps
 `include "pito_inf.svh"
 `include "core_tester.sv"
 module testbench_top import utils::*; ();
@@ -36,7 +37,7 @@ module testbench_top import utils::*; ();
     end
 
     initial begin
-        #1ms;
+        #1000ms;
         $display("Simulation took more than expected ( more than 1ms)");
         $finish();
     end

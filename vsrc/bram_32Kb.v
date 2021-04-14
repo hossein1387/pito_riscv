@@ -49,7 +49,6 @@
 
 // IP VLNV: xilinx.com:ip:blk_mem_gen:8.4
 // IP Revision: 3
-
 `timescale 1ns/1ps
 
 (* DowngradeIPIdentifiedWarnings = "yes" *)

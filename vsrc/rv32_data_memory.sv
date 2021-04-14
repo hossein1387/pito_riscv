@@ -1,4 +1,4 @@
-
+`timescale 1ns/1ps
 module rv32_data_memory import rv32_pkg::*;(
                     input  logic            clock    ,
                     input  rv32_data_t      data     ,

@@ -76,8 +76,8 @@ targets:
         description: Simulate the design
         tools: 
             xsim:
-                xelab_options: [--debug,typical, -L, secureip, -L, unisims_ver, -L, unimacro_ver, -L, work.glbl, -L, blk_mem_gen_v8_4_3, --timescale, 1ps/1ps]
-                xsim_options: [--testplusarg, firmware=/users/hemmat/MyRepos/pito_riscv/verification/tests/core/firmwares/add.hex]
+                xelab_options: [--debug, typical, -L, secureip, -L, unisims_ver, -L, unimacro_ver, -L, work.glbl, -L, blk_mem_gen_v8_4_3, --timescale, 1ns/1ps]
+                xsim_options: [-testplusarg, firmware=/users/hemmat/MyRepos/pito_riscv/verification/tests/core/firmwares/add.hex]
         parameters: [firmware]
         toplevel: testbench_top
     synth:

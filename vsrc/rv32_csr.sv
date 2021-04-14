@@ -1,9 +1,5 @@
-import pito_pkg::*;
-import rv32_pkg::*;
-
-
-
-module rv32_csr #(
+`timescale 1ns/1ps
+module rv32_csr import pito_pkg::*;import rv32_pkg::*; #(
     parameter PITO_HART_ID = 0
     )(
     input  logic                      clk,        // Clock

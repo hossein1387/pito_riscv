@@ -68,7 +68,7 @@
  *                            (iii)  special reset behavior
  *    
  *****************************************************************************/
-`timescale 1ps/1ps
+`timescale 1ns/1ps
 
 module STATE_LOGIC_v8_4 (O, I0, I1, I2, I3, I4, I5);
 

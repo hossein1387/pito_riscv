@@ -1,5 +1,4 @@
-`timescale 1 ps / 1 ps
-
+`timescale 1ns/1ps
 module rv32_next_pc import rv32_pkg::*;import pito_pkg::*;(
     input  irq_evt_t          csr_irq_evt,
     input  rv32_register_t    rv32_alu_res,

@@ -1,4 +1,4 @@
-`timescale 1 ps / 1 ps
+`timescale 1ns/1ps
 `include "rv32_defines.svh"
 import rv32_pkg::*;
 

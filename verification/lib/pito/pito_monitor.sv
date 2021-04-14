@@ -160,7 +160,7 @@ class pito_monitor extends BaseObj;
     // in-sync with the processor. 
     task automatic sync_with_dut();
         bit time_out = 1;
-        int NUM_WAIT_CYCELS = 100*`PITO_NUM_HARTS;
+        int NUM_WAIT_CYCELS = 10000*`PITO_NUM_HARTS;
         rv32_inst_dec_t exp_instr = rv32i_dec.decode_instr(this.instr_q[0]);
         rv32_inst_dec_t act_instr; 
         logger.print($sformatf("Attempt to Sync with DUT hart id %1d...", this.hart_ids_q[0]));

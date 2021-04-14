@@ -1,3 +1,4 @@
+`timescale 1ns/1ps
 module rv32_barrel_csrfiles import rv32_pkg::*;import pito_pkg::*; #(
         parameter NUM_HARTS = 8
     ) 
