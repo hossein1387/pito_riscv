@@ -5,7 +5,7 @@
 ../../lib/utils/utils.sv
 ../../lib/rv32/rv32_utils.sv
 ../../lib/pito/pito_inf.svh
-../../lib/testbench/testbench_monitor.sv
+../../lib/pito/pito_monitor.sv
 ../../lib/testbench/testbench_config.sv
 ../../lib/testbench/testbench_base.sv
 ../../../vsrc/rv32_instr.svh

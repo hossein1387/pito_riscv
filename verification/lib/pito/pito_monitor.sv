@@ -1,5 +1,3 @@
-`include "rv32_defines.svh"
-`include "testbench_macros.svh"
 import rv32_utils::*;
 import utils::*;
 import pito_pkg::*;
