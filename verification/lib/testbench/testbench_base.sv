@@ -1,3 +1,4 @@
+`timescale 1ns/1ps
 import utils::*;
 import rv32_pkg::*;
 import rv32_utils::*;
