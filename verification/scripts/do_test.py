@@ -32,7 +32,7 @@ def parse_args():
     parser.add_argument('-clean', '--clean', action='store_true', help='clean project', required= False)
     parser.add_argument('-silence', '--silence', action='store_true', help=' Silence mode (no log will be printed)', required= False, default=False)
     parser.add_argument('-verbosity', '--verbosity', help='Print log verbosity: VERB_NONE, VERB_LOW, VERB_MEDIUM, VERB_HIGH, VERB_FULL, VERB_DEBUG', required=False)
-    parser.add_argument('-timescale', '--timescale', help='Simulation timescale', required=False, default='1ps/1ps')
+    parser.add_argument('-timescale', '--timescale', help='Simulation timescale', required=False, default='1ns/1ps')
     parser.add_argument('--firmware', help='firmware file', required=False, default='test.hex')
     args = parser.parse_args()
     return vars(args)
