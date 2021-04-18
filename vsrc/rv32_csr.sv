@@ -601,7 +601,6 @@ module rv32_csr #(
             csr_mvuolength_3_q     <= csr_mvuolength_3_d ;
             csr_mvuolength_4_q     <= csr_mvuolength_4_d ;
             csr_mvuprecision_q     <= csr_mvuprecision_d ;
-            csr_mvustatus_q        <= csr_mvustatus_d ;
             csr_mvucommand_q       <= csr_mvucommand_d ;
             csr_mvuquant_q         <= csr_mvuquant_d ;
             csr_mvuscaler_q        <= csr_mvuscaler_d ;
