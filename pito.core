@@ -4,12 +4,16 @@ description: Barrel RISC-V core to control an array of Matrix Vector Units
 
 filesets:
     rtl:
+        file_type : systemVerilogSource
         files:
             - vsrc/rv32_instr.svh:
                 is_include_file: true
             - vsrc/rv32_imm_gen.sv
             - vsrc/rv32_decoder.sv
-            - vsrc/bram_32Kb.v
+            - vsrc/bram_32Kb.v:
+                file_type : verilogSource
+            - vsrc/blk_mem_gen_v8_4.v:
+                file_type : verilogSource
             - vsrc/rv32_data_memory.sv
             - vsrc/rv32_instruction_memory.sv
             - vsrc/rv32_alu.sv
