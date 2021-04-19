@@ -24,37 +24,50 @@ module rv32_barrel_csrfiles import rv32_pkg::*;import pito_pkg::*; #(
         output exception_t                csr_exception,// Attempts to access a CSR without appropriate privilege
                                                           // level or to write  a read-only register also
                                                           // raises illegal instruction exceptions.
-        output logic [32*NUM_HARTS-1 : 0] csr_mvu_wbaseaddr,
-        output logic [32*NUM_HARTS-1 : 0] csr_mvu_ibaseaddr,
-        output logic [32*NUM_HARTS-1 : 0] csr_mvu_obaseaddr,
-        output logic [32*NUM_HARTS-1 : 0] csr_mvu_wstride_0,
-        output logic [32*NUM_HARTS-1 : 0] csr_mvu_wstride_1,
-        output logic [32*NUM_HARTS-1 : 0] csr_mvu_wstride_2,
-        output logic [32*NUM_HARTS-1 : 0] csr_mvu_istride_0,
-        output logic [32*NUM_HARTS-1 : 0] csr_mvu_istride_1,
-        output logic [32*NUM_HARTS-1 : 0] csr_mvu_istride_2,
-        output logic [32*NUM_HARTS-1 : 0] csr_mvu_ostride_0,
-        output logic [32*NUM_HARTS-1 : 0] csr_mvu_ostride_1,
-        output logic [32*NUM_HARTS-1 : 0] csr_mvu_ostride_2,
-        output logic [32*NUM_HARTS-1 : 0] csr_mvu_wlength_0,
-        output logic [32*NUM_HARTS-1 : 0] csr_mvu_wlength_1,
-        output logic [32*NUM_HARTS-1 : 0] csr_mvu_wlength_2,
-        output logic [32*NUM_HARTS-1 : 0] csr_mvu_ilength_0,
-        output logic [32*NUM_HARTS-1 : 0] csr_mvu_ilength_1,
-        output logic [32*NUM_HARTS-1 : 0] csr_mvu_ilength_2,
-        output logic [32*NUM_HARTS-1 : 0] csr_mvu_olength_0,
-        output logic [32*NUM_HARTS-1 : 0] csr_mvu_olength_1,
-        output logic [32*NUM_HARTS-1 : 0] csr_mvu_olength_2,
-        output logic [32*NUM_HARTS-1 : 0] csr_mvu_precision,
-        output logic [32*NUM_HARTS-1 : 0] csr_mvu_status   ,
-        output logic [32*NUM_HARTS-1 : 0] csr_mvu_command  ,
-        output logic [32*NUM_HARTS-1 : 0] csr_mvu_quant    ,
-        output logic [32*NUM_HARTS-1 : 0] csr_mvu_wstride_3,
-        output logic [32*NUM_HARTS-1 : 0] csr_mvu_istride_3,
-        output logic [32*NUM_HARTS-1 : 0] csr_mvu_ostride_3,
-        output logic [32*NUM_HARTS-1 : 0] csr_mvu_wlength_3,
-        output logic [32*NUM_HARTS-1 : 0] csr_mvu_ilength_3,
-        output logic [32*NUM_HARTS-1 : 0] csr_mvu_olength_3,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuwbaseptr ,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuibaseptr ,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvusbaseptr ,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvubbaseptr ,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuobaseptr ,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuwjump_0  ,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuwjump_1  ,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuwjump_2  ,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuwjump_3  ,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuwjump_4  ,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuijump_0  ,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuijump_1  ,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuijump_2  ,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuijump_3  ,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuijump_4  ,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvusjump_0  ,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvusjump_1  ,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvubjump_0  ,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvubjump_1  ,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuojump_0  ,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuojump_1  ,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuojump_2  ,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuojump_3  ,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuojump_4  ,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuwlength_1,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuwlength_2,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuwlength_3,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuwlength_4,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuilength_1,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuilength_2,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuilength_3,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuilength_4,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuslength_1,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvublength_1,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuolength_1,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuolength_2,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuolength_3,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuolength_4,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuprecision,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvustatus   ,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvucommand  ,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuquant    ,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuscaler   ,
+        output logic [32*NUM_HARTS-1 : 0] csr_mvuconfig1  ,
 
         output logic [NUM_HARTS-1   : 0]  mvu_start,
     
@@ -79,41 +92,53 @@ logic[31 : 0 ] pc_sigs        [NUM_HARTS-1 : 0];
 logic[31 : 0 ] cause_sigs     [NUM_HARTS-1 : 0];
 logic          enable_cycle_count_sigs;
 
-logic [31 : 0] csr_rdata_sigs     [NUM_HARTS-1 : 0];
-exception_t    csr_exception_sigs [NUM_HARTS-1 : 0];
-
-logic [31 : 0] csr_mvu_wbaseaddr_sigs [NUM_HARTS-1 : 0];
-logic [31 : 0] csr_mvu_ibaseaddr_sigs [NUM_HARTS-1 : 0];
-logic [31 : 0] csr_mvu_obaseaddr_sigs [NUM_HARTS-1 : 0];
-logic [31 : 0] csr_mvu_wstride_0_sigs [NUM_HARTS-1 : 0];
-logic [31 : 0] csr_mvu_wstride_1_sigs [NUM_HARTS-1 : 0];
-logic [31 : 0] csr_mvu_wstride_2_sigs [NUM_HARTS-1 : 0];
-logic [31 : 0] csr_mvu_istride_0_sigs [NUM_HARTS-1 : 0];
-logic [31 : 0] csr_mvu_istride_1_sigs [NUM_HARTS-1 : 0];
-logic [31 : 0] csr_mvu_istride_2_sigs [NUM_HARTS-1 : 0];
-logic [31 : 0] csr_mvu_ostride_0_sigs [NUM_HARTS-1 : 0];
-logic [31 : 0] csr_mvu_ostride_1_sigs [NUM_HARTS-1 : 0];
-logic [31 : 0] csr_mvu_ostride_2_sigs [NUM_HARTS-1 : 0];
-logic [31 : 0] csr_mvu_wlength_0_sigs [NUM_HARTS-1 : 0];
-logic [31 : 0] csr_mvu_wlength_1_sigs [NUM_HARTS-1 : 0];
-logic [31 : 0] csr_mvu_wlength_2_sigs [NUM_HARTS-1 : 0];
-logic [31 : 0] csr_mvu_ilength_0_sigs [NUM_HARTS-1 : 0];
-logic [31 : 0] csr_mvu_ilength_1_sigs [NUM_HARTS-1 : 0];
-logic [31 : 0] csr_mvu_ilength_2_sigs [NUM_HARTS-1 : 0];
-logic [31 : 0] csr_mvu_olength_0_sigs [NUM_HARTS-1 : 0];
-logic [31 : 0] csr_mvu_olength_1_sigs [NUM_HARTS-1 : 0];
-logic [31 : 0] csr_mvu_olength_2_sigs [NUM_HARTS-1 : 0];
-logic [31 : 0] csr_mvu_precision_sigs [NUM_HARTS-1 : 0];
-logic [31 : 0] csr_mvu_wstride_3_sigs [NUM_HARTS-1 : 0];
-logic [31 : 0] csr_mvu_istride_3_sigs [NUM_HARTS-1 : 0];
-logic [31 : 0] csr_mvu_ostride_3_sigs [NUM_HARTS-1 : 0];
-logic [31 : 0] csr_mvu_wlength_3_sigs [NUM_HARTS-1 : 0];
-logic [31 : 0] csr_mvu_ilength_3_sigs [NUM_HARTS-1 : 0];
-logic [31 : 0] csr_mvu_olength_3_sigs [NUM_HARTS-1 : 0];
-logic [31 : 0] csr_mvu_status_sigs    [NUM_HARTS-1 : 0];
-logic [31 : 0] csr_mvu_command_sigs   [NUM_HARTS-1 : 0];
-logic [31 : 0] csr_mvu_quant_sigs     [NUM_HARTS-1 : 0];
-logic          mvu_start_sigs         [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_rdata_sigs        [NUM_HARTS-1 : 0];
+exception_t    csr_exception_sigs    [NUM_HARTS-1 : 0];
+logic [31 : 0] csr_mvuwbaseptr_sigs  [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuibaseptr_sigs  [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvusbaseptr_sigs  [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvubbaseptr_sigs  [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuobaseptr_sigs  [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuwjump_0_sigs   [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuwjump_1_sigs   [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuwjump_2_sigs   [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuwjump_3_sigs   [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuwjump_4_sigs   [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuijump_0_sigs   [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuijump_1_sigs   [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuijump_2_sigs   [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuijump_3_sigs   [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuijump_4_sigs   [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvusjump_0_sigs   [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvusjump_1_sigs   [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvubjump_0_sigs   [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvubjump_1_sigs   [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuojump_0_sigs   [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuojump_1_sigs   [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuojump_2_sigs   [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuojump_3_sigs   [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuojump_4_sigs   [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuwlength_1_sigs [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuwlength_2_sigs [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuwlength_3_sigs [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuwlength_4_sigs [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuilength_1_sigs [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuilength_2_sigs [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuilength_3_sigs [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuilength_4_sigs [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuslength_1_sigs [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvublength_1_sigs [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuolength_1_sigs [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuolength_2_sigs [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuolength_3_sigs [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuolength_4_sigs [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuprecision_sigs [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvustatus_sigs    [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvucommand_sigs   [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuquant_sigs     [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuscaler_sigs    [NUM_HARTS-1 : 0 ];
+logic [31 : 0] csr_mvuconfig1_sigs   [NUM_HARTS-1 : 0 ];
+logic          mvu_start_sigs        [NUM_HARTS-1 : 0];
 
 
 assign enable_cycle_count_sigs = 1'b1;
@@ -121,54 +146,67 @@ assign enable_cycle_count_sigs = 1'b1;
 genvar hart_id;
     for(hart_id=0; hart_id<NUM_HARTS; hart_id++) begin
         rv32_csr #(hart_id) csrfile(
-                            .clk                 (clk                             ),
-                            .rst_n               (rst_n                           ),
-                            .csr_addr_i          (csr_addr_sigs[hart_id]          ),
-                            .csr_wdata_i         (csr_wdata_sigs[hart_id]         ),
-                            .csr_op_i            (csr_op_sigs[hart_id]            ),
-                            .csr_rdata_o         (csr_rdata_sigs[hart_id]         ),
-                            .irq_i               (irq_sigs[hart_id ]              ),
-                            .time_irq_i          (time_irq_sigs[hart_id]          ),
-                            .ipi_i               (ipi_sigs[hart_id]               ),
-                            .boot_addr_i         (boot_addr_sigs[hart_id]         ),
-                            .mvu_irq_i           (mvu_irq_sigs[hart_id]           ),
-                            .csr_exception_o     (csr_exception_sigs[hart_id]     ),
-                            .pc_i                (pc_sigs[hart_id]                ),
-                            .cause_i             (cause_sigs[hart_id]             ),
-                            .enable_cycle_count_i(enable_cycle_count_sigs         ),
-                            .csr_irq_evt         (csr_irq_evt[hart_id]            ),
-                            .mvu_start           (mvu_start_sigs[hart_id]         ),
-                            .csr_mvu_wbaseaddr   (csr_mvu_wbaseaddr_sigs[hart_id] ),
-                            .csr_mvu_ibaseaddr   (csr_mvu_ibaseaddr_sigs[hart_id] ),
-                            .csr_mvu_obaseaddr   (csr_mvu_obaseaddr_sigs[hart_id] ),
-                            .csr_mvu_wstride_0   (csr_mvu_wstride_0_sigs[hart_id] ),
-                            .csr_mvu_wstride_1   (csr_mvu_wstride_1_sigs[hart_id] ),
-                            .csr_mvu_wstride_2   (csr_mvu_wstride_2_sigs[hart_id] ),
-                            .csr_mvu_istride_0   (csr_mvu_istride_0_sigs[hart_id] ),
-                            .csr_mvu_istride_1   (csr_mvu_istride_1_sigs[hart_id] ),
-                            .csr_mvu_istride_2   (csr_mvu_istride_2_sigs[hart_id] ),
-                            .csr_mvu_ostride_0   (csr_mvu_ostride_0_sigs[hart_id] ),
-                            .csr_mvu_ostride_1   (csr_mvu_ostride_1_sigs[hart_id] ),
-                            .csr_mvu_ostride_2   (csr_mvu_ostride_2_sigs[hart_id] ),
-                            .csr_mvu_wlength_0   (csr_mvu_wlength_0_sigs[hart_id] ),
-                            .csr_mvu_wlength_1   (csr_mvu_wlength_1_sigs[hart_id] ),
-                            .csr_mvu_wlength_2   (csr_mvu_wlength_2_sigs[hart_id] ),
-                            .csr_mvu_ilength_0   (csr_mvu_ilength_0_sigs[hart_id] ),
-                            .csr_mvu_ilength_1   (csr_mvu_ilength_1_sigs[hart_id] ),
-                            .csr_mvu_ilength_2   (csr_mvu_ilength_2_sigs[hart_id] ),
-                            .csr_mvu_olength_0   (csr_mvu_olength_0_sigs[hart_id] ),
-                            .csr_mvu_olength_1   (csr_mvu_olength_1_sigs[hart_id] ),
-                            .csr_mvu_olength_2   (csr_mvu_olength_2_sigs[hart_id] ),
-                            .csr_mvu_precision   (csr_mvu_precision_sigs[hart_id] ),
-                            .csr_mvu_wstride_3   (csr_mvu_wstride_3_sigs[hart_id] ),
-                            .csr_mvu_istride_3   (csr_mvu_istride_3_sigs[hart_id] ),
-                            .csr_mvu_ostride_3   (csr_mvu_ostride_3_sigs[hart_id] ),
-                            .csr_mvu_wlength_3   (csr_mvu_wlength_3_sigs[hart_id] ),
-                            .csr_mvu_ilength_3   (csr_mvu_ilength_3_sigs[hart_id] ),
-                            .csr_mvu_olength_3   (csr_mvu_olength_3_sigs[hart_id] ),
-                            .csr_mvu_status      (csr_mvu_status_sigs[hart_id]    ),
-                            .csr_mvu_command     (csr_mvu_command_sigs[hart_id]   ),
-                            .csr_mvu_quant       (csr_mvu_quant_sigs[hart_id]     )
+                            .clk                   (clk                             ),
+                            .rst_n                 (rst_n                           ),
+                            .csr_addr_i            (csr_addr_sigs[hart_id]          ),
+                            .csr_wdata_i           (csr_wdata_sigs[hart_id]         ),
+                            .csr_op_i              (csr_op_sigs[hart_id]            ),
+                            .csr_rdata_o           (csr_rdata_sigs[hart_id]         ),
+                            .irq_i                 (irq_sigs[hart_id ]              ),
+                            .time_irq_i            (time_irq_sigs[hart_id]          ),
+                            .ipi_i                 (ipi_sigs[hart_id]               ),
+                            .boot_addr_i           (boot_addr_sigs[hart_id]         ),
+                            .mvu_irq_i             (mvu_irq_sigs[hart_id]           ),
+                            .csr_mvuwbaseptr       (csr_mvuwbaseptr_sigs[hart_id]   ),
+                            .csr_mvuibaseptr       (csr_mvuibaseptr_sigs[hart_id]   ),
+                            .csr_mvusbaseptr       (csr_mvusbaseptr_sigs[hart_id]   ),
+                            .csr_mvubbaseptr       (csr_mvubbaseptr_sigs[hart_id]   ),
+                            .csr_mvuobaseptr       (csr_mvuobaseptr_sigs[hart_id]   ),
+                            .csr_mvuwjump_0        (csr_mvuwjump_0_sigs[hart_id]    ),
+                            .csr_mvuwjump_1        (csr_mvuwjump_1_sigs[hart_id]    ),
+                            .csr_mvuwjump_2        (csr_mvuwjump_2_sigs[hart_id]    ),
+                            .csr_mvuwjump_3        (csr_mvuwjump_3_sigs[hart_id]    ),
+                            .csr_mvuwjump_4        (csr_mvuwjump_4_sigs[hart_id]    ),
+                            .csr_mvuijump_0        (csr_mvuijump_0_sigs[hart_id]    ),
+                            .csr_mvuijump_1        (csr_mvuijump_1_sigs[hart_id]    ),
+                            .csr_mvuijump_2        (csr_mvuijump_2_sigs[hart_id]    ),
+                            .csr_mvuijump_3        (csr_mvuijump_3_sigs[hart_id]    ),
+                            .csr_mvuijump_4        (csr_mvuijump_4_sigs[hart_id]    ),
+                            .csr_mvusjump_0        (csr_mvusjump_0_sigs[hart_id]    ),
+                            .csr_mvusjump_1        (csr_mvusjump_1_sigs[hart_id]    ),
+                            .csr_mvubjump_0        (csr_mvubjump_0_sigs[hart_id]    ),
+                            .csr_mvubjump_1        (csr_mvubjump_1_sigs[hart_id]    ),
+                            .csr_mvuojump_0        (csr_mvuojump_0_sigs[hart_id]    ),
+                            .csr_mvuojump_1        (csr_mvuojump_1_sigs[hart_id]    ),
+                            .csr_mvuojump_2        (csr_mvuojump_2_sigs[hart_id]    ),
+                            .csr_mvuojump_3        (csr_mvuojump_3_sigs[hart_id]    ),
+                            .csr_mvuojump_4        (csr_mvuojump_4_sigs[hart_id]    ),
+                            .csr_mvuwlength_1      (csr_mvuwlength_1_sigs[hart_id]  ),
+                            .csr_mvuwlength_2      (csr_mvuwlength_2_sigs[hart_id]  ),
+                            .csr_mvuwlength_3      (csr_mvuwlength_3_sigs[hart_id]  ),
+                            .csr_mvuwlength_4      (csr_mvuwlength_4_sigs[hart_id]  ),
+                            .csr_mvuilength_1      (csr_mvuilength_1_sigs[hart_id]  ),
+                            .csr_mvuilength_2      (csr_mvuilength_2_sigs[hart_id]  ),
+                            .csr_mvuilength_3      (csr_mvuilength_3_sigs[hart_id]  ),
+                            .csr_mvuilength_4      (csr_mvuilength_4_sigs[hart_id]  ),
+                            .csr_mvuslength_1      (csr_mvuslength_1_sigs[hart_id]  ),
+                            .csr_mvublength_1      (csr_mvublength_1_sigs[hart_id]  ),
+                            .csr_mvuolength_1      (csr_mvuolength_1_sigs[hart_id]  ),
+                            .csr_mvuolength_2      (csr_mvuolength_2_sigs[hart_id]  ),
+                            .csr_mvuolength_3      (csr_mvuolength_3_sigs[hart_id]  ),
+                            .csr_mvuolength_4      (csr_mvuolength_4_sigs[hart_id]  ),
+                            .csr_mvuprecision      (csr_mvuprecision_sigs[hart_id]  ),
+                            .csr_mvustatus         (csr_mvustatus_sigs[hart_id]     ),
+                            .csr_mvucommand        (csr_mvucommand_sigs[hart_id]    ),
+                            .csr_mvuquant          (csr_mvuquant_sigs[hart_id]      ),
+                            .csr_mvuscaler         (csr_mvuscaler_sigs[hart_id]     ),
+                            .csr_mvuconfig1        (csr_mvuconfig1_sigs[hart_id]    ),
+                            .mvu_start             (mvu_start_sigs[hart_id]         ),
+                            .csr_exception_o       (csr_exception_sigs[hart_id]     ),
+                            .pc_i                  (pc_sigs[hart_id]                ),
+                            .cause_i               (cause_sigs[hart_id]             ),
+                            .enable_cycle_count_i  (enable_cycle_count_sigs         ),
+                            .csr_irq_evt           (csr_irq_evt[hart_id]            )
                         );
     end
 
@@ -196,38 +234,51 @@ assign csr_exception  = csr_exception_sigs[hart_id_i];
 
 generate 
     for (hart_id=0; hart_id<NUM_HARTS; hart_id++) begin
-        assign csr_mvu_wbaseaddr [hart_id*32 +: 32] = csr_mvu_wbaseaddr_sigs[hart_id];
-        assign csr_mvu_ibaseaddr [hart_id*32 +: 32] = csr_mvu_ibaseaddr_sigs[hart_id];
-        assign csr_mvu_obaseaddr [hart_id*32 +: 32] = csr_mvu_obaseaddr_sigs[hart_id];
-        assign csr_mvu_wstride_0 [hart_id*32 +: 32] = csr_mvu_wstride_0_sigs[hart_id];
-        assign csr_mvu_wstride_1 [hart_id*32 +: 32] = csr_mvu_wstride_1_sigs[hart_id];
-        assign csr_mvu_wstride_2 [hart_id*32 +: 32] = csr_mvu_wstride_2_sigs[hart_id];
-        assign csr_mvu_istride_0 [hart_id*32 +: 32] = csr_mvu_istride_0_sigs[hart_id];
-        assign csr_mvu_istride_1 [hart_id*32 +: 32] = csr_mvu_istride_1_sigs[hart_id];
-        assign csr_mvu_istride_2 [hart_id*32 +: 32] = csr_mvu_istride_2_sigs[hart_id];
-        assign csr_mvu_ostride_0 [hart_id*32 +: 32] = csr_mvu_ostride_0_sigs[hart_id];
-        assign csr_mvu_ostride_1 [hart_id*32 +: 32] = csr_mvu_ostride_1_sigs[hart_id];
-        assign csr_mvu_ostride_2 [hart_id*32 +: 32] = csr_mvu_ostride_2_sigs[hart_id];
-        assign csr_mvu_wlength_0 [hart_id*32 +: 32] = csr_mvu_wlength_0_sigs[hart_id];
-        assign csr_mvu_wlength_1 [hart_id*32 +: 32] = csr_mvu_wlength_1_sigs[hart_id];
-        assign csr_mvu_wlength_2 [hart_id*32 +: 32] = csr_mvu_wlength_2_sigs[hart_id];
-        assign csr_mvu_ilength_0 [hart_id*32 +: 32] = csr_mvu_ilength_0_sigs[hart_id];
-        assign csr_mvu_ilength_1 [hart_id*32 +: 32] = csr_mvu_ilength_1_sigs[hart_id];
-        assign csr_mvu_ilength_2 [hart_id*32 +: 32] = csr_mvu_ilength_2_sigs[hart_id];
-        assign csr_mvu_olength_0 [hart_id*32 +: 32] = csr_mvu_olength_0_sigs[hart_id];
-        assign csr_mvu_olength_1 [hart_id*32 +: 32] = csr_mvu_olength_1_sigs[hart_id];
-        assign csr_mvu_olength_2 [hart_id*32 +: 32] = csr_mvu_olength_2_sigs[hart_id];
-        assign csr_mvu_precision [hart_id*32 +: 32] = csr_mvu_precision_sigs[hart_id];
-        assign csr_mvu_wstride_3 [hart_id*32 +: 32] = csr_mvu_wstride_3_sigs[hart_id];
-        assign csr_mvu_istride_3 [hart_id*32 +: 32] = csr_mvu_istride_3_sigs[hart_id];
-        assign csr_mvu_ostride_3 [hart_id*32 +: 32] = csr_mvu_ostride_3_sigs[hart_id];
-        assign csr_mvu_wlength_3 [hart_id*32 +: 32] = csr_mvu_wlength_3_sigs[hart_id];
-        assign csr_mvu_ilength_3 [hart_id*32 +: 32] = csr_mvu_ilength_3_sigs[hart_id];
-        assign csr_mvu_olength_3 [hart_id*32 +: 32] = csr_mvu_olength_3_sigs[hart_id];
-        assign csr_mvu_status    [hart_id*32 +: 32] = csr_mvu_status_sigs[hart_id];
-        assign csr_mvu_command   [hart_id*32 +: 32] = csr_mvu_command_sigs[hart_id];
-        assign csr_mvu_quant     [hart_id*32 +: 32] = csr_mvu_quant_sigs[hart_id];
-        assign mvu_start         [ hart_id        ] = mvu_start_sigs[hart_id];
+        assign csr_mvuwbaseptr[hart_id*32 +: 32]  = csr_mvuwbaseptr_sigs[hart_id] ;
+        assign csr_mvuibaseptr[hart_id*32 +: 32]  = csr_mvuibaseptr_sigs[hart_id] ;
+        assign csr_mvusbaseptr[hart_id*32 +: 32]  = csr_mvusbaseptr_sigs[hart_id] ;
+        assign csr_mvubbaseptr[hart_id*32 +: 32]  = csr_mvubbaseptr_sigs[hart_id] ;
+        assign csr_mvuobaseptr[hart_id*32 +: 32]  = csr_mvuobaseptr_sigs[hart_id] ;
+        assign csr_mvuwjump_0[hart_id*32 +: 32]   = csr_mvuwjump_0_sigs[hart_id]  ;
+        assign csr_mvuwjump_1[hart_id*32 +: 32]   = csr_mvuwjump_1_sigs[hart_id]  ;
+        assign csr_mvuwjump_2[hart_id*32 +: 32]   = csr_mvuwjump_2_sigs[hart_id]  ;
+        assign csr_mvuwjump_3[hart_id*32 +: 32]   = csr_mvuwjump_3_sigs[hart_id]  ;
+        assign csr_mvuwjump_4[hart_id*32 +: 32]   = csr_mvuwjump_4_sigs[hart_id]  ;
+        assign csr_mvuijump_0[hart_id*32 +: 32]   = csr_mvuijump_0_sigs[hart_id]  ;
+        assign csr_mvuijump_1[hart_id*32 +: 32]   = csr_mvuijump_1_sigs[hart_id]  ;
+        assign csr_mvuijump_2[hart_id*32 +: 32]   = csr_mvuijump_2_sigs[hart_id]  ;
+        assign csr_mvuijump_3[hart_id*32 +: 32]   = csr_mvuijump_3_sigs[hart_id]  ;
+        assign csr_mvuijump_4[hart_id*32 +: 32]   = csr_mvuijump_4_sigs[hart_id]  ;
+        assign csr_mvusjump_0[hart_id*32 +: 32]   = csr_mvusjump_0_sigs[hart_id]  ;
+        assign csr_mvusjump_1[hart_id*32 +: 32]   = csr_mvusjump_1_sigs[hart_id]  ;
+        assign csr_mvubjump_0[hart_id*32 +: 32]   = csr_mvubjump_0_sigs[hart_id]  ;
+        assign csr_mvubjump_1[hart_id*32 +: 32]   = csr_mvubjump_1_sigs[hart_id]  ;
+        assign csr_mvuojump_0[hart_id*32 +: 32]   = csr_mvuojump_0_sigs[hart_id]  ;
+        assign csr_mvuojump_1[hart_id*32 +: 32]   = csr_mvuojump_1_sigs[hart_id]  ;
+        assign csr_mvuojump_2[hart_id*32 +: 32]   = csr_mvuojump_2_sigs[hart_id]  ;
+        assign csr_mvuojump_3[hart_id*32 +: 32]   = csr_mvuojump_3_sigs[hart_id]  ;
+        assign csr_mvuojump_4[hart_id*32 +: 32]   = csr_mvuojump_4_sigs[hart_id]  ;
+        assign csr_mvuwlength_1[hart_id*32 +: 32] = csr_mvuwlength_1_sigs[hart_id];
+        assign csr_mvuwlength_2[hart_id*32 +: 32] = csr_mvuwlength_2_sigs[hart_id];
+        assign csr_mvuwlength_3[hart_id*32 +: 32] = csr_mvuwlength_3_sigs[hart_id];
+        assign csr_mvuwlength_4[hart_id*32 +: 32] = csr_mvuwlength_4_sigs[hart_id];
+        assign csr_mvuilength_1[hart_id*32 +: 32] = csr_mvuilength_1_sigs[hart_id];
+        assign csr_mvuilength_2[hart_id*32 +: 32] = csr_mvuilength_2_sigs[hart_id];
+        assign csr_mvuilength_3[hart_id*32 +: 32] = csr_mvuilength_3_sigs[hart_id];
+        assign csr_mvuilength_4[hart_id*32 +: 32] = csr_mvuilength_4_sigs[hart_id];
+        assign csr_mvuslength_1[hart_id*32 +: 32] = csr_mvuslength_1_sigs[hart_id];
+        assign csr_mvublength_1[hart_id*32 +: 32] = csr_mvublength_1_sigs[hart_id];
+        assign csr_mvuolength_1[hart_id*32 +: 32] = csr_mvuolength_1_sigs[hart_id];
+        assign csr_mvuolength_2[hart_id*32 +: 32] = csr_mvuolength_2_sigs[hart_id];
+        assign csr_mvuolength_3[hart_id*32 +: 32] = csr_mvuolength_3_sigs[hart_id];
+        assign csr_mvuolength_4[hart_id*32 +: 32] = csr_mvuolength_4_sigs[hart_id];
+        assign csr_mvuprecision[hart_id*32 +: 32] = csr_mvuprecision_sigs[hart_id];
+        assign csr_mvustatus[hart_id*32 +: 32]    = csr_mvustatus_sigs[hart_id]   ;
+        assign csr_mvucommand[hart_id*32 +: 32]   = csr_mvucommand_sigs[hart_id]  ;
+        assign csr_mvuquant[hart_id*32 +: 32]     = csr_mvuquant_sigs[hart_id]    ;
+        assign csr_mvuscaler[hart_id*32 +: 32]    = csr_mvuscaler_sigs[hart_id]   ;
+        assign csr_mvuconfig1[hart_id*32 +: 32]   = csr_mvuconfig1_sigs[hart_id]  ;
+        assign mvu_start [ hart_id        ]       = mvu_start_sigs[hart_id];
     end
 endgenerate
 
