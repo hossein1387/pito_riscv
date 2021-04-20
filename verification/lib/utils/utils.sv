@@ -21,7 +21,7 @@ typedef enum {
 
 //==================================================================================================
 // Logger class, logs test string to a file
-class Logger;  /* base class*/;
+class Logger; 
     int fd;
     bit log_time;
     bit log_to_std_out;
@@ -34,27 +34,42 @@ class Logger;  /* base class*/;
 
     function void print (string msg, string id="INFO", print_verbosity_t verbosity=VERB_LOW);
         string time_stamp = this.log_time ? $sformatf("%t",$time()) : "";
-        string log = $sformatf("[%5s] %s %s ", id, time_stamp, msg);
+        string log;
+        if ($time()==0) begin
+            time_stamp = "0 ns";
+        end
+        log = $sformatf("[%5s] %12s %s ", id, time_stamp, msg);
         if (verbosity<VERB_MEDIUM) begin
             if (log_to_std_out == 1) begin
                 $display("%s", log);
             end
         end
+        // $display adds the newline char so we have to manually add it for 
+        // log into std
+        // log = $sformatf("%s\n", log);
         $fwrite(this.fd, log);
     endfunction
 
     function void print_banner (string msg, string id="INFO", print_verbosity_t verbosity=VERB_LOW);
         string sep = "=======================================================================";
         string log = $sformatf("%s\n[%5s]  %s \n%s", sep, id, msg, sep);
-        if (verbosity<VERB_MEDIUM) begin
-            if (log_to_std_out == 1) begin
-                $display("%s", log);
-            end
-        end
+        this.print(sep, id, verbosity);
+        this.print(msg, id, verbosity);
+        this.print(sep, id, verbosity);
         $fwrite(this.fd, log);
     endfunction
 
 endclass
+
+//==================================================================================================
+// Base class to construct verification components
+class BaseObj;
+    Logger logger;
+   function new (Logger logger);
+      this.logger = logger;
+   endfunction
+endclass
+
 //==================================================================================================
 // Struct test_stats_t
 // Defines a struct that holds test statistics 
@@ -105,14 +120,14 @@ typedef struct packed
 
 //==================================================================================================
 // A function to report results
-function void print_result(test_stats_t test_stat, print_verbosity_t verbosity=VERB_LOW, Logger logger=null);
+function void print_result(test_stats_t test_stat, print_verbosity_t verbosity=VERB_LOW, Logger logger=null, string id="INFO");
     if (logger == null) begin
         `print_banner("INFO", "Test results", verbosity)
-        `test_print("INFO", $sformatf("Total Number of tests  = %0d\n", test_stat.pass_cnt+test_stat.fail_cnt), verbosity)
+        `test_print("INFO", $sformatf("Total Number of tests  = %0d", test_stat.pass_cnt+test_stat.fail_cnt), verbosity)
         `test_print("INFO", $sformatf("Number of passed tests = %0d", test_stat.pass_cnt), verbosity)
         `test_print("INFO", $sformatf("Number of failed tests = %0d\n", test_stat.fail_cnt), verbosity)
     end else begin
-        logger.print_banner("Test results");
+        logger.print_banner("Test results", id, verbosity);
         logger.print($sformatf("Total Number of tests  = %0d", test_stat.pass_cnt+test_stat.fail_cnt));
         logger.print($sformatf("Number of passed tests = %0d", test_stat.pass_cnt));
         logger.print($sformatf("Number of failed tests = %0d", test_stat.fail_cnt));

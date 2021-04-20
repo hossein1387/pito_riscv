@@ -32,7 +32,8 @@ def parse_args():
     parser.add_argument('-clean', '--clean', action='store_true', help='clean project', required= False)
     parser.add_argument('-silence', '--silence', action='store_true', help=' Silence mode (no log will be printed)', required= False, default=False)
     parser.add_argument('-verbosity', '--verbosity', help='Print log verbosity: VERB_NONE, VERB_LOW, VERB_MEDIUM, VERB_HIGH, VERB_FULL, VERB_DEBUG', required=False)
-    parser.add_argument('-timescale', '--timescale', help='Simulation timescale', required=False, default='1ps/1ps')
+    parser.add_argument('-timescale', '--timescale', help='Simulation timescale', required=False, default='1ns/1ps')
+    parser.add_argument('--firmware', help='firmware file', required=False, default='test.hex')
     args = parser.parse_args()
     return vars(args)
 
@@ -98,9 +99,9 @@ if __name__ == '__main__':
     debug = args['debug']
     waveform = args['waveform']
     clean = args['clean']
-    # import ipdb as pdb; pdb.set_trace()
     silence = args['silence']
     verbosity = args['verbosity']
+
     if verbosity is None:
         verbosity = 'VERB_LOW'
     if util.get_platform(verbosity=verbosity) != "linux":
@@ -188,6 +189,8 @@ if __name__ == '__main__':
             cmd_to_run = "xsim -R {0} ".format(top_level)
         if svseed:
             cmd_to_run += "-sv_seed {0} ".format(svseed)
+        if args['firmware'] != None:
+            cmd_to_run += "-testplusarg firmware={} ".format(args['firmware'])
         if silence:
             cmd_to_run += "> /dev/null"
         util.run_command(cmd_to_run, split=False, verbosity=verbosity)

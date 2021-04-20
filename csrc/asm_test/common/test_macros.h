@@ -15,6 +15,14 @@ test_ ## testnum: \
     li  TESTNUM, testnum; \
     bne testreg, x29, fail;
 
+#define MVU_CSR_TEST_CASE( testnum, testreg, mvu_csr, correctval, code... ) \
+test_ ## testnum: \
+    code; \
+    li   x29, correctval; \
+    li   TESTNUM, testnum; \
+    csrr x29, mvu_csr; \
+    bne  testreg, x29, fail;
+
 # We use a macro hack to simpify code generation for various numbers
 # of bubble cycles.
 
@@ -45,6 +53,13 @@ test_ ## testnum: \
     TEST_CASE( testnum, x3, result, \
       li  x1, val1; \
       inst x3, x1, SEXT_IMM(imm); \
+    )
+
+
+#define TEST_MVU_CSR( testnum, mvu_csr, val) \
+    MVU_CSR_TEST_CASE( testnum, x1, mvu_csr, val, \
+      li  x1, val; \
+      csrw mvu_csr, x1; \
     )
 
 #define TEST_IMM_SRC1_EQ_DEST( testnum, inst, result, val1, imm ) \
@@ -574,7 +589,6 @@ fail: \
         RVTEST_FAIL; \
 pass: \
         RVTEST_PASS \
-
 
 #-----------------------------------------------------------------------
 # Test data section

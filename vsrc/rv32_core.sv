@@ -1,16 +1,10 @@
-`timescale 1 ps / 1 ps
+`timescale 1ns/1ps
 
-module rv32_core (
-    input  logic              rv32_io_clk,    // Clock
-    input  logic              rv32_io_rst_n,  // Synchronous reset active low
-    input  rv32_imem_addr_t   rv32_io_imem_addr,
-    input  rv32_instr_t       rv32_io_imem_data,
-    input  rv32_dmem_addr_t   rv32_io_dmem_addr,
-    input  rv32_data_t        rv32_io_dmem_data,
-    input  logic              rv32_io_imem_w_en,
-    input  logic              rv32_io_dmem_w_en,
-    input  logic              rv32_io_program
-);
+import rv32_pkg::*;
+import pito_pkg::*;
+
+module rv32_core (pito_interface.system_interface inf);
+
 
 //====================================================================
 // HART related signals
@@ -96,6 +90,14 @@ rv32_opcode_enum_t rv32_ex_opcode;
 rv32_pc_cnt_t      rv32_ex_pc;
 rv32_imm_t         rv32_ex_imm;
 rv32_dmem_addr_t   rv32_ex_readd_addr;
+logic              rv32_ex_is_exception;
+logic              rv32_ex_is_csrrw;
+logic              rv32_ex_skip;
+// csrs
+csr_t              rv32_ex_csr_addr;
+csr_op_t           rv32_ex_csr_op;
+rv32_register_t    rv32_ex_csr_data;
+rv32_register_t    rv32_ex_res_val;
 //====================================================================
 // WB stage wires
 //====================================================================
@@ -126,7 +128,7 @@ rv32_data_t        rv32_wf_load_val;
 // Control Signals
 logic pc_sel[`PITO_NUM_HARTS-1 : 0];
 logic alu_src;
-logic is_csr;
+logic is_csrrw;
 logic is_exception;
 logic is_store;
 // Instruction Memory signals
@@ -197,41 +199,121 @@ rv32_alu alu (
                         .z         (rv32_alu_z  )
 );
 
+logic [31 : 0] csr_rdata, csr_ex_rdata;
+logic          csr_irq;
+logic          csr_timer_irq;
+logic          csr_ipi_irq;
+logic[31:0]    csr_boot_addr;
+// logic          csr_mvu_irq;
+exception_t    csr_exception;
+logic [31:0]   csr_cause;
+logic          csr_enable_cycle_count;
+
+irq_evt_t [`PITO_NUM_HARTS-1:0] csr_irq_evt;
+
+assign csr_enable_cycle_count = 1'b1;
+// For now, we will tie these interrupts to ground since no
+// application needs them at the moment.
+assign csr_irq                = 1'b0;
+assign csr_timer_irq          = 1'b0;
+assign csr_ipi_irq            = 1'b0;
+assign csr_cause              = 1'b0;
+
+genvar hart_cnt_gen_var;
+
+for (hart_cnt_gen_var = 0; hart_cnt_gen_var < `PITO_NUM_HARTS; hart_cnt_gen_var++) begin
+    assign csr_boot_addr[hart_cnt_gen_var*32 +: 32] = 32'b0;
+end
+
+rv32_barrel_csrfiles csr(
+                    .clk                (clk                   ),
+                    .rst_n              (rst_n                 ),
+                    .csr_addr           (rv32_ex_csr_addr      ),
+                    .csr_wdata          (rv32_ex_csr_data      ),
+                    .csr_op             (rv32_ex_csr_op        ),
+                    .csr_rdata          (csr_rdata             ),
+                    .irq                (csr_irq               ),
+                    .time_irq           (csr_timer_irq         ),
+                    .ipi                (csr_ipi_irq           ),
+                    .boot_addr          (csr_boot_addr         ),
+                    .mvu_irq            (inf.mvu_irq_i         ),
+                    .csr_exception      (csr_exception         ),
+                    .csr_mvu_wbaseaddr  (inf.csr_mvu_wbaseaddr ),
+                    .csr_mvu_ibaseaddr  (inf.csr_mvu_ibaseaddr ),
+                    .csr_mvu_obaseaddr  (inf.csr_mvu_obaseaddr ),
+                    .csr_mvu_wstride_0  (inf.csr_mvu_wstride_0 ),
+                    .csr_mvu_wstride_1  (inf.csr_mvu_wstride_1 ),
+                    .csr_mvu_wstride_2  (inf.csr_mvu_wstride_2 ),
+                    .csr_mvu_wstride_3  (inf.csr_mvu_wstride_3 ),
+                    .csr_mvu_istride_0  (inf.csr_mvu_istride_0 ),
+                    .csr_mvu_istride_1  (inf.csr_mvu_istride_1 ),
+                    .csr_mvu_istride_2  (inf.csr_mvu_istride_2 ),
+                    .csr_mvu_istride_3  (inf.csr_mvu_istride_3 ),
+                    .csr_mvu_ostride_0  (inf.csr_mvu_ostride_0 ),
+                    .csr_mvu_ostride_1  (inf.csr_mvu_ostride_1 ),
+                    .csr_mvu_ostride_3  (inf.csr_mvu_ostride_3 ),
+                    .csr_mvu_ostride_2  (inf.csr_mvu_ostride_2 ),
+                    .csr_mvu_wlength_0  (inf.csr_mvu_wlength_0 ),
+                    .csr_mvu_wlength_1  (inf.csr_mvu_wlength_1 ),
+                    .csr_mvu_wlength_2  (inf.csr_mvu_wlength_2 ),
+                    .csr_mvu_wlength_3  (inf.csr_mvu_wlength_3 ),
+                    .csr_mvu_ilength_0  (inf.csr_mvu_ilength_0 ),
+                    .csr_mvu_ilength_1  (inf.csr_mvu_ilength_1 ),
+                    .csr_mvu_ilength_2  (inf.csr_mvu_ilength_2 ),
+                    .csr_mvu_ilength_3  (inf.csr_mvu_ilength_3 ),
+                    .csr_mvu_olength_0  (inf.csr_mvu_olength_0 ),
+                    .csr_mvu_olength_1  (inf.csr_mvu_olength_1 ),
+                    .csr_mvu_olength_2  (inf.csr_mvu_olength_2 ),
+                    .csr_mvu_olength_3  (inf.csr_mvu_olength_3 ),
+                    .csr_mvu_precision  (inf.csr_mvu_precision ),
+                    .csr_mvu_status     (inf.csr_mvu_status    ),
+                    .csr_mvu_command    (inf.csr_mvu_command   ),
+                    .csr_mvu_quant      (inf.csr_mvu_quant     ),
+                    .mvu_start          (inf.mvu_start         ),
+                    .pc                 (rv32_pc               ),
+                    .cause              (csr_cause             ),
+                    .enable_cycle_count (csr_enable_cycle_count),
+                    .csr_irq_evt        (csr_irq_evt           ),
+                    .hart_id_i          (rv32_hart_dec_cnt     )
+);
+
+
 rv32_next_pc rv32_next_pc_cal(
-                        .rv32_alu_res     (rv32_wb_out         ),
-                        .rv32_rs1         (rv32_wb_rs1         ),
-                        .rv32_imm         (rv32_wb_imm         ),
-                        .rv32_instr_opcode(rv32_wb_opcode      ),
-                        .rv32_cur_pc      (rv32_wb_pc          ),
-                        .rv32_save_pc     (rv32_wb_save_pc     ),
-                        .rv32_has_new_pc  (rv32_wb_has_new_pc  ),
-                        .rv32_reg_pc      (rv32_wb_reg_pc      ),
-                        .rv32_next_pc_val (rv32_wb_next_pc_val )
+                        .csr_irq_evt      (csr_irq_evt[rv32_hart_wb_cnt]    ),
+                        .rv32_alu_res     (rv32_wb_out                      ),
+                        .rv32_rs1         (rv32_wb_rs1                      ),
+                        .rv32_imm         (rv32_wb_imm                      ),
+                        .rv32_instr_opcode(rv32_wb_opcode                   ),
+                        .rv32_cur_pc      (rv32_wb_pc                       ),
+                        .rv32_save_pc     (rv32_wb_save_pc                  ),
+                        .rv32_has_new_pc  (rv32_wb_has_new_pc               ),
+                        .rv32_reg_pc      (rv32_wb_reg_pc                   ),
+                        .rv32_next_pc_val (rv32_wb_next_pc_val              )
 );
 
 // pito uses seperate memory for instructions and data.
 // The instruction memory can be written to from io ports
 // The data memory can be read from internal logic but can
 // be written by io or internal logic. To program the data
-// one should use rv32_io_program signal so that the write 
+// one should use inf.pito_io_program signal so that the write 
 // control signals can be passed to io ports. Note, for 
 // instruction  memory, one can program (write into) 
-// instruction memory  just by using rv32_io_imem_w_en since 
+// instruction memory  just by using inf.pito_io_imem_w_en since 
 // all the write  operations are done by io ports and all 
 // the reads are done by internal logic.
 
 rv32_instruction_memory i_mem(
                         .clock     (clk               ),
-                        .data      (rv32_io_imem_data ),
+                        .data      (inf.pito_io_imem_data ),
                         .rdaddress (rv32_i_addr       ),
-                        .wraddress (rv32_io_imem_addr ),
-                        .wren      (rv32_io_imem_w_en ),
+                        .wraddress (inf.pito_io_imem_addr ),
+                        .wren      (inf.pito_io_imem_w_en ),
                         .q         (rv32_instr        )
     );
 
-assign rv32_dw_addr = (rv32_io_program) ? rv32_io_dmem_addr : rv32_dmem_addr;
-assign rv32_dw_data = (rv32_io_program) ? rv32_io_dmem_data : rv32_dmem_data;
-assign rv32_dw_en   = (rv32_io_program) ? rv32_io_dmem_w_en : rv32_dmem_w_en;
+assign rv32_dw_addr = (inf.pito_io_program) ? inf.pito_io_dmem_addr : rv32_dmem_addr;
+assign rv32_dw_data = (inf.pito_io_program) ? inf.pito_io_dmem_data : rv32_dmem_data;
+assign rv32_dw_en   = (inf.pito_io_program) ? inf.pito_io_dmem_w_en : rv32_dmem_w_en;
 
 rv32_data_memory d_mem(
                         .clock     (clk         ),
@@ -245,15 +327,15 @@ rv32_data_memory d_mem(
 // for now, we access 32 bit at a time
 assign rv32_dr_addr = rv32_ex_readd_addr>>2;
 // connect io clock and reset to internal logic
-assign clk   = rv32_io_clk;
-assign rst_n = rv32_io_rst_n;
+assign clk   = inf.clk;
+assign rst_n = inf.pito_io_rst_n;
 
 //====================================================================
 //                   Barreled HART counter
 //====================================================================
 // A strict round robin scheduler for implementing barreling
     always @(posedge clk) begin
-        if(rv32_io_rst_n == 1'b0) begin
+        if(rst_n == 1'b0) begin
             rv32_hart_cnt <= 0;
         end else begin
              rv32_hart_cnt <= rv32_hart_cnt + 1;
@@ -263,9 +345,9 @@ assign rst_n = rv32_io_rst_n;
 //                   Fetch Stage
 //====================================================================
     always @(posedge clk) begin
-        if(rv32_io_rst_n == 1'b0) begin
+        if(inf.pito_io_rst_n == 1'b0) begin
             for (int i = 0; i < `PITO_NUM_HARTS; i++) begin
-                rv32_pc[i]  <= `RESET_ADDRESS;
+                rv32_pc[i]  <= `EOF_ADDRESS;
             end
         end else begin
             rv32_hart_fet_cnt <= rv32_hart_cnt;
@@ -274,7 +356,8 @@ assign rst_n = rv32_io_rst_n;
             // instruction decoding. This decision is represented by pc_sel. Initially at 
             // reset, we set the pc_sel to PITO_PC_SEL_PLUS_4 so that the pc counter starts
             // executing instruction from memory.
-            if (rv32_pc[rv32_hart_cnt] == `RESET_ADDRESS) begin
+            if (rv32_pc[rv32_hart_cnt] == `EOF_ADDRESS) begin
+                // rv32_pc[rv32_hart_cnt] <= `RESET_ADDRESS; //rv32_hart_cnt << 12;
                 rv32_pc[rv32_hart_cnt] <= rv32_hart_cnt << 12;
             end else begin
                 if (pc_sel[rv32_hart_cnt] == `PITO_PC_SEL_PLUS_4) begin
@@ -294,7 +377,7 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
     // Decoder samples instruction right from the memory (no registering)
     assign rv32_dec_instr = rv32_instr;
     always @(posedge clk) begin
-        // if(rv32_io_rst_n == 1'b0) begin
+        // if(inf.pito_io_rst_n == 1'b0) begin
         //     rv32_dec_pc <= 0;
         // end else begin
             rv32_dec_pc       <= rv32_pc[rv32_hart_fet_cnt];
@@ -306,19 +389,45 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
 //====================================================================
 //                   Execute Stage
 //====================================================================
-    // assign rv32_ex_is_exception = ((rv32_dec_opcode == RV32_ECALL) || (rv32_dec_opcode == RV32_EBREAK)) ? 1'b1 : 1'b0;
-    // assign rv32_ex_is_csr       = ((rv32_dec_opcode == RV32_CSRRW ) || (rv32_dec_opcode==RV32_CSRRS ) || (rv32_dec_opcode==RV32_CSRRC ) ||
-    //                                (rv32_dec_opcode == RV32_CSRRWI) || (rv32_dec_opcode==RV32_CSRRSI) || (rv32_dec_opcode==RV32_CSRRCI)) ? 1'b1 : 1'b0;
-    // assign rv32_ex_skip         = rv32_ex_is_exception || rv32_ex_is_csr || (rv32_dec_opcode==RV32_NOP);
+    assign rv32_ex_is_exception = ((rv32_dec_opcode == rv32_pkg::RV32_ECALL) || (rv32_dec_opcode == rv32_pkg::RV32_EBREAK)) ? 1'b1 : 1'b0;
+    assign rv32_ex_is_csrrw     = ((rv32_dec_opcode == rv32_pkg::RV32_CSRRW ) || (rv32_dec_opcode==rv32_pkg::RV32_CSRRS ) || (rv32_dec_opcode==rv32_pkg::RV32_CSRRC ) ||
+                                   (rv32_dec_opcode == rv32_pkg::RV32_CSRRWI) || (rv32_dec_opcode==rv32_pkg::RV32_CSRRSI) || (rv32_dec_opcode==rv32_pkg::RV32_CSRRCI)) ? 1'b1 : 1'b0;
+    assign rv32_ex_skip         = rv32_ex_is_exception || rv32_ex_is_csrrw || (rv32_dec_opcode==rv32_pkg::RV32_NOP);
 
-    assign alu_src   = ((rv32_dec_opcode == RV32_SRL ) || (rv32_dec_opcode == RV32_SRA  ) || (rv32_dec_opcode == RV32_ADD ) ||
-                        (rv32_dec_opcode == RV32_XOR ) || (rv32_dec_opcode == RV32_OR   ) || (rv32_dec_opcode == RV32_AND ) ||
-                        (rv32_dec_opcode == RV32_SLT ) || (rv32_dec_opcode == RV32_SLTU ) || (rv32_dec_opcode == RV32_SLL ) ||
-                        (rv32_dec_opcode == RV32_BEQ ) || (rv32_dec_opcode == RV32_BNE  ) || (rv32_dec_opcode == RV32_BLT ) ||
-                        (rv32_dec_opcode == RV32_BGE ) || (rv32_dec_opcode == RV32_BLTU ) || (rv32_dec_opcode == RV32_BGEU) ||
-                        (rv32_dec_opcode == RV32_SUB ) ) ? `PITO_ALU_SRC_RS2 : `PITO_ALU_SRC_IMM ;
+
+//==================
+// CSR:
+//==================
+
+    assign rv32_ex_csr_addr     = pito_pkg::csr_t'(rv32_dec_instr[31:20]);
+    assign rv32_ex_csr_data     = ((rv32_dec_opcode == rv32_pkg::RV32_CSRRWI) || (rv32_dec_opcode==rv32_pkg::RV32_CSRRSI) || (rv32_dec_opcode==rv32_pkg::RV32_CSRRCI)) ?
+                                    rv32_dec_imm : rv32_regf_rd1;
+
+    always_comb begin
+        case (rv32_dec_opcode)
+             rv32_pkg::RV32_CSRRW  : rv32_ex_csr_op = pito_pkg::CSR_READ_WRITE;
+             rv32_pkg::RV32_CSRRS  : rv32_ex_csr_op = pito_pkg::CSR_SET;
+             rv32_pkg::RV32_CSRRC  : rv32_ex_csr_op = pito_pkg::CSR_CLEAR;
+             rv32_pkg::RV32_CSRRWI : rv32_ex_csr_op = pito_pkg::CSR_READ_WRITE;
+             rv32_pkg::RV32_CSRRSI : rv32_ex_csr_op = pito_pkg::CSR_SET;
+             rv32_pkg::RV32_CSRRCI : rv32_ex_csr_op = pito_pkg::CSR_CLEAR;
+             rv32_pkg::RV32_MRET   : rv32_ex_csr_op = pito_pkg::MRET;
+             default : rv32_ex_csr_op = pito_pkg::CSR_UNKNOWN;
+        endcase
+    end
+
+//==================
+// ALU:
+//==================
+
+    assign alu_src   = ((rv32_dec_opcode == rv32_pkg::RV32_SRL ) || (rv32_dec_opcode == rv32_pkg::RV32_SRA  ) || (rv32_dec_opcode == rv32_pkg::RV32_ADD ) ||
+                        (rv32_dec_opcode == rv32_pkg::RV32_XOR ) || (rv32_dec_opcode == rv32_pkg::RV32_OR   ) || (rv32_dec_opcode == rv32_pkg::RV32_AND ) ||
+                        (rv32_dec_opcode == rv32_pkg::RV32_SLT ) || (rv32_dec_opcode == rv32_pkg::RV32_SLTU ) || (rv32_dec_opcode == rv32_pkg::RV32_SLL ) ||
+                        (rv32_dec_opcode == rv32_pkg::RV32_BEQ ) || (rv32_dec_opcode == rv32_pkg::RV32_BNE  ) || (rv32_dec_opcode == rv32_pkg::RV32_BLT ) ||
+                        (rv32_dec_opcode == rv32_pkg::RV32_BGE ) || (rv32_dec_opcode == rv32_pkg::RV32_BLTU ) || (rv32_dec_opcode == rv32_pkg::RV32_BGEU) ||
+                        (rv32_dec_opcode == rv32_pkg::RV32_SUB ) ) ? `PITO_ALU_SRC_RS2 : `PITO_ALU_SRC_IMM ;
     always @(posedge clk) begin
-        // if(rv32_io_rst_n == 1'b0) begin
+        // if(inf.pito_io_rst_n == 1'b0) begin
         //     rv32_ex_pc    <= 0;
         //     rv32_ex_readd_addr  <= 0;
         // end else begin
@@ -333,11 +442,12 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
             rv32_alu_rs1     <= rv32_regf_rd1;
             rv32_wb_rs2_skip <= rv32_regf_rd2;
             rv32_ex_rd       <= rv32_dec_rd;
-            if ((rv32_dec_opcode == RV32_LB ) ||
-                (rv32_dec_opcode == RV32_LH ) ||
-                (rv32_dec_opcode == RV32_LW ) ||
-                (rv32_dec_opcode == RV32_LBU) ||
-                (rv32_dec_opcode == RV32_LHU) ) begin
+            csr_ex_rdata     <= csr_rdata;
+            if ((rv32_dec_opcode == rv32_pkg::RV32_LB ) ||
+                (rv32_dec_opcode == rv32_pkg::RV32_LH ) ||
+                (rv32_dec_opcode == rv32_pkg::RV32_LW ) ||
+                (rv32_dec_opcode == rv32_pkg::RV32_LBU) ||
+                (rv32_dec_opcode == rv32_pkg::RV32_LHU) ) begin
                 rv32_ex_readd_addr <= rv32_dec_imm + rv32_regf_rd1;
             end else begin
                 if (alu_src == `PITO_ALU_SRC_RS2 ) begin
@@ -359,27 +469,28 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
 //====================================================================
 //                   Write Back Stage
 //====================================================================
-    assign is_exception = ((rv32_ex_opcode == RV32_ECALL) || (rv32_ex_opcode == RV32_EBREAK)) ? 1'b1 : 1'b0;
-    assign is_csr       = ((rv32_ex_opcode == RV32_CSRRW ) || (rv32_ex_opcode==RV32_CSRRS ) || (rv32_ex_opcode==RV32_CSRRC ) ||
-                           (rv32_ex_opcode == RV32_CSRRWI) || (rv32_ex_opcode==RV32_CSRRSI) || (rv32_ex_opcode==RV32_CSRRCI)) ? 1'b1 : 1'b0;
+    assign is_exception = ((rv32_ex_opcode == rv32_pkg::RV32_ECALL) || (rv32_ex_opcode == rv32_pkg::RV32_EBREAK)) ? 1'b1 : 1'b0;
+    assign is_csrrw     = ((rv32_ex_opcode == rv32_pkg::RV32_CSRRW ) || (rv32_ex_opcode==rv32_pkg::RV32_CSRRS ) || (rv32_ex_opcode==rv32_pkg::RV32_CSRRC ) ||
+                           (rv32_ex_opcode == rv32_pkg::RV32_CSRRWI) || (rv32_ex_opcode==rv32_pkg::RV32_CSRRSI) || (rv32_ex_opcode==rv32_pkg::RV32_CSRRCI)) ? 1'b1 : 1'b0;
+    assign rv32_ex_res_val = (is_csrrw == 1'b1) ? csr_ex_rdata : rv32_alu_res;
 // The following circuit decides whether the write back to memory should
 // be skipped or not. The write back stage should be skipped only when the 
 // instruction is of type: NOT store
-    assign rv32_wb_skip = ((rv32_ex_opcode == RV32_SB) || (rv32_ex_opcode == RV32_SH) || (rv32_ex_opcode == RV32_SW) ) ? 1'b0 : 1'b1;
+    assign rv32_wb_skip = ((rv32_ex_opcode == rv32_pkg::RV32_SB) || (rv32_ex_opcode == rv32_pkg::RV32_SH) || (rv32_ex_opcode == rv32_pkg::RV32_SW) ) ? 1'b0 : 1'b1;
     // TODO: should be byte addressed
     // Data memory is word accessed. In the path to register file, 
     // the circuit below takes the correct value from the ram output.
     always_comb begin
         case (rv32_ex_opcode)
-             RV32_SB : rv32_wb_store_val = { {24{1'b0}}, rv32_wb_rs2_skip[7 : 0]};
-             RV32_SH : rv32_wb_store_val = { {16{1'b0}}, rv32_wb_rs2_skip[15: 0]};
-             RV32_SW : rv32_wb_store_val = rv32_wb_rs2_skip;
+             rv32_pkg::RV32_SB : rv32_wb_store_val = { {24{1'b0}}, rv32_wb_rs2_skip[7 : 0]};
+             rv32_pkg::RV32_SH : rv32_wb_store_val = { {16{1'b0}}, rv32_wb_rs2_skip[15: 0]};
+             rv32_pkg::RV32_SW : rv32_wb_store_val = rv32_wb_rs2_skip;
              default : rv32_wb_store_val = {32{1'b0}};
         endcase
     end
 
     always @(posedge clk) begin
-        // if(rv32_io_rst_n == 1'b0) begin
+        // if(inf.pito_io_rst_n == 1'b0) begin
         //     rv32_wb_pc     <= 0;
         //     rv32_wb_instr  <= {32{1'b0}};
         //     rv32_dmem_w_en <= 1'b0;
@@ -395,7 +506,7 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
             rv32_wb_readd_addr<= rv32_ex_readd_addr;
             rv32_hart_wb_cnt  <= rv32_hart_ex_cnt;
             if (rv32_wb_skip) begin
-                rv32_wb_out <= rv32_alu_res;
+                rv32_wb_out <= rv32_ex_res_val;
             end else begin
                 rv32_dmem_addr <= rv32_alu_res - `PITO_DATA_MEM_OFFSET;
                 rv32_dmem_data <= rv32_wb_store_val;
@@ -413,17 +524,17 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
 //                   RegFile Write Stage
 //====================================================================
 
-    assign rv32_wf_skip = ((rv32_wb_opcode == RV32_BEQ ) || (rv32_wb_opcode == RV32_BNE ) || (rv32_wb_opcode == RV32_BLT ) || 
-                           (rv32_wb_opcode == RV32_BGE ) || (rv32_wb_opcode == RV32_BLTU) || (rv32_wb_opcode == RV32_BGEU) ||
-                           (rv32_wb_opcode == RV32_SB  ) || (rv32_wb_opcode == RV32_SH  ) || (rv32_wb_opcode == RV32_SW  )) ? 1'b1 : 1'b0;
-    assign rv32_wf_is_load = ((rv32_wb_opcode == RV32_LB) || (rv32_wb_opcode == RV32_LH) || (rv32_wb_opcode == RV32_LW) ||
-                              (rv32_wb_opcode == RV32_LBU)) ? 1'b1 : 1'b0;
+    assign rv32_wf_skip = ((rv32_wb_opcode == rv32_pkg::RV32_BEQ ) || (rv32_wb_opcode == rv32_pkg::RV32_BNE ) || (rv32_wb_opcode == rv32_pkg::RV32_BLT ) || 
+                           (rv32_wb_opcode == rv32_pkg::RV32_BGE ) || (rv32_wb_opcode == rv32_pkg::RV32_BLTU) || (rv32_wb_opcode == rv32_pkg::RV32_BGEU) ||
+                           (rv32_wb_opcode == rv32_pkg::RV32_SB  ) || (rv32_wb_opcode == rv32_pkg::RV32_SH  ) || (rv32_wb_opcode == rv32_pkg::RV32_SW  )) ? 1'b1 : 1'b0;
+    assign rv32_wf_is_load = ((rv32_wb_opcode == rv32_pkg::RV32_LB) || (rv32_wb_opcode == rv32_pkg::RV32_LH) || (rv32_wb_opcode == rv32_pkg::RV32_LW) ||
+                              (rv32_wb_opcode == rv32_pkg::RV32_LBU)) ? 1'b1 : 1'b0;
     // Memory is byte addressed but Data memory is word accessed. 
     // In the path to register file, the circuit below takes the correct 
     // value from the ram output. 
     always_comb begin
         case (rv32_wb_opcode)
-             RV32_LB : begin
+             rv32_pkg::RV32_LB : begin
                         case (rv32_wb_readd_addr[1:0])
                             2'b00: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[7 : 0]};
                             2'b01: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[15: 8]};
@@ -432,15 +543,15 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
                             default : rv32_wf_load_val = 0;
                         endcase
                        end
-             RV32_LH :  begin
+             rv32_pkg::RV32_LH :  begin
                         case (rv32_wb_readd_addr[1:0])
                             2'b00: rv32_wf_load_val = { {16{1'b0}}, rv32_dr_data[15: 0]};
                             2'b10: rv32_wf_load_val = { {16{1'b0}}, rv32_dr_data[31:16]};
                             default : rv32_wf_load_val = 0;
                         endcase
                        end
-             RV32_LW : rv32_wf_load_val = rv32_dr_data;
-             RV32_LBU: begin
+             rv32_pkg::RV32_LW : rv32_wf_load_val = rv32_dr_data;
+             rv32_pkg::RV32_LBU: begin
                         case (rv32_wb_readd_addr[1:0])
                             2'b00: rv32_wf_load_val = { {24{rv32_dr_data[7 ]}}, rv32_dr_data[7 : 0]};
                             2'b01: rv32_wf_load_val = { {24{rv32_dr_data[15]}}, rv32_dr_data[15: 8]};
@@ -449,7 +560,7 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
                             default : rv32_wf_load_val = 0;
                         endcase
                        end
-             RV32_LHU: begin
+             rv32_pkg::RV32_LHU: begin
                         case (rv32_wb_readd_addr[1:0])
                             2'b00: rv32_wf_load_val = { {16{rv32_dr_data[15]}}, rv32_dr_data[15: 0]};
                             2'b10: rv32_wf_load_val = { {16{rv32_dr_data[31]}}, rv32_dr_data[31:16]};
@@ -461,7 +572,7 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
     end
 
     always @(posedge clk) begin
-        // if(rv32_io_rst_n == 1'b0) begin
+        // if(inf.pito_io_rst_n == 1'b0) begin
         //     rv32_regf_wa <= 0;
         //     for (int i=0; i<`PITO_NUM_HARTS; i++) begin
         //         rv32_wf_pc[i] <= 0;
@@ -485,7 +596,7 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
             if (!rv32_wf_skip) begin
                 rv32_regf_wa <= rv32_wb_rd;
                 rv32_regf_wen<= 1'b1;
-                if (rv32_wb_opcode == RV32_LUI) begin // 1- Immediates: Load Upper Immediate to RF
+                if (rv32_wb_opcode == rv32_pkg::RV32_LUI) begin // 1- Immediates: Load Upper Immediate to RF
                     rv32_regf_wd <= rv32_wb_imm;
                 end else if (rv32_wb_save_pc) begin // 2- Return Add: PC has to be written to RF
                     rv32_regf_wd <= rv32_wb_reg_pc;
@@ -502,9 +613,9 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
             // Next PC Counter
             //=================================================================================
             // Decide if we need to update PC or not. Upto this point, we have been pipelining 
-            // the PC. For jump and branch instructions, we need to update the PC. For other 
+            // the PC. For jump, branch and mret instructions, we need to update the PC. For other 
             // instructions, we need to use the current (in Fetch stage) PC + 4. The rv32_next_pc_cal 
-            // has already calculated the next PC value. With rv32_wb_has_new_pc we know if we 
+            // contains the calculated next PC value. With rv32_wb_has_new_pc we know if we 
             // need to use the calculated PC counter or just the current (in Fetch stage) PC + 4.
             if (rv32_wb_has_new_pc) begin
                 pc_sel[rv32_hart_wb_cnt]     <= `PITO_PC_SEL_COMPUTED;
@@ -535,10 +646,10 @@ rv32_hart_cnt_t    rv32_hart_cap_cnt;
 
 logic is_end;
 
-assign is_end = ((rv32_wf_opcode ==  RV32_ECALL) || (rv32_wf_opcode ==  RV32_EBREAK)) ? 1'b1 : 1'b0;
+assign is_end = ((rv32_wf_opcode ==  rv32_pkg::RV32_ECALL) || (rv32_wf_opcode ==  rv32_pkg::RV32_EBREAK)) ? 1'b1 : 1'b0;
 
     always @(posedge clk) begin
-        if(rv32_io_rst_n == 1'b0) begin
+        if(inf.pito_io_rst_n == 1'b0) begin
             rv32_cap_pc     <= 0;
         end else begin
             rv32_cap_pc      <= rv32_wf_pc[rv32_hart_wf_cnt];

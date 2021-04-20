@@ -14,3 +14,7 @@ __pycache__
 .Xil/
 *.pyc
 synthesis/
+*.hex
+*.obj
+.DS_Store
+build/

@@ -1,3 +1,4 @@
+`timescale 1ns/1ps
 module rv32_barrel_regfiles #(
         parameter NUM_HARTS      = 8,
         parameter HART_CNT_WIDTH = $clog2(NUM_HARTS)

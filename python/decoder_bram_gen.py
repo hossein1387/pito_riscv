@@ -1,6 +1,57 @@
 import argparse
 
-rv32_instr_dict = {
+rv32_instr_unexpanded_dict = {
+        "RV32_LB"    : "xx00000000",
+        "RV32_LH"    : "xx00100000",
+        "RV32_LW"    : "xx01000000",
+        "RV32_LBU"   : "xx10000000",
+        "RV32_LHU"   : "xx10100000",
+        "RV32_SB"    : "xx00001000",
+        "RV32_SH"    : "xx00101000",
+        "RV32_SW"    : "xx01001000",
+        "RV32_SLL"   : "0x00101100",
+        "RV32_SLLI"  : "0x00100100",
+        "RV32_SRL"   : "0x10101100",
+        "RV32_SRLI"  : "0x10100100",
+        "RV32_SRA"   : "1x10101100",
+        "RV32_SRAI"  : "1x10100100",
+        "RV32_ADD"   : "0x00001100",
+        "RV32_ADDI"  : "xx00000100",
+        "RV32_SUB"   : "1x00001100",
+        "RV32_LUI"   : "xxxxx01101",
+        "RV32_AUIPC" : "xxxxx00101",
+        "RV32_XOR"   : "0x10001100",
+        "RV32_XORI"  : "xx10000100",
+        "RV32_OR"    : "0x11001100",
+        "RV32_ORI"   : "xx11000100",
+        "RV32_AND"   : "0x11101100",
+        "RV32_ANDI"  : "xx11100100",
+        "RV32_SLT"   : "0x01001100",
+        "RV32_SLTI"  : "xx01000100",
+        "RV32_SLTU"  : "0x01101100",
+        "RV32_SLTIU" : "xx01100100",
+        "RV32_BEQ"   : "xx00011000",
+        "RV32_BNE"   : "xx00111000",
+        "RV32_BLT"   : "xx10011000",
+        "RV32_BGE"   : "xx10111000",
+        "RV32_BLTU"  : "xx11011000",
+        "RV32_BGEU"  : "xx11111000",
+        "RV32_JAL"   : "xxxxx11011",
+        "RV32_JALR"  : "xx00011001",
+        "RV32_FENCE" : "0x00000011",
+        "RV32_FENCEI": "0000100011",
+        "RV32_CSRRW" : "xx00111100",
+        "RV32_CSRRS" : "xx01011100",
+        "RV32_CSRRC" : "xx01111100",
+        "RV32_CSRRWI": "xx10111100",
+        "RV32_CSRRSI": "xx11011100",
+        "RV32_CSRRCI": "xx11111100",
+        "RV32_EBREAK": "0100011100",
+        "RV32_MRET"  : "0000011100"
+        # "RV32_NOP"   : "0000000100"
+        }
+# ALU_OP + INSTR_OP:
+pito_instr_dict = {
         'RV32_LB'     : "0011000000",
         'RV32_LH'     : "0011000001",
         'RV32_LW'     : "0011000010",
@@ -50,13 +101,15 @@ rv32_instr_dict = {
         'RV32_EBREAK' : "1111101110",
         'RV32_ERET'   : "1111101111",
         'RV32_WFI'    : "1111110000",
-        'RV32_NOP'    : "1111110001",
+        'RV32_MRET'   : "0000110001",
+        # 'RV32_NOP'    : "1111110010",
         'RV32_UNKNOWN': "1111111111"
 }
 
+
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--input_file', help='input file defining rv32 instructions', required=True)
+    # parser.add_argument('-i', '--input_file', help='input file defining rv32 instructions', required=True)
     parser.add_argument('-o', '--output_file', help='output file that contains bram values', required=True)
     parser.add_argument('-t', '--output_type', help='output instruction type', required=True)
     args = parser.parse_args()
@@ -68,15 +121,14 @@ def parse_instr_def_file(file):
         lines = f.readlines()
         cnt = 0
         for line in lines:
-            if "32\'h" in line:
-                # import ipdb as pdb; pdb.set_trace()
-                line = ' '.join(line.split())
-                instr= line.split(" ")[1]
-                val  = line.split("32\'h")[-1][0:32][::-1] 
-                val  = val[30] + val[20] + val[12:15][::-1] + val[2:7][::-1] 
-                instr_dict[instr] = val
-                # print("[{0:2}] {1:12}:{2}".format(cnt, instr, val))
-                cnt += 1
+            # import ipdb as pdb; pdb.set_trace()
+            line = ''.join(line.split())
+            instr= line.split(":")[0]
+            val  = line.split(":")[-1][0:32][::-1] 
+            val  = val[30] + val[20] + val[12:15][::-1] + val[2:7][::-1] 
+            instr_dict[instr] = val
+            print("[{0:2}] {1:12}:{2}".format(cnt, instr, val))
+            cnt += 1
     return instr_dict
 
 def replace_char(str, pos, val):
@@ -91,7 +143,7 @@ def build_bram(bram_dict, num_bits, outputfile, output_type):
         if isinstance(bram_dict[key], str):
             indx = int(bram_dict[key], 2)
             bram[indx] = instr
-        else:        
+        else:
             for val in bram_dict[key]:
                 # import ipdb as pdb; pdb.set_trace()
                 indx = int(val, 2)
@@ -103,15 +155,15 @@ def build_bram(bram_dict, num_bits, outputfile, output_type):
         for addr in range(0,2**num_bits):
             bram_val = bram[addr]
             # import ipdb as pdb; pdb.set_trace()
-            # print("[{:4}]:  {:12}".format(addr, bram_val))
+            print("[{:4}]:  {:12}".format(addr, bram_val))
             if output_type == "text":
                 f.write(bram_val+"\n")
             elif output_type == "int":
-                f.write(str(int(rv32_instr_dict[bram_val], 2))+"\n")
+                f.write(str(int(pito_instr_dict[bram_val], 2))+"\n")
             elif output_type == "hex":
-                f.write(hex(int(rv32_instr_dict[bram_val], 2))[2:]+"\n")
+                f.write(hex(int(pito_instr_dict[bram_val], 2))[2:]+"\n")
             else:
-                f.write(str(int(rv32_instr_dict[bram_val], 2))+"\n")
+                f.write(str(int(pito_instr_dict[bram_val], 2))+"\n")
         f.close()
     return bram
 
@@ -142,11 +194,12 @@ def expand_instr(instr_dict):
 
 if __name__ == '__main__':
     args = parse_args()
-    input_file = args['input_file']
+    # input_file = args['input_file']
     output_file = args['output_file']
     output_type = args['output_type']
-    instr_dict = parse_instr_def_file(input_file)
+    # instr_dict = parse_instr_def_file(input_file)
+    instr_dict = rv32_instr_unexpanded_dict
     bram_dict = expand_instr(instr_dict)
     # import ipdb as pdb; pdb.set_trace()
-    # print(bram_dict)
+    # # print(bram_dict)
     build_bram(bram_dict, 10, output_file, output_type)
