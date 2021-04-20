@@ -1,10 +1,13 @@
-`timescale 1ns/1ps
+`include "rv32_defines.svh"
+`include "testbench_macros.svh"
+`include "testbench_config.sv"
+`include "pito_monitor.sv"
 import utils::*;
 import rv32_pkg::*;
 import rv32_utils::*;
 import pito_pkg::*;
 
-class testbench_base extends BaseObj;
+class pito_testbench_base extends BaseObj;
 
     string firmware;
     virtual pito_interface inf;

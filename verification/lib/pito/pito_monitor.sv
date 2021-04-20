@@ -1,4 +1,5 @@
-`timescale 1ns/1ps
+`include "rv32_defines.svh"
+`include "testbench_macros.svh"
 import rv32_utils::*;
 import utils::*;
 import pito_pkg::*;
@@ -72,8 +73,7 @@ class pito_monitor extends BaseObj;
                 pito_pkg::CSR_MINSTRET       : csrs[csr] = `hdl_path_csrf_0.minstret_q[31:0];
                 // pito_pkg::CSR_MCYCLEH        : csrs[csr] = `hdl_path_csrf_0.mcycle_q[63:32];
                 pito_pkg::CSR_MINSTRETH      : csrs[csr] = `hdl_path_csrf_0.minstret_q[63:32];
-
-                pito_pkg::CSR_MVUWBASEPTR    : csrs[csr] = `hdl_path_csrf_0.csr_mvuwbaseptr_q;
+                                pito_pkg::CSR_MVUWBASEPTR    : csrs[csr] = `hdl_path_csrf_0.csr_mvuwbaseptr_q;
                 pito_pkg::CSR_MVUIBASEPTR    : csrs[csr] = `hdl_path_csrf_0.csr_mvuibaseptr_q;
                 pito_pkg::CSR_MVUSBASEPTR    : csrs[csr] = `hdl_path_csrf_0.csr_mvusbaseptr_q;
                 pito_pkg::CSR_MVUBBASEPTR    : csrs[csr] = `hdl_path_csrf_0.csr_mvubbaseptr_q;
@@ -221,10 +221,14 @@ class pito_monitor extends BaseObj;
         rv32_pc_cnt_t   pc_cnt, pc_orig_cnt;
         int hart_id;
         int hart_valid = 0;
-        this.sync_with_dut();
         logger.print("Starting Monitor Task");
         logger.print("Monitoring the following harts:");
-
+        foreach(this.hart_ids_q[i]) begin
+            if (this.hart_ids_q[i]==1) begin
+                logger.print($sformatf("\tHart[%0d]", i));
+            end
+        end
+        this.sync_with_dut();
         while(`hdl_path_top.is_end == 1'b0) begin
             // logger.print($sformatf("pc=%d       decode:%s", `hdl_path_top.rv32_dec_pc, `hdl_path_top.rv32_dec_opcode.name));
             // logger.print($sformatf("%s",read_regs()));

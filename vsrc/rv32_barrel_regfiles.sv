@@ -1,4 +1,5 @@
 `timescale 1ns/1ps
+`include "rv32_defines.svh"
 module rv32_barrel_regfiles #(
         parameter NUM_HARTS      = 8,
         parameter HART_CNT_WIDTH = $clog2(NUM_HARTS)

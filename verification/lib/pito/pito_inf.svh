@@ -1,4 +1,4 @@
-
+`include "rv32_defines.svh"
 interface pito_interface(input logic clk);
     import rv32_pkg::*;
     import pito_pkg::*;

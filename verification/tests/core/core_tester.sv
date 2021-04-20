@@ -1,5 +1,6 @@
+`include "testbench_base.sv"
 
-class core_tester extends testbench_base;
+class core_tester extends pito_testbench_base;
 
     function new(Logger logger, virtual pito_interface inf);
         super.new(logger, inf);

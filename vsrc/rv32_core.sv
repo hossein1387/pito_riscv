@@ -1,4 +1,6 @@
 `timescale 1ns/1ps
+`include "rv32_defines.svh"
+`include "pito_inf.svh"
 
 import rv32_pkg::*;
 import pito_pkg::*;
@@ -203,7 +205,7 @@ logic [31 : 0] csr_rdata, csr_ex_rdata;
 logic          csr_irq;
 logic          csr_timer_irq;
 logic          csr_ipi_irq;
-logic[31:0]    csr_boot_addr;
+logic[32*`PITO_NUM_HARTS-1 :0] csr_boot_addr;
 // logic          csr_mvu_irq;
 exception_t    csr_exception;
 logic [31:0]   csr_cause;
