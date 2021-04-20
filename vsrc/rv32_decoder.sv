@@ -1,7 +1,7 @@
 // `include "rv32_types.svh"
 // `include "rv32_instr.svh"
 // `include "rv32_defines.svh"
-`timescale 1 ps / 1 ps
+`timescale 1ns/1ps
 
 import rv32_pkg::*;
 

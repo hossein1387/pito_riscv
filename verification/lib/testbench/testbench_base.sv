@@ -1,3 +1,4 @@
+`timescale 1ns/1ps
 import utils::*;
 import rv32_pkg::*;
 import rv32_utils::*;
@@ -127,6 +128,15 @@ class testbench_base extends BaseObj;
         test_stats_t test_stat = this.monitor.get_results();
         logger.print_banner("Testbench Report phase");
         print_result(test_stat, VERB_LOW, logger);
+        for (int hart=0; hart<NUM_HARTS; hart++) begin
+            if (this.hart_ids_q[hart] == 1) begin
+                int char_0 = `hdl_path_regf_0[rv32_abi_reg_i["a0"]];
+                int char_1 = `hdl_path_regf_0[rv32_abi_reg_i["a1"]];
+                int char_2 = `hdl_path_regf_0[rv32_abi_reg_i["a2"]];
+                int char_3 = `hdl_path_regf_0[rv32_abi_reg_i["a3"]];
+                logger.print($sformatf("RISC-V TEST Result: %s%s%s%s", char_0, char_1, char_2, char_3));
+            end
+        end
     endtask 
 
 endclass

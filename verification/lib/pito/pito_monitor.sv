@@ -1,3 +1,4 @@
+`timescale 1ns/1ps
 import rv32_utils::*;
 import utils::*;
 import pito_pkg::*;

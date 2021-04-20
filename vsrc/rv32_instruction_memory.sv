@@ -1,3 +1,4 @@
+`timescale 1ns/1ps
 module rv32_instruction_memory (
                     input  logic            clock    ,
                     input  rv32_data_t      data     ,
