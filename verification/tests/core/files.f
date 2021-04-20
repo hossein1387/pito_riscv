@@ -21,5 +21,6 @@
 ../../../vsrc/rv32_next_pc.sv
 ../../../vsrc/rv32_csr.sv
 ../../../vsrc/rv32_barrel_csrfiles.sv
+../../../vsrc/blk_mem_gen_v8_4.v
 ./core_tester.sv
 ../../lib/testbench/testbench_top.sv
