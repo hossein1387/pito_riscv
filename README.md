@@ -34,9 +34,3 @@ Here are the known issues with the core:
        A RISC-V hart has a single byte-addressable address space of 2XLEN bytes for all memory accesses. (Page 6 The RISC-V Instruction Set Manual Volume I: Unprivileged ISA Document Version 20191213)
 
 We have to figure out a way to read/write in a byte aligned memory space. 
-
-# TODO:
-
-- [ ] Adding support for CSR related instructions.
-- [x] We will attempt to implement the barreled data path. 
-- [ ] Adding support for Exceptions, HALT, interrupts and traps.
