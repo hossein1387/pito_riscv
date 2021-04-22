@@ -454,11 +454,24 @@ class RV32IPredictor extends BaseObj;
         return test_stat;
     endfunction
 
+    function print_regf_model (int hart_id);
+        int reg_cnt = 0;
+        string report = "";
+        for (int i=0; i<4; i++) begin
+            for (int j=0; j<8; j++) begin
+                report = $sformatf("%sx[%2d]:%9d\t", report, reg_cnt, this.regf_model[hart_id][reg_cnt]);
+                reg_cnt += 1;
+            end
+            report = $sformatf("%s\n", report);
+        end
+        $display(report);
+    endfunction
 
     function update_regf(bit has_update, rv32_register_field_t rd, int val, int hart_id);
         if (has_update) begin
             if (rd != 0) begin
                 this.regf_model[hart_id][rd] = val;
+                // $display($sformatf("\tupdate_regf-> rd=%0d, exp_val=%0d, hart_id=%0d", rd, val, hart_id));
             end
         end
     endfunction
@@ -554,10 +567,10 @@ class RV32IPredictor extends BaseObj;
 
     function void write_to_mem(int addr, int val, int size);
         if (size==1) begin
-            riscv_data_mem[addr] = val[7:0];
+            riscv_data_mem[addr] = { {24{val[7]}} , val[7:0]};
         end else if (size==2) begin
             // riscv_data_mem[addr  ] = val[7 :0];
-            riscv_data_mem[addr] = val[15:0];
+            riscv_data_mem[addr] = { {16{val[15]}} , val[15:0]};
         end else if (size==4) begin
             riscv_data_mem[addr] = val;
             // riscv_data_mem[addr+1] = val[15 : 8 ];
@@ -568,44 +581,41 @@ class RV32IPredictor extends BaseObj;
         end
     endfunction
 
-    function int read_from_mem(int addr, int size, bit is_signed);
-        int ret_val = 0;
+    function int read_val_partial(int ret_val, int addr, int size, bit is_signed);
         if (size==1) begin
-            ret_val = riscv_data_mem[addr >> 2];
             if (is_signed) begin
                 case (addr[1:0])
-                    2'b00: ret_val = signed'(ret_val[7 : 0]);
-                    2'b01: ret_val = signed'(ret_val[15: 8]);
-                    2'b10: ret_val = signed'(ret_val[23:16]);
-                    2'b11: ret_val = signed'(ret_val[31:24]);
+                    2'b00: ret_val = { {24{ret_val[7 ]}} , ret_val[7 : 0]};
+                    2'b01: ret_val = { {24{ret_val[15]}} , ret_val[15: 8]};
+                    2'b10: ret_val = { {24{ret_val[23]}} , ret_val[23:16]};
+                    2'b11: ret_val = { {24{ret_val[31]}} , ret_val[31:24]};
                     default : ret_val = 0;
                 endcase
             end else begin
                 case (addr[1:0])
-                    2'b00: ret_val = unsigned'(ret_val[7 : 0]);
-                    2'b01: ret_val = unsigned'(ret_val[15: 8]);
-                    2'b10: ret_val = unsigned'(ret_val[23:16]);
-                    2'b11: ret_val = unsigned'(ret_val[31:24]);
+                    2'b00: ret_val = ret_val[7 : 0];
+                    2'b01: ret_val = ret_val[15: 8];
+                    2'b10: ret_val = ret_val[23:16];
+                    2'b11: ret_val = ret_val[31:24];
                     default : ret_val = 0;
                 endcase
             end
         end else if (size==2) begin
-            ret_val = riscv_data_mem[addr >> 2];
             if (is_signed) begin
                 case (addr[1:0])
-                    2'b00: ret_val = signed'(ret_val[15: 0]);
-                    2'b10: ret_val = signed'(ret_val[31:16]);
+                    2'b00: ret_val = { {16{ret_val[15]}} , ret_val[15: 0]};
+                    2'b10: ret_val = { {16{ret_val[31]}} , ret_val[31:16]};
                     default : ret_val = 0;
                 endcase
             end else begin
                 case (addr[1:0])
-                    2'b00: ret_val = unsigned'(ret_val[15: 0]);
-                    2'b10: ret_val = unsigned'(ret_val[31:16]);
+                    2'b00: ret_val = ret_val[15: 0];
+                    2'b10: ret_val = ret_val[31:16];
                     default : ret_val = 0;
                 endcase
             end
         end else if (size==4) begin
-            ret_val = riscv_data_mem[addr >> 2];
+            return ret_val;
         end else begin
             this.logger.print($sformatf("ERROR: Reading of size %0d from memory is not available.", size));
         end
@@ -644,40 +654,40 @@ class RV32IPredictor extends BaseObj;
         case (opcode)
             RV32_LB     : begin
                 addr      = (rs1==0) ? signed'(imm) : regf_model[hart_id][rs1]+signed'(imm);
-                exp_val   = (rd==0) ? 0 : read_from_mem(addr, 1, 1);
-                real_val  = regf[rd];
+                exp_val   = (rd==0) ? 0 : read_val_partial(riscv_data_mem[addr >> 2], addr, 1, 1);
+                real_val  = (rd==0) ? 0 : regf[rd];
                 info      = instr_str;
                 has_rf_update=1;
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
             end
             RV32_LH     : begin
                 addr      = (rs1==0) ? signed'(imm) : regf_model[hart_id][rs1]+signed'(imm);
-                exp_val   = (rd==0) ? 0 : read_from_mem(addr, 2, 1);
-                real_val  = regf[rd];
+                exp_val   = (rd==0) ? 0 : read_val_partial(riscv_data_mem[addr >> 2], addr, 2, 1);
+                real_val  = (rd==0) ? 0 : regf[rd];
                 info      = instr_str;
                 has_rf_update=1;
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
             end
             RV32_LW     : begin
                 addr      = (rs1==0) ? signed'(imm) : regf_model[hart_id][rs1]+signed'(imm);
-                exp_val   = (rd==0) ? 0 : read_from_mem(addr, 4, 1);
-                real_val  = regf[rd];
+                exp_val   = (rd==0) ? 0 : read_val_partial(riscv_data_mem[addr >> 2], addr, 4, 1);
+                real_val  = (rd==0) ? 0 : regf[rd];
                 info      = instr_str;
                 has_rf_update=1;
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
             end
             RV32_LBU    : begin
                 addr      = (rs1==0) ? signed'(imm) : regf_model[hart_id][rs1]+signed'(imm);
-                exp_val   = (rd==0) ? 0 : read_from_mem(addr, 1, 0);
-                real_val  = regf[rd];
+                exp_val   = (rd==0) ? 0 : read_val_partial(riscv_data_mem[addr >> 2], addr, 1, 0);
+                real_val  = (rd==0) ? 0 : regf[rd];
                 info      = instr_str;
                 has_rf_update=1;
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
             end
             RV32_LHU    : begin
                 addr      = (rs1==0) ? signed'(imm) : regf_model[hart_id][rs1]+signed'(imm);
-                exp_val   = (rd==0) ? 0 : read_from_mem(addr, 2, 0);
-                real_val  = regf[rd];
+                exp_val   = (rd==0) ? 0 : read_val_partial(riscv_data_mem[addr >> 2], addr, 2, 0);
+                real_val  = (rd==0) ? 0 : regf[rd];
                 info      = instr_str;
                 has_rf_update=1;
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
@@ -863,26 +873,29 @@ class RV32IPredictor extends BaseObj;
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
             end
             RV32_BEQ    : begin
-                // $display($sformatf("BEQ-------> rs1=%0d rs2=%0d",signed'(regf_model[hart_id][rs1]), signed'(regf_model[hart_id][rs2])));
-                exp_val  = (signed'(regf_model[hart_id][rs1]) == signed'(regf_model[hart_id][rs2])) ? (pc_orig_cnt + signed'(imm<<1)) : pc_orig_cnt;
+                exp_val  = (regf_model[hart_id][rs1] == regf_model[hart_id][rs2]) ? (pc_orig_cnt + signed'(imm<<1)) : pc_orig_cnt;
                 real_val = pc_cnt;
                 info     = instr_str;
+                // $display($sformatf("\t BEQ-------> rs1=x[%d]:%0d rs2=x[%d]:%0d ", rs1, this.regf_model[hart_id][rs1], rs2, this.regf_model[hart_id][rs2]));
+                // $display($sformatf("\t pc_cnt=%0d, pc_orig_cnt=%0d", pc_cnt, pc_orig_cnt));
+                // $display($sformatf("\t exp_val=%0d, real_val=%0d", exp_val, real_val));
+                // $display($sformatf("\t regf[a1]=%d, rs1=%0d rs2=%0d", regf[11], rs1, rs2));
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
             end
             RV32_BNE    : begin
-                exp_val  = (signed'(regf_model[hart_id][rs1]) != signed'(regf_model[hart_id][rs2])) ? (pc_orig_cnt + signed'(imm<<1)) : pc_orig_cnt;
+                exp_val  = (regf_model[hart_id][rs1] != regf_model[hart_id][rs2]) ? (pc_orig_cnt + signed'(imm<<1)) : pc_orig_cnt;
                 real_val =  pc_cnt;
                 info     = instr_str;
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
             end
             RV32_BLT    : begin
-                exp_val  = (signed'(regf_model[hart_id][rs1]) < signed'(regf_model[hart_id][rs2])) ? (pc_orig_cnt + signed'(imm<<1)) : pc_orig_cnt;
+                exp_val  = (regf_model[hart_id][rs1] < regf_model[hart_id][rs2]) ? (pc_orig_cnt + signed'(imm<<1)) : pc_orig_cnt;
                 real_val =  pc_cnt;
                 info     = instr_str;
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
             end
             RV32_BGE    : begin
-                exp_val  = (signed'(regf_model[hart_id][rs1]) >= signed'(regf_model[hart_id][rs2])) ? (pc_orig_cnt + signed'(imm<<1)) : pc_orig_cnt;
+                exp_val  = (regf_model[hart_id][rs1] >= regf_model[hart_id][rs2]) ? (pc_orig_cnt + signed'(imm<<1)) : pc_orig_cnt;
                 real_val =  pc_cnt;
                 info     = instr_str;
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
@@ -1029,7 +1042,9 @@ class RV32IPredictor extends BaseObj;
             endcase
             void'(this.update_regf(has_rf_update, rd, exp_val, hart_id));
             void'(this.update_csrf(has_csr_update, csr, exp_val, hart_id, csr_op));
+            // print_regf_model(hart_id);
             // this.print_regfile_content(hart_id);
+            // $display("\n");
     endfunction
 
 endclass
@@ -1058,11 +1073,11 @@ function automatic string get_instr_str(rv32_inst_dec_t instr);
     string   inst_type = instr.inst_type.name     ;
     case (instr.inst_type)
         RV32_TYPE_R       : instr_str = $sformatf("%17s.%12s: rd=%4s rs1=%4s rs2=  %4s          ", inst_type, opcode, rd, rs1, rs2);
-        RV32_TYPE_I       : instr_str = $sformatf("%17s.%12s: rd=%4s rs1=%4s           imm=%4d", inst_type, opcode, rd, rs1, imm);
-        RV32_TYPE_S       : instr_str = $sformatf("%17s.%12s:        rs1=%4s rs2=  %4s imm=%4d", inst_type, opcode, rs1, rs2, imm);
-        RV32_TYPE_B       : instr_str = $sformatf("%17s.%12s:        rs1=%4s rs2=  %4s imm=%4d", inst_type, opcode, rs1, rs2, imm);
-        RV32_TYPE_U       : instr_str = $sformatf("%17s.%12s: rd=%4s rs1=%4s           imm=%4d", inst_type, opcode, rd, rs1, imm);
-        RV32_TYPE_J       : instr_str = $sformatf("%17s.%12s: rd=%4s                imm=%4d", inst_type, opcode, rd, imm);
+        RV32_TYPE_I       : instr_str = $sformatf("%17s.%12s: rd=%4s rs1=%4s           imm=%4d", inst_type, opcode, rd, rs1,  signed'(imm));
+        RV32_TYPE_S       : instr_str = $sformatf("%17s.%12s:        rs1=%4s rs2=  %4s imm=%4d", inst_type, opcode, rs1, rs2, signed'(imm));
+        RV32_TYPE_B       : instr_str = $sformatf("%17s.%12s:        rs1=%4s rs2=  %4s imm=%4d", inst_type, opcode, rs1, rs2, signed'(imm));
+        RV32_TYPE_U       : instr_str = $sformatf("%17s.%12s: rd=%4s rs1=%4s           imm=%4d", inst_type, opcode, rd, rs1,  signed'(imm));
+        RV32_TYPE_J       : instr_str = $sformatf("%17s.%12s: rd=%4s                imm=%4d", inst_type, opcode, rd, signed'(imm));
         RV32_TYPE_NOP     : instr_str = $sformatf("  %17s.%12s:                             ", inst_type, opcode);
         RV32_TYPE_UNKNOWN : instr_str = "!unknown instruction!";
     endcase

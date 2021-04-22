@@ -123,10 +123,6 @@ class pito_monitor extends BaseObj;
         return csrs;
     endfunction 
 
-
-// TODO: A dirty hack for access values within DUT. A better way is to 
-// bind or use interface to correctly access the signals. For memory,
-// I do not have any idea :(
     function automatic int read_dmem_word(rv32_pkg::rv32_inst_dec_t instr, int hart_id);
         rv32_opcode_enum_t    opcode    = instr.opcode   ;
         rv32_imm_t            imm       = instr.imm      ;
@@ -134,25 +130,30 @@ class pito_monitor extends BaseObj;
         int                   addr;
         // int reg_val = `read_hart_reg(hart_id, rs1);
         int reg_val = read_hart_reg_val(hart_id, rs1);
+        int read_val = 32'hDEADBEEF;
         case (opcode)
-            rv32_pkg::RV32_SB     : begin
+            RV32_SB     : begin
                 addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (reg_val+signed'(imm) - `PITO_DATA_MEM_OFFSET);
             end
-            rv32_pkg::RV32_SH     : begin
+            RV32_SH     : begin
                 addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (reg_val+signed'(imm) - `PITO_DATA_MEM_OFFSET);
             end
-            rv32_pkg::RV32_SW     : begin
+            RV32_SW     : begin
                 addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (reg_val+signed'(imm) - `PITO_DATA_MEM_OFFSET);
             end
-            endcase
-        return `hdl_path_top.d_mem.bram_32Kb_inst.inst.native_mem_module.blk_mem_gen_v8_4_3_inst.memory[addr];
+        endcase
+            // logger.print($sformatf("\t -> reg_val[%4d] hart_id=%4d, rs1=%4d", reg_val, hart_id, rs1));
+            // logger.print($sformatf("\t ->    addr[%8h] reg_val=%4d + imm=%4d - off=%d ", addr, reg_val, signed'(imm), `PITO_DATA_MEM_OFFSET));
+            read_val = `hdl_path_top.d_mem.bram_32Kb_inst.inst.native_mem_module.blk_mem_gen_v8_4_3_inst.memory[addr];
+            // logger.print($sformatf("\t -> %s is accessing mem[%8h]: %d", opcode.name, addr, read_val));
+        return read_val;
     endfunction : read_dmem_word
 
     function automatic print_imem_region(int addr_from, int addr_to, string radix);
         string mem_val_str="";
         int mem_val;
-        addr_from = addr_from - `PITO_DATA_MEM_OFFSET;
-        addr_to   = addr_to   - `PITO_DATA_MEM_OFFSET;
+        addr_from = addr_from;
+        addr_to   = addr_to  ;
         for (int addr=addr_from; addr<=addr_to; addr+=4) begin
             mem_val = `hdl_path_top.d_mem.bram_32Kb_inst.inst.native_mem_module.blk_mem_gen_v8_4_3_inst.memory[addr];
             if (radix == "int") begin

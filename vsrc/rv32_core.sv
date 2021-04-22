@@ -498,8 +498,8 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
     // the circuit below takes the correct value from the ram output.
     always_comb begin
         case (rv32_ex_opcode)
-             rv32_pkg::RV32_SB : rv32_wb_store_val = { {24{1'b0}}, rv32_wb_rs2_skip[7 : 0]};
-             rv32_pkg::RV32_SH : rv32_wb_store_val = { {16{1'b0}}, rv32_wb_rs2_skip[15: 0]};
+             rv32_pkg::RV32_SB : rv32_wb_store_val = { {24{rv32_wb_rs2_skip[7 ]}}, rv32_wb_rs2_skip[7 : 0]};
+             rv32_pkg::RV32_SH : rv32_wb_store_val = { {16{rv32_wb_rs2_skip[15]}}, rv32_wb_rs2_skip[15: 0]};
              rv32_pkg::RV32_SW : rv32_wb_store_val = rv32_wb_rs2_skip;
              default : rv32_wb_store_val = {32{1'b0}};
         endcase
@@ -544,30 +544,13 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
                            (rv32_wb_opcode == rv32_pkg::RV32_BGE ) || (rv32_wb_opcode == rv32_pkg::RV32_BLTU) || (rv32_wb_opcode == rv32_pkg::RV32_BGEU) ||
                            (rv32_wb_opcode == rv32_pkg::RV32_SB  ) || (rv32_wb_opcode == rv32_pkg::RV32_SH  ) || (rv32_wb_opcode == rv32_pkg::RV32_SW  )) ? 1'b1 : 1'b0;
     assign rv32_wf_is_load = ((rv32_wb_opcode == rv32_pkg::RV32_LB) || (rv32_wb_opcode == rv32_pkg::RV32_LH) || (rv32_wb_opcode == rv32_pkg::RV32_LW) ||
-                              (rv32_wb_opcode == rv32_pkg::RV32_LBU)) ? 1'b1 : 1'b0;
+                              (rv32_wb_opcode == rv32_pkg::RV32_LBU)|| (rv32_wb_opcode == rv32_pkg::RV32_LHU)) ? 1'b1 : 1'b0;
     // Memory is byte addressed but Data memory is word accessed. 
     // In the path to register file, the circuit below takes the correct 
     // value from the ram output. 
     always_comb begin
         case (rv32_wb_opcode)
              rv32_pkg::RV32_LB : begin
-                        case (rv32_wb_readd_addr[1:0])
-                            2'b00: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[7 : 0]};
-                            2'b01: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[15: 8]};
-                            2'b10: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[23:16]};
-                            2'b11: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[31:24]};
-                            default : rv32_wf_load_val = 0;
-                        endcase
-                       end
-             rv32_pkg::RV32_LH :  begin
-                        case (rv32_wb_readd_addr[1:0])
-                            2'b00: rv32_wf_load_val = { {16{1'b0}}, rv32_dr_data[15: 0]};
-                            2'b10: rv32_wf_load_val = { {16{1'b0}}, rv32_dr_data[31:16]};
-                            default : rv32_wf_load_val = 0;
-                        endcase
-                       end
-             rv32_pkg::RV32_LW : rv32_wf_load_val = rv32_dr_data;
-             rv32_pkg::RV32_LBU: begin
                         case (rv32_wb_readd_addr[1:0])
                             2'b00: rv32_wf_load_val = { {24{rv32_dr_data[7 ]}}, rv32_dr_data[7 : 0]};
                             2'b01: rv32_wf_load_val = { {24{rv32_dr_data[15]}}, rv32_dr_data[15: 8]};
@@ -576,10 +559,27 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
                             default : rv32_wf_load_val = 0;
                         endcase
                        end
-             rv32_pkg::RV32_LHU: begin
+             rv32_pkg::RV32_LH :  begin
                         case (rv32_wb_readd_addr[1:0])
                             2'b00: rv32_wf_load_val = { {16{rv32_dr_data[15]}}, rv32_dr_data[15: 0]};
                             2'b10: rv32_wf_load_val = { {16{rv32_dr_data[31]}}, rv32_dr_data[31:16]};
+                            default : rv32_wf_load_val = 0;
+                        endcase
+                       end
+             rv32_pkg::RV32_LW : rv32_wf_load_val = rv32_dr_data;
+             rv32_pkg::RV32_LBU: begin
+                        case (rv32_wb_readd_addr[1:0])
+                            2'b00: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[7 : 0]};
+                            2'b01: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[15: 8]};
+                            2'b10: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[23:16]};
+                            2'b11: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[31:24]};
+                            default : rv32_wf_load_val = 0;
+                        endcase
+                       end
+             rv32_pkg::RV32_LHU: begin
+                        case (rv32_wb_readd_addr[1:0])
+                            2'b00: rv32_wf_load_val = { {16{1'b0}}, rv32_dr_data[15: 0]};
+                            2'b10: rv32_wf_load_val = { {16{1'b0}}, rv32_dr_data[31:16]};
                             default : rv32_wf_load_val = 0;
                         endcase
                        end
