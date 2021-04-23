@@ -454,17 +454,26 @@ class RV32IPredictor extends BaseObj;
         return test_stat;
     endfunction
 
-    function print_regf_model (int hart_id);
+    function print_regf (int hart_id, rv32_regfile_t regf, int use_model_rf);
         int reg_cnt = 0;
         string report = "";
+        int val;
+        string msg = "";
+        msg = $sformatf("%s", (use_model_rf==1) ? "Model RF" : "HW RF");
+        this.logger.print(msg);
         for (int i=0; i<4; i++) begin
             for (int j=0; j<8; j++) begin
-                report = $sformatf("%sx[%2d]:%9d\t", report, reg_cnt, this.regf_model[hart_id][reg_cnt]);
+                if (use_model_rf==1) begin
+                    val = this.regf_model[hart_id][reg_cnt];
+                end else begin
+                    val = regf[reg_cnt];
+                end
+                report = $sformatf("%s%4s:%8h ", report, rv32_pkg::rv32_abi_reg_s[reg_cnt], val);
                 reg_cnt += 1;
             end
-            report = $sformatf("%s\n", report);
+            this.logger.print(report);
+            report = "";
         end
-        $display(report);
     endfunction
 
     function update_regf(bit has_update, rv32_register_field_t rd, int val, int hart_id);
@@ -643,7 +652,7 @@ class RV32IPredictor extends BaseObj;
         rv32_register_field_t rd        = instr.rd       ;
         rv32_type_enum_t      inst_type = instr.inst_type;
         string                instr_str = get_instr_str(instr);
-        int                   exp_val, real_val;
+        int                   exp_val, real_val, temp1, temp2;
         int                   addr;
         string                info;
         bit                   has_rf_update = 0;
@@ -753,7 +762,8 @@ class RV32IPredictor extends BaseObj;
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
             end
             RV32_SRA    : begin
-                exp_val  = (rd==0) ? 0 : (signed'(regf_model[hart_id][rs1]) >>> (regf_model[hart_id][rs2]&32'h0000_001F));
+                exp_val  = int'(regf_model[hart_id][rs1]);
+                exp_val  = (rd==0) ? 0 : (exp_val >>> (regf_model[hart_id][rs2]&32'h0000_001F));
                 real_val =  regf[rd];
                 info     = instr_str;
                 has_rf_update=1;
@@ -761,7 +771,8 @@ class RV32IPredictor extends BaseObj;
             end
             RV32_SRAI   : begin
                 imm = int'(imm[4:0]);
-                exp_val  = (rd==0) ? 0 : (signed'(regf_model[hart_id][rs1]) >>> imm);
+                exp_val  = int'(regf_model[hart_id][rs1]);
+                exp_val  = (rd==0) ? 0 : (exp_val >>> imm);
                 real_val =  regf[rd];
                 info     = instr_str;
                 has_rf_update=1;
@@ -845,14 +856,18 @@ class RV32IPredictor extends BaseObj;
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
             end
             RV32_SLT    : begin
-                exp_val  = (rd==0) ? 0 : (signed'(regf_model[hart_id][rs1]) < signed'(regf_model[hart_id][rs2])) ? 1 : 0;
+                temp1    = int'(regf_model[hart_id][rs1]);
+                temp2    = int'(regf_model[hart_id][rs2]);
+                exp_val  = (rd==0) ? 0 : (temp1 < temp2) ? 1 : 0;
                 real_val =  regf[rd];
                 info     = instr_str;
                 has_rf_update=1;
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
             end
             RV32_SLTI   : begin
-                exp_val  = (rd==0) ? 0 : (signed'(regf_model[hart_id][rs1]) < signed'( int'(imm))) ? 1 : 0;
+                temp1    = int'(regf_model[hart_id][rs1]);
+                temp2    = int'(imm);
+                exp_val  = (rd==0) ? 0 : (temp1< temp2) ? 1 : 0;
                 real_val =  regf[rd];
                 info     = instr_str;
                 has_rf_update=1;
@@ -889,25 +904,25 @@ class RV32IPredictor extends BaseObj;
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
             end
             RV32_BLT    : begin
-                exp_val  = (regf_model[hart_id][rs1] < regf_model[hart_id][rs2]) ? (pc_orig_cnt + signed'(imm<<1)) : pc_orig_cnt;
+                exp_val  = (signed'(regf_model[hart_id][rs1]) < signed'(regf_model[hart_id][rs2])) ? (pc_orig_cnt + signed'(imm<<1)) : pc_orig_cnt;
                 real_val =  pc_cnt;
                 info     = instr_str;
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
             end
             RV32_BGE    : begin
-                exp_val  = (regf_model[hart_id][rs1] >= regf_model[hart_id][rs2]) ? (pc_orig_cnt + signed'(imm<<1)) : pc_orig_cnt;
+                exp_val  = (signed'(regf_model[hart_id][rs1]) >= signed'(regf_model[hart_id][rs2])) ? (pc_orig_cnt + signed'(imm<<1)) : pc_orig_cnt;
                 real_val =  pc_cnt;
                 info     = instr_str;
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
             end
             RV32_BLTU   : begin
-                exp_val  = (unsigned'(regf_model[hart_id][rs1]) < unsigned'(regf_model[hart_id][rs2])) ? (pc_orig_cnt + signed'(imm<<1)) : pc_orig_cnt;
+                exp_val  = (regf_model[hart_id][rs1] < regf_model[hart_id][rs2]) ? (pc_orig_cnt + signed'(imm<<1)) : pc_orig_cnt;
                 real_val =  pc_cnt;
                 info     = instr_str;
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
             end
             RV32_BGEU   : begin
-                exp_val  = (unsigned'(regf_model[hart_id][rs1]) >= unsigned'(regf_model[hart_id][rs2])) ? (pc_orig_cnt + signed'(imm<<1)) : pc_orig_cnt;
+                exp_val  = (regf_model[hart_id][rs1] >= regf_model[hart_id][rs2]) ? (pc_orig_cnt + signed'(imm<<1)) : pc_orig_cnt;
                 real_val =  pc_cnt;
                 info     = instr_str;
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
@@ -1042,7 +1057,10 @@ class RV32IPredictor extends BaseObj;
             endcase
             void'(this.update_regf(has_rf_update, rd, exp_val, hart_id));
             void'(this.update_csrf(has_csr_update, csr, exp_val, hart_id, csr_op));
-            // print_regf_model(hart_id);
+            // print_regf(hart_id, regf, 0);
+            // $display("\n");
+            // print_regf(hart_id, regf, 1);
+            // $display("\n");
             // this.print_regfile_content(hart_id);
             // $display("\n");
     endfunction
