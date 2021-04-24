@@ -96,13 +96,13 @@ module rv32_csr import pito_pkg::*;import rv32_pkg::*; #(
     logic [63:0]            mcycle_q, mcycle_d;
     logic [63:0]            minstret_q, minstret_d;
     // return from M-mode exception
-    logic        mret;  
-    logic        mvu_irq_valid;
-    logic        timer_irq_valid;
-    logic        ipi_irq_valid;
-    logic        is_irq;
-
-    logic        mtvec_rst_load_q;// used to determine whether we came out of reset
+    logic mret;
+    logic mvu_irq_valid;
+    logic timer_irq_valid;
+    logic ipi_irq_valid;
+    logic is_irq;
+    logic irq_serviced_q, irq_serviced_d;
+    logic mtvec_rst_load_q;// used to determine whether we came out of reset
 
     // MVU CSRs;
     logic [31:0] csr_mvuwbaseptr_q,  csr_mvuwbaseptr_d;
@@ -212,7 +212,7 @@ module rv32_csr import pito_pkg::*;import rv32_pkg::*; #(
     assign mvu_irq_valid      = mstatus_q.mie & mip_q[pito_pkg::IRQ_MVU_INTR] & mie_q[pito_pkg::IRQ_MVU_INTR];
     assign is_irq             = timer_irq_valid | ipi_irq_valid | mvu_irq_valid;
     assign csr_irq_evt.hart_id= PITO_HART_ID;
-    assign csr_irq_evt.valid  = |mip_q;
+    assign csr_irq_evt.valid  = |mip_q & mstatus_q.mie;
 
 //====================================================================
 //                   CSR Read logic
@@ -446,17 +446,21 @@ module rv32_csr import pito_pkg::*;import rv32_pkg::*; #(
         // update mstatus
         if (is_irq) begin
             // disable intterupts
-            mstatus_d.mie  = 1'b0;
+            // mstatus_d.mie  = 1'b0;
             // set irq cause
             mcause_d       = {1'b1, {26{1'b0}}, cause_i[4:0]};
-            // set mepc
-            mepc_d         = pc_i;
-            // set mtval or stval
+            // set mtval
             csr_irq_evt.data = mtvec_d;
             // set mpie to mie 
             mstatus_d.mpie = mstatus_q.mie;
         end
-
+        if (~irq_serviced_q & is_irq) begin
+            // set mepc
+            mepc_d         = pc_i;
+            irq_serviced_d = 1'b1;
+        end else begin
+            irq_serviced_d = is_irq;
+        end
         // ------------------------------
         // Return from Environment
         // ------------------------------
@@ -470,6 +474,7 @@ module rv32_csr import pito_pkg::*;import rv32_pkg::*; #(
             mstatus_d.mpie = 1'b1;
             // return to where we got the interrupt
             csr_irq_evt.data   = mepc_q;
+            irq_serviced_d     = 1'b0;
         end
     end
 
@@ -526,6 +531,7 @@ module rv32_csr import pito_pkg::*;import rv32_pkg::*; #(
 //====================================================================
     always_ff @(posedge clk or negedge rst_n) begin
         if (~rst_n) begin
+            irq_serviced_q         <= 1'b0;
             // machine mode registers
             mstatus_q              <= 32'b0;
             mtvec_q                <= 32'b0;
@@ -601,7 +607,7 @@ module rv32_csr import pito_pkg::*;import rv32_pkg::*; #(
             csr_mvuquant_q         <= csr_mvuquant_d ;
             csr_mvuscaler_q        <= csr_mvuscaler_d ;
             csr_mvuconfig1_q       <= csr_mvuconfig1_d ;
-
+            irq_serviced_q         <= irq_serviced_d;
             if (csr_addr == pito_pkg::CSR_MVUCOMMAND) begin
                 mvu_start <= 1'b1;
             end else begin
@@ -611,8 +617,4 @@ module rv32_csr import pito_pkg::*;import rv32_pkg::*; #(
         end
     end
 
-
-initial begin
-    $display("csr.hart[%1d] is activated!", PITO_HART_ID);
-end
 endmodule
