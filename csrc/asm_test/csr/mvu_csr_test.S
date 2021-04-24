@@ -15,8 +15,8 @@ RVTEST_RV32U
 RVTEST_CODE_BEGIN
 
 
-TEST_MVU_CSR( 0, mhartid, 0);
-TEST_MVU_CSR( 1, misa, 0);
+# TEST_MVU_CSR( 0, mhartid, 0);
+# TEST_MVU_CSR( 1, misa, 0);
 # csrr t1, mstatus
 # csrr t2, misa
 # csrr t3, mhartid

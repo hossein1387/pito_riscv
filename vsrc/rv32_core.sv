@@ -1,4 +1,6 @@
 `timescale 1ns/1ps
+`include "rv32_defines.svh"
+`include "pito_inf.svh"
 
 import rv32_pkg::*;
 import pito_pkg::*;
@@ -203,7 +205,7 @@ logic [31 : 0] csr_rdata, csr_ex_rdata;
 logic          csr_irq;
 logic          csr_timer_irq;
 logic          csr_ipi_irq;
-logic[31:0]    csr_boot_addr;
+logic[32*`PITO_NUM_HARTS-1 :0] csr_boot_addr;
 // logic          csr_mvu_irq;
 exception_t    csr_exception;
 logic [31:0]   csr_cause;
@@ -238,37 +240,50 @@ rv32_barrel_csrfiles csr(
                     .boot_addr          (csr_boot_addr         ),
                     .mvu_irq            (inf.mvu_irq_i         ),
                     .csr_exception      (csr_exception         ),
-                    .csr_mvu_wbaseaddr  (inf.csr_mvu_wbaseaddr ),
-                    .csr_mvu_ibaseaddr  (inf.csr_mvu_ibaseaddr ),
-                    .csr_mvu_obaseaddr  (inf.csr_mvu_obaseaddr ),
-                    .csr_mvu_wstride_0  (inf.csr_mvu_wstride_0 ),
-                    .csr_mvu_wstride_1  (inf.csr_mvu_wstride_1 ),
-                    .csr_mvu_wstride_2  (inf.csr_mvu_wstride_2 ),
-                    .csr_mvu_wstride_3  (inf.csr_mvu_wstride_3 ),
-                    .csr_mvu_istride_0  (inf.csr_mvu_istride_0 ),
-                    .csr_mvu_istride_1  (inf.csr_mvu_istride_1 ),
-                    .csr_mvu_istride_2  (inf.csr_mvu_istride_2 ),
-                    .csr_mvu_istride_3  (inf.csr_mvu_istride_3 ),
-                    .csr_mvu_ostride_0  (inf.csr_mvu_ostride_0 ),
-                    .csr_mvu_ostride_1  (inf.csr_mvu_ostride_1 ),
-                    .csr_mvu_ostride_3  (inf.csr_mvu_ostride_3 ),
-                    .csr_mvu_ostride_2  (inf.csr_mvu_ostride_2 ),
-                    .csr_mvu_wlength_0  (inf.csr_mvu_wlength_0 ),
-                    .csr_mvu_wlength_1  (inf.csr_mvu_wlength_1 ),
-                    .csr_mvu_wlength_2  (inf.csr_mvu_wlength_2 ),
-                    .csr_mvu_wlength_3  (inf.csr_mvu_wlength_3 ),
-                    .csr_mvu_ilength_0  (inf.csr_mvu_ilength_0 ),
-                    .csr_mvu_ilength_1  (inf.csr_mvu_ilength_1 ),
-                    .csr_mvu_ilength_2  (inf.csr_mvu_ilength_2 ),
-                    .csr_mvu_ilength_3  (inf.csr_mvu_ilength_3 ),
-                    .csr_mvu_olength_0  (inf.csr_mvu_olength_0 ),
-                    .csr_mvu_olength_1  (inf.csr_mvu_olength_1 ),
-                    .csr_mvu_olength_2  (inf.csr_mvu_olength_2 ),
-                    .csr_mvu_olength_3  (inf.csr_mvu_olength_3 ),
-                    .csr_mvu_precision  (inf.csr_mvu_precision ),
-                    .csr_mvu_status     (inf.csr_mvu_status    ),
-                    .csr_mvu_command    (inf.csr_mvu_command   ),
-                    .csr_mvu_quant      (inf.csr_mvu_quant     ),
+                    .csr_mvuwbaseptr    (inf.csr_mvuwbaseptr   ),
+                    .csr_mvuibaseptr    (inf.csr_mvuibaseptr   ),
+                    .csr_mvusbaseptr    (inf.csr_mvusbaseptr   ),
+                    .csr_mvubbaseptr    (inf.csr_mvubbaseptr   ),
+                    .csr_mvuobaseptr    (inf.csr_mvuobaseptr   ),
+                    .csr_mvuwjump_0     (inf.csr_mvuwjump_0    ),
+                    .csr_mvuwjump_1     (inf.csr_mvuwjump_1    ),
+                    .csr_mvuwjump_2     (inf.csr_mvuwjump_2    ),
+                    .csr_mvuwjump_3     (inf.csr_mvuwjump_3    ),
+                    .csr_mvuwjump_4     (inf.csr_mvuwjump_4    ),
+                    .csr_mvuijump_0     (inf.csr_mvuijump_0    ),
+                    .csr_mvuijump_1     (inf.csr_mvuijump_1    ),
+                    .csr_mvuijump_2     (inf.csr_mvuijump_2    ),
+                    .csr_mvuijump_3     (inf.csr_mvuijump_3    ),
+                    .csr_mvuijump_4     (inf.csr_mvuijump_4    ),
+                    .csr_mvusjump_0     (inf.csr_mvusjump_0    ),
+                    .csr_mvusjump_1     (inf.csr_mvusjump_1    ),
+                    .csr_mvubjump_0     (inf.csr_mvubjump_0    ),
+                    .csr_mvubjump_1     (inf.csr_mvubjump_1    ),
+                    .csr_mvuojump_0     (inf.csr_mvuojump_0    ),
+                    .csr_mvuojump_1     (inf.csr_mvuojump_1    ),
+                    .csr_mvuojump_2     (inf.csr_mvuojump_2    ),
+                    .csr_mvuojump_3     (inf.csr_mvuojump_3    ),
+                    .csr_mvuojump_4     (inf.csr_mvuojump_4    ),
+                    .csr_mvuwlength_1   (inf.csr_mvuwlength_1  ),
+                    .csr_mvuwlength_2   (inf.csr_mvuwlength_2  ),
+                    .csr_mvuwlength_3   (inf.csr_mvuwlength_3  ),
+                    .csr_mvuwlength_4   (inf.csr_mvuwlength_4  ),
+                    .csr_mvuilength_1   (inf.csr_mvuilength_1  ),
+                    .csr_mvuilength_2   (inf.csr_mvuilength_2  ),
+                    .csr_mvuilength_3   (inf.csr_mvuilength_3  ),
+                    .csr_mvuilength_4   (inf.csr_mvuilength_4  ),
+                    .csr_mvuslength_1   (inf.csr_mvuslength_1  ),
+                    .csr_mvublength_1   (inf.csr_mvublength_1  ),
+                    .csr_mvuolength_1   (inf.csr_mvuolength_1  ),
+                    .csr_mvuolength_2   (inf.csr_mvuolength_2  ),
+                    .csr_mvuolength_3   (inf.csr_mvuolength_3  ),
+                    .csr_mvuolength_4   (inf.csr_mvuolength_4  ),
+                    .csr_mvuprecision   (inf.csr_mvuprecision  ),
+                    .csr_mvustatus      (inf.csr_mvustatus     ),
+                    .csr_mvucommand     (inf.csr_mvucommand    ),
+                    .csr_mvuquant       (inf.csr_mvuquant      ),
+                    .csr_mvuscaler      (inf.csr_mvuscaler     ),
+                    .csr_mvuconfig1     (inf.csr_mvuconfig1    ),
                     .mvu_start          (inf.mvu_start         ),
                     .pc                 (rv32_pc               ),
                     .cause              (csr_cause             ),
@@ -482,8 +497,8 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
     // the circuit below takes the correct value from the ram output.
     always_comb begin
         case (rv32_ex_opcode)
-             rv32_pkg::RV32_SB : rv32_wb_store_val = { {24{1'b0}}, rv32_wb_rs2_skip[7 : 0]};
-             rv32_pkg::RV32_SH : rv32_wb_store_val = { {16{1'b0}}, rv32_wb_rs2_skip[15: 0]};
+             rv32_pkg::RV32_SB : rv32_wb_store_val = { {24{rv32_wb_rs2_skip[7 ]}}, rv32_wb_rs2_skip[7 : 0]};
+             rv32_pkg::RV32_SH : rv32_wb_store_val = { {16{rv32_wb_rs2_skip[15]}}, rv32_wb_rs2_skip[15: 0]};
              rv32_pkg::RV32_SW : rv32_wb_store_val = rv32_wb_rs2_skip;
              default : rv32_wb_store_val = {32{1'b0}};
         endcase
@@ -528,30 +543,13 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
                            (rv32_wb_opcode == rv32_pkg::RV32_BGE ) || (rv32_wb_opcode == rv32_pkg::RV32_BLTU) || (rv32_wb_opcode == rv32_pkg::RV32_BGEU) ||
                            (rv32_wb_opcode == rv32_pkg::RV32_SB  ) || (rv32_wb_opcode == rv32_pkg::RV32_SH  ) || (rv32_wb_opcode == rv32_pkg::RV32_SW  )) ? 1'b1 : 1'b0;
     assign rv32_wf_is_load = ((rv32_wb_opcode == rv32_pkg::RV32_LB) || (rv32_wb_opcode == rv32_pkg::RV32_LH) || (rv32_wb_opcode == rv32_pkg::RV32_LW) ||
-                              (rv32_wb_opcode == rv32_pkg::RV32_LBU)) ? 1'b1 : 1'b0;
+                              (rv32_wb_opcode == rv32_pkg::RV32_LBU)|| (rv32_wb_opcode == rv32_pkg::RV32_LHU)) ? 1'b1 : 1'b0;
     // Memory is byte addressed but Data memory is word accessed. 
     // In the path to register file, the circuit below takes the correct 
     // value from the ram output. 
     always_comb begin
         case (rv32_wb_opcode)
              rv32_pkg::RV32_LB : begin
-                        case (rv32_wb_readd_addr[1:0])
-                            2'b00: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[7 : 0]};
-                            2'b01: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[15: 8]};
-                            2'b10: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[23:16]};
-                            2'b11: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[31:24]};
-                            default : rv32_wf_load_val = 0;
-                        endcase
-                       end
-             rv32_pkg::RV32_LH :  begin
-                        case (rv32_wb_readd_addr[1:0])
-                            2'b00: rv32_wf_load_val = { {16{1'b0}}, rv32_dr_data[15: 0]};
-                            2'b10: rv32_wf_load_val = { {16{1'b0}}, rv32_dr_data[31:16]};
-                            default : rv32_wf_load_val = 0;
-                        endcase
-                       end
-             rv32_pkg::RV32_LW : rv32_wf_load_val = rv32_dr_data;
-             rv32_pkg::RV32_LBU: begin
                         case (rv32_wb_readd_addr[1:0])
                             2'b00: rv32_wf_load_val = { {24{rv32_dr_data[7 ]}}, rv32_dr_data[7 : 0]};
                             2'b01: rv32_wf_load_val = { {24{rv32_dr_data[15]}}, rv32_dr_data[15: 8]};
@@ -560,10 +558,27 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
                             default : rv32_wf_load_val = 0;
                         endcase
                        end
-             rv32_pkg::RV32_LHU: begin
+             rv32_pkg::RV32_LH :  begin
                         case (rv32_wb_readd_addr[1:0])
                             2'b00: rv32_wf_load_val = { {16{rv32_dr_data[15]}}, rv32_dr_data[15: 0]};
                             2'b10: rv32_wf_load_val = { {16{rv32_dr_data[31]}}, rv32_dr_data[31:16]};
+                            default : rv32_wf_load_val = 0;
+                        endcase
+                       end
+             rv32_pkg::RV32_LW : rv32_wf_load_val = rv32_dr_data;
+             rv32_pkg::RV32_LBU: begin
+                        case (rv32_wb_readd_addr[1:0])
+                            2'b00: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[7 : 0]};
+                            2'b01: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[15: 8]};
+                            2'b10: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[23:16]};
+                            2'b11: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[31:24]};
+                            default : rv32_wf_load_val = 0;
+                        endcase
+                       end
+             rv32_pkg::RV32_LHU: begin
+                        case (rv32_wb_readd_addr[1:0])
+                            2'b00: rv32_wf_load_val = { {16{1'b0}}, rv32_dr_data[15: 0]};
+                            2'b10: rv32_wf_load_val = { {16{1'b0}}, rv32_dr_data[31:16]};
                             default : rv32_wf_load_val = 0;
                         endcase
                        end

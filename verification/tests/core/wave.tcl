@@ -153,7 +153,9 @@ add_wave_group pipeline
             add_wave -into hart_ids {{/testbench_top/core/rv32_hart_ex_cnt}}
             add_wave -into hart_ids {{/testbench_top/core/rv32_hart_wb_cnt}}
             add_wave -into hart_ids {{/testbench_top/core/rv32_hart_wf_cnt}}
-set_property display_limit 300000 [current_wave_config]
+add_wave_group csr
+    add_wave_group -into csr csr0
+            add_wave -into csr0 {{/testbench_top/core/csr/\genblk1[0].csrfile }}
 add_wave_group mems
     add_wave_group -into mems i_mem
         add_wave -into i_mem {{/testbench_top/core/i_mem/clock}}
@@ -173,3 +175,5 @@ add_wave_group mems
         add_wave -into d_mem {{/testbench_top/core/d_mem/q}}
         add_wave -into d_mem {{core/d_mem/bram_32Kb_inst/inst/\native_mem_module.blk_mem_gen_v8_4_3_inst /memory}}
         # add_wave -into d_mem {{/testbench_top/core/d_mem/altsyncram_component/mem_data}}
+
+set_property display_limit 300000 [current_wave_config]

@@ -1,12 +1,8 @@
+`timescale 1ns/1ps
 // `include "rv32_types.svh"
 // `include "rv32_instr.svh"
-// `include "rv32_defines.svh"
-`timescale 1ns/1ps
-
-import rv32_pkg::*;
-
-
-module rv32_decoder (
+`include "rv32_defines.svh"
+module rv32_decoder import rv32_pkg::*;(
     input  logic [`XPR_LEN-1          : 0 ] instr, // input instruction
     output logic [`XPR_LEN-1          : 0 ] rv_rs1,
     output logic [`XPR_LEN-1          : 0 ] rv_rs2,

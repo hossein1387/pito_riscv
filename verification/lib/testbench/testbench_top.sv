@@ -1,7 +1,7 @@
 `timescale 1ns/1ps
-import utils::*;
-
-module testbench_top();
+`include "pito_inf.svh"
+`include "core_tester.sv"
+module testbench_top import utils::*; ();
 //==================================================================================================
 // Test variables
     localparam CLOCK_SPEED = 50; // 10MHZ
@@ -37,8 +37,8 @@ module testbench_top();
     end
 
     initial begin
-        #1ms;
-        $display("Simulation took more than expected ( more than 600ms)");
+        #1000ms;
+        $display("Simulation took more than expected ( more than 1ms)");
         $finish();
     end
 endmodule

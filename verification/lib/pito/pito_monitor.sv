@@ -1,4 +1,5 @@
-`timescale 1ns/1ps
+`include "rv32_defines.svh"
+`include "testbench_macros.svh"
 import rv32_utils::*;
 import utils::*;
 import pito_pkg::*;
@@ -72,41 +73,56 @@ class pito_monitor extends BaseObj;
                 pito_pkg::CSR_MINSTRET       : csrs[csr] = `hdl_path_csrf_0.minstret_q[31:0];
                 // pito_pkg::CSR_MCYCLEH        : csrs[csr] = `hdl_path_csrf_0.mcycle_q[63:32];
                 pito_pkg::CSR_MINSTRETH      : csrs[csr] = `hdl_path_csrf_0.minstret_q[63:32];
-                pito_pkg::CSR_MVU_WBASEADDR  : csrs[csr] = `hdl_path_csrf_0.csr_mvu_wbaseaddr_q;
-                pito_pkg::CSR_MVU_IBASEADDR  : csrs[csr] = `hdl_path_csrf_0.csr_mvu_ibaseaddr_q;
-                pito_pkg::CSR_MVU_OBASEADDR  : csrs[csr] = `hdl_path_csrf_0.csr_mvu_obaseaddr_q;
-                pito_pkg::CSR_MVU_WSTRIDE_0  : csrs[csr] = `hdl_path_csrf_0.csr_mvu_wstride_0_q;
-                pito_pkg::CSR_MVU_WSTRIDE_1  : csrs[csr] = `hdl_path_csrf_0.csr_mvu_wstride_1_q;
-                pito_pkg::CSR_MVU_WSTRIDE_2  : csrs[csr] = `hdl_path_csrf_0.csr_mvu_wstride_2_q;
-                pito_pkg::CSR_MVU_ISTRIDE_0  : csrs[csr] = `hdl_path_csrf_0.csr_mvu_istride_0_q;
-                pito_pkg::CSR_MVU_ISTRIDE_1  : csrs[csr] = `hdl_path_csrf_0.csr_mvu_istride_1_q;
-                pito_pkg::CSR_MVU_ISTRIDE_2  : csrs[csr] = `hdl_path_csrf_0.csr_mvu_istride_2_q;
-                pito_pkg::CSR_MVU_OSTRIDE_0  : csrs[csr] = `hdl_path_csrf_0.csr_mvu_ostride_0_q;
-                pito_pkg::CSR_MVU_OSTRIDE_1  : csrs[csr] = `hdl_path_csrf_0.csr_mvu_ostride_1_q;
-                pito_pkg::CSR_MVU_OSTRIDE_2  : csrs[csr] = `hdl_path_csrf_0.csr_mvu_ostride_2_q;
-                pito_pkg::CSR_MVU_WLENGTH_0  : csrs[csr] = `hdl_path_csrf_0.csr_mvu_wlength_0_q;
-                pito_pkg::CSR_MVU_WLENGTH_1  : csrs[csr] = `hdl_path_csrf_0.csr_mvu_wlength_1_q;
-                pito_pkg::CSR_MVU_WLENGTH_2  : csrs[csr] = `hdl_path_csrf_0.csr_mvu_wlength_2_q;
-                pito_pkg::CSR_MVU_ILENGTH_0  : csrs[csr] = `hdl_path_csrf_0.csr_mvu_ilength_0_q;
-                pito_pkg::CSR_MVU_ILENGTH_1  : csrs[csr] = `hdl_path_csrf_0.csr_mvu_ilength_1_q;
-                pito_pkg::CSR_MVU_ILENGTH_2  : csrs[csr] = `hdl_path_csrf_0.csr_mvu_ilength_2_q;
-                pito_pkg::CSR_MVU_OLENGTH_0  : csrs[csr] = `hdl_path_csrf_0.csr_mvu_olength_0_q;
-                pito_pkg::CSR_MVU_OLENGTH_1  : csrs[csr] = `hdl_path_csrf_0.csr_mvu_olength_1_q;
-                pito_pkg::CSR_MVU_OLENGTH_2  : csrs[csr] = `hdl_path_csrf_0.csr_mvu_olength_2_q;
-                pito_pkg::CSR_MVU_PRECISION  : csrs[csr] = `hdl_path_csrf_0.csr_mvu_precision_q;
-                pito_pkg::CSR_MVU_STATUS     : csrs[csr] = `hdl_path_csrf_0.csr_mvu_status_q;
-                pito_pkg::CSR_MVU_COMMAND    : csrs[csr] = `hdl_path_csrf_0.csr_mvu_command_q;
-                pito_pkg::CSR_MVU_QUANT      : csrs[csr] = `hdl_path_csrf_0.csr_mvu_quant_q;
+                                pito_pkg::CSR_MVUWBASEPTR    : csrs[csr] = `hdl_path_csrf_0.csr_mvuwbaseptr_q;
+                pito_pkg::CSR_MVUIBASEPTR    : csrs[csr] = `hdl_path_csrf_0.csr_mvuibaseptr_q;
+                pito_pkg::CSR_MVUSBASEPTR    : csrs[csr] = `hdl_path_csrf_0.csr_mvusbaseptr_q;
+                pito_pkg::CSR_MVUBBASEPTR    : csrs[csr] = `hdl_path_csrf_0.csr_mvubbaseptr_q;
+                pito_pkg::CSR_MVUOBASEPTR    : csrs[csr] = `hdl_path_csrf_0.csr_mvuobaseptr_q;
+                pito_pkg::CSR_MVUWJUMP_0     : csrs[csr] = `hdl_path_csrf_0.csr_mvuwjump_0_q;
+                pito_pkg::CSR_MVUWJUMP_1     : csrs[csr] = `hdl_path_csrf_0.csr_mvuwjump_1_q;
+                pito_pkg::CSR_MVUWJUMP_2     : csrs[csr] = `hdl_path_csrf_0.csr_mvuwjump_2_q;
+                pito_pkg::CSR_MVUWJUMP_3     : csrs[csr] = `hdl_path_csrf_0.csr_mvuwjump_3_q;
+                pito_pkg::CSR_MVUWJUMP_4     : csrs[csr] = `hdl_path_csrf_0.csr_mvuwjump_4_q;
+                pito_pkg::CSR_MVUIJUMP_0     : csrs[csr] = `hdl_path_csrf_0.csr_mvuijump_0_q;
+                pito_pkg::CSR_MVUIJUMP_1     : csrs[csr] = `hdl_path_csrf_0.csr_mvuijump_1_q;
+                pito_pkg::CSR_MVUIJUMP_2     : csrs[csr] = `hdl_path_csrf_0.csr_mvuijump_2_q;
+                pito_pkg::CSR_MVUIJUMP_3     : csrs[csr] = `hdl_path_csrf_0.csr_mvuijump_3_q;
+                pito_pkg::CSR_MVUIJUMP_4     : csrs[csr] = `hdl_path_csrf_0.csr_mvuijump_4_q;
+                pito_pkg::CSR_MVUSJUMP_0     : csrs[csr] = `hdl_path_csrf_0.csr_mvusjump_0_q;
+                pito_pkg::CSR_MVUSJUMP_1     : csrs[csr] = `hdl_path_csrf_0.csr_mvusjump_1_q;
+                pito_pkg::CSR_MVUBJUMP_0     : csrs[csr] = `hdl_path_csrf_0.csr_mvubjump_0_q;
+                pito_pkg::CSR_MVUBJUMP_1     : csrs[csr] = `hdl_path_csrf_0.csr_mvubjump_1_q;
+                pito_pkg::CSR_MVUOJUMP_0     : csrs[csr] = `hdl_path_csrf_0.csr_mvuojump_0_q;
+                pito_pkg::CSR_MVUOJUMP_1     : csrs[csr] = `hdl_path_csrf_0.csr_mvuojump_1_q;
+                pito_pkg::CSR_MVUOJUMP_2     : csrs[csr] = `hdl_path_csrf_0.csr_mvuojump_2_q;
+                pito_pkg::CSR_MVUOJUMP_3     : csrs[csr] = `hdl_path_csrf_0.csr_mvuojump_3_q;
+                pito_pkg::CSR_MVUOJUMP_4     : csrs[csr] = `hdl_path_csrf_0.csr_mvuojump_4_q;
+                pito_pkg::CSR_MVUWLENGTH_1   : csrs[csr] = `hdl_path_csrf_0.csr_mvuwlength_1_q;
+                pito_pkg::CSR_MVUWLENGTH_2   : csrs[csr] = `hdl_path_csrf_0.csr_mvuwlength_2_q;
+                pito_pkg::CSR_MVUWLENGTH_3   : csrs[csr] = `hdl_path_csrf_0.csr_mvuwlength_3_q;
+                pito_pkg::CSR_MVUWLENGTH_4   : csrs[csr] = `hdl_path_csrf_0.csr_mvuwlength_4_q;
+                pito_pkg::CSR_MVUILENGTH_1   : csrs[csr] = `hdl_path_csrf_0.csr_mvuilength_1_q;
+                pito_pkg::CSR_MVUILENGTH_2   : csrs[csr] = `hdl_path_csrf_0.csr_mvuilength_2_q;
+                pito_pkg::CSR_MVUILENGTH_3   : csrs[csr] = `hdl_path_csrf_0.csr_mvuilength_3_q;
+                pito_pkg::CSR_MVUILENGTH_4   : csrs[csr] = `hdl_path_csrf_0.csr_mvuilength_4_q;
+                pito_pkg::CSR_MVUSLENGTH_1   : csrs[csr] = `hdl_path_csrf_0.csr_mvuslength_1_q;
+                pito_pkg::CSR_MVUBLENGTH_1   : csrs[csr] = `hdl_path_csrf_0.csr_mvublength_1_q;
+                pito_pkg::CSR_MVUOLENGTH_1   : csrs[csr] = `hdl_path_csrf_0.csr_mvuolength_1_q;
+                pito_pkg::CSR_MVUOLENGTH_2   : csrs[csr] = `hdl_path_csrf_0.csr_mvuolength_2_q;
+                pito_pkg::CSR_MVUOLENGTH_3   : csrs[csr] = `hdl_path_csrf_0.csr_mvuolength_3_q;
+                pito_pkg::CSR_MVUOLENGTH_4   : csrs[csr] = `hdl_path_csrf_0.csr_mvuolength_4_q;
+                pito_pkg::CSR_MVUPRECISION   : csrs[csr] = `hdl_path_csrf_0.csr_mvuprecision_q;
+                pito_pkg::CSR_MVUSTATUS      : csrs[csr] = `hdl_path_csrf_0.csr_mvustatus_q;
+                pito_pkg::CSR_MVUCOMMAND     : csrs[csr] = `hdl_path_csrf_0.csr_mvucommand_q;
+                pito_pkg::CSR_MVUQUANT       : csrs[csr] = `hdl_path_csrf_0.csr_mvuquant_q;
+                pito_pkg::CSR_MVUSCALER      : csrs[csr] = `hdl_path_csrf_0.csr_mvuscaler_q;
+                pito_pkg::CSR_MVUCONFIG1     : csrs[csr] = `hdl_path_csrf_0.csr_mvuconfig1_q;
                 default : csrs[csr] = 0;
             endcase
         end
         return csrs;
     endfunction 
 
-
-// TODO: A dirty hack for access values within DUT. A better way is to 
-// bind or use interface to correctly access the signals. For memory,
-// I do not have any idea :(
     function automatic int read_dmem_word(rv32_pkg::rv32_inst_dec_t instr, int hart_id);
         rv32_opcode_enum_t    opcode    = instr.opcode   ;
         rv32_imm_t            imm       = instr.imm      ;
@@ -114,25 +130,30 @@ class pito_monitor extends BaseObj;
         int                   addr;
         // int reg_val = `read_hart_reg(hart_id, rs1);
         int reg_val = read_hart_reg_val(hart_id, rs1);
+        int read_val = 32'hDEADBEEF;
         case (opcode)
-            rv32_pkg::RV32_SB     : begin
+            RV32_SB     : begin
                 addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (reg_val+signed'(imm) - `PITO_DATA_MEM_OFFSET);
             end
-            rv32_pkg::RV32_SH     : begin
+            RV32_SH     : begin
                 addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (reg_val+signed'(imm) - `PITO_DATA_MEM_OFFSET);
             end
-            rv32_pkg::RV32_SW     : begin
+            RV32_SW     : begin
                 addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (reg_val+signed'(imm) - `PITO_DATA_MEM_OFFSET);
             end
-            endcase
-        return `hdl_path_top.d_mem.bram_32Kb_inst.inst.native_mem_module.blk_mem_gen_v8_4_3_inst.memory[addr];
+        endcase
+            // logger.print($sformatf("\t -> reg_val[%4d] hart_id=%4d, rs1=%4d", reg_val, hart_id, rs1));
+            // logger.print($sformatf("\t ->    addr[%8h] reg_val=%4d + imm=%4d - off=%d ", addr, reg_val, signed'(imm), `PITO_DATA_MEM_OFFSET));
+            read_val = `hdl_path_top.d_mem.bram_32Kb_inst.inst.native_mem_module.blk_mem_gen_v8_4_3_inst.memory[addr];
+            // logger.print($sformatf("\t -> %s is accessing mem[%8h]: %d", opcode.name, addr, read_val));
+        return read_val;
     endfunction : read_dmem_word
 
     function automatic print_imem_region(int addr_from, int addr_to, string radix);
         string mem_val_str="";
         int mem_val;
-        addr_from = addr_from - `PITO_DATA_MEM_OFFSET;
-        addr_to   = addr_to   - `PITO_DATA_MEM_OFFSET;
+        addr_from = addr_from;
+        addr_to   = addr_to  ;
         for (int addr=addr_from; addr<=addr_to; addr+=4) begin
             mem_val = `hdl_path_top.d_mem.bram_32Kb_inst.inst.native_mem_module.blk_mem_gen_v8_4_3_inst.memory[addr];
             if (radix == "int") begin
@@ -201,10 +222,14 @@ class pito_monitor extends BaseObj;
         rv32_pc_cnt_t   pc_cnt, pc_orig_cnt;
         int hart_id;
         int hart_valid = 0;
-        this.sync_with_dut();
         logger.print("Starting Monitor Task");
         logger.print("Monitoring the following harts:");
-
+        foreach(this.hart_ids_q[i]) begin
+            if (this.hart_ids_q[i]==1) begin
+                logger.print($sformatf("\tHart[%0d]", i));
+            end
+        end
+        this.sync_with_dut();
         while(`hdl_path_top.is_end == 1'b0) begin
             // logger.print($sformatf("pc=%d       decode:%s", `hdl_path_top.rv32_dec_pc, `hdl_path_top.rv32_dec_opcode.name));
             // logger.print($sformatf("%s",read_regs()));

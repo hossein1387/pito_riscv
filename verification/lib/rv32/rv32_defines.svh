@@ -5,9 +5,9 @@
 `define PITO_NULL  0
 `define NUM_REGS 32
 `define NUM_CSR 4096
-`define REG_FILE_INIT "regfile.mem"
-`define CSR_FILE_INIT "csrfile.mem"
-`define DECODER_FILE_INIT "decoderlut.mem"
+`define REG_FILE_INIT "/users/hemmat/MyRepos/pito_riscv/verification/common/regfile.mem"
+`define CSR_FILE_INIT "/users/hemmat/MyRepos/pito_riscv/verification/common/csrfile.mem"
+`define DECODER_FILE_INIT "/users/hemmat/MyRepos/pito_riscv/verification/common/decoderlut.mem"
 `define NUM_MVUS 8
 `define NUM_INSTR_WORDS (1024*`NUM_MVUS)
 //-------------------------------------------------------------------
