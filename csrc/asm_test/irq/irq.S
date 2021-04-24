@@ -11,7 +11,7 @@
 
 jal sp, enable_mvu_irq
 jal sp, __startup_code__
-jal sp, wait_for_mvu_irq
+jal t3, wait_for_mvu_irq
 # jal sp, mvu_irq_handler
 jal sp, prog_end
 
@@ -34,10 +34,12 @@ wait_for_mvu_irq:
     addi t1, x0, 1
     # wait for mcause[31] interrupt to go high
     bne t0, t1, wait_for_mvu_irq
-    addi ra, sp, 0
+    addi ra, t3, 0
     ret
 
 mvu_irq_handler:
+    # make sure global interrupt is disabled
+    csrwi mstatus, 0x0
     # first things first, clear mvu intterupts pending bit while processing current irq.
     addi x1, x0, 1
     slli x1, x1, 16
