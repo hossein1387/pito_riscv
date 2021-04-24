@@ -240,7 +240,6 @@ rv32_barrel_csrfiles csr(
                     .boot_addr          (csr_boot_addr         ),
                     .mvu_irq            (inf.mvu_irq_i         ),
                     .csr_exception      (csr_exception         ),
-
                     .csr_mvuwbaseptr    (inf.csr_mvuwbaseptr   ),
                     .csr_mvuibaseptr    (inf.csr_mvuibaseptr   ),
                     .csr_mvusbaseptr    (inf.csr_mvusbaseptr   ),
