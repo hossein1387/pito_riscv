@@ -12,8 +12,6 @@ filesets:
             - vsrc/rv32_decoder.sv
             - vsrc/bram_32Kb.v:
                 file_type : verilogSource
-            - vsrc/blk_mem_gen_v8_4.v:
-                file_type : verilogSource
             - vsrc/rv32_data_memory.sv
             - vsrc/rv32_instruction_memory.sv
             - vsrc/rv32_alu.sv
@@ -44,7 +42,7 @@ filesets:
             - vsrc/rv32_next_pc.sv
             - vsrc/rv32_csr.sv
             - vsrc/rv32_barrel_csrfiles.sv
-            - vsrc/blk_mem_gen_v8_4.v:
+            - vsrc/blk_mem_gen_v8_3.v:
                 file_type : verilogSource
             - vsrc/bram_32Kb.v:
                 file_type : verilogSource
@@ -67,7 +65,7 @@ filesets:
             - verification/lib/pito/pito_monitor.sv
             - verification/lib/testbench/testbench_config.sv
             - verification/lib/testbench/testbench_base.sv
-            - verification/tests/core/core_tester.sv:
+            - verification/tests/irq/irq_tester.sv:
                 is_include_file: true
             - verification/lib/testbench/testbench_top.sv
         file_type : systemVerilogSource
