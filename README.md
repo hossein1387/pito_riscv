@@ -40,3 +40,13 @@ And for synthesis:
 
 This should open the project for you. Make sure you have run simulation or synthesis atleast once, otherwise fusesoc would not create a 
 project file for you.
+
+
+# Publication
+
+If you liked this project, please consider citing our paper:
+
+    M. AskariHemmat, O. Bilaniuk, S. Wagner, Y. Savaria and J. -P. David, 
+    "RISC-V Barrel Processor for Deep Neural Network Acceleration," 
+    2021 IEEE International Symposium on Circuits and Systems (ISCAS), 
+    2021, pp. 1-5, doi: 10.1109/ISCAS51556.2021.9401617.
