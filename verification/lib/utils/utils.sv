@@ -46,17 +46,17 @@ class Logger;
         end
         // $display adds the newline char so we have to manually add it for 
         // log into std
-        // log = $sformatf("%s\n", log);
+        log = $sformatf("%s\n", log);
         $fwrite(this.fd, log);
     endfunction
 
     function void print_banner (string msg, string id="INFO", print_verbosity_t verbosity=VERB_LOW);
         string sep = "=======================================================================";
-        string log = $sformatf("%s\n[%5s]  %s \n%s", sep, id, msg, sep);
+        // string log = $sformatf("%s\n[%5s]  %s \n%s", sep, id, msg, sep);
         this.print(sep, id, verbosity);
         this.print(msg, id, verbosity);
         this.print(sep, id, verbosity);
-        $fwrite(this.fd, log);
+        // $fwrite(this.fd, log);
     endfunction
 
 endclass
