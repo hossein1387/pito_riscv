@@ -996,7 +996,7 @@ class RV32IPredictor extends BaseObj;
                 real_val = regf[rd];
                 info     = $sformatf("%s %18s",instr_str, csr_str);
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
-                exp_val  = imm;
+                exp_val  = signed'(imm[4:0]);
                 real_val = csrs[csr];
                 info     = $sformatf("%s %18s",instr_str, csr_str);
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
