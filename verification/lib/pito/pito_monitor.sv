@@ -73,7 +73,7 @@ class pito_monitor extends BaseObj;
                 pito_pkg::CSR_MINSTRET       : csrs[csr] = `hdl_path_csrf_0.minstret_q[31:0];
                 // pito_pkg::CSR_MCYCLEH        : csrs[csr] = `hdl_path_csrf_0.mcycle_q[63:32];
                 pito_pkg::CSR_MINSTRETH      : csrs[csr] = `hdl_path_csrf_0.minstret_q[63:32];
-                                pito_pkg::CSR_MVUWBASEPTR    : csrs[csr] = `hdl_path_csrf_0.csr_mvuwbaseptr_q;
+                pito_pkg::CSR_MVUWBASEPTR    : csrs[csr] = `hdl_path_csrf_0.csr_mvuwbaseptr_q;
                 pito_pkg::CSR_MVUIBASEPTR    : csrs[csr] = `hdl_path_csrf_0.csr_mvuibaseptr_q;
                 pito_pkg::CSR_MVUSBASEPTR    : csrs[csr] = `hdl_path_csrf_0.csr_mvusbaseptr_q;
                 pito_pkg::CSR_MVUBBASEPTR    : csrs[csr] = `hdl_path_csrf_0.csr_mvubbaseptr_q;
@@ -142,10 +142,12 @@ class pito_monitor extends BaseObj;
                 addr      = (rs1==0) ? (signed'(imm) - `PITO_DATA_MEM_OFFSET) : (reg_val+signed'(imm) - `PITO_DATA_MEM_OFFSET);
             end
         endcase
-            // logger.print($sformatf("\t -> reg_val[%4d] hart_id=%4d, rs1=%4d", reg_val, hart_id, rs1));
             // logger.print($sformatf("\t ->    addr[%8h] reg_val=%4d + imm=%4d - off=%d ", addr, reg_val, signed'(imm), `PITO_DATA_MEM_OFFSET));
             read_val = `hdl_path_top.d_mem.bram_32Kb_inst.inst.native_mem_module.blk_mem_gen_v8_4_3_inst.memory[addr];
             // logger.print($sformatf("\t -> %s is accessing mem[%8h]: %d", opcode.name, addr, read_val));
+        // if (opcode==RV32_SB || opcode==RV32_SH || opcode==RV32_SW) begin
+        //     logger.print($sformatf("\t -> reg_val[%2d]=%4h hart_id=%4d, addr=%4d, read_val=%4d", rs1, reg_val, hart_id, addr, read_val));
+        // end
         return read_val;
     endfunction : read_dmem_word
 
@@ -214,6 +216,21 @@ class pito_monitor extends BaseObj;
         end
     endtask
 
+    function void show_regs(int hart_id);
+        rv32_regfile_t regs;
+        int idx=0;
+        string temp_str = "";
+        regs = read_regs(hart_id);
+        for (int i=0; i<4; i++) begin
+            for (int j=0; j<8; j++) begin
+                idx = j + i*8;
+                temp_str = $sformatf("%s  %4s: 0x%8h", temp_str, rv32_abi_reg_s[idx], regs[idx]);
+            end
+            logger.print($sformatf("%s", temp_str));
+            temp_str = "";
+        end
+    endfunction
+
     task automatic run();
         rv32_opcode_enum_t rv32_wf_opcode;
         rv32_inst_dec_t instr;
@@ -232,7 +249,6 @@ class pito_monitor extends BaseObj;
         this.sync_with_dut();
         while(`hdl_path_top.is_end == 1'b0) begin
             // logger.print($sformatf("pc=%d       decode:%s", `hdl_path_top.rv32_dec_pc, `hdl_path_top.rv32_dec_opcode.name));
-            // logger.print($sformatf("%s",read_regs()));
             // logger.print($sformatf("hart id=%1d  is_set=%1d", `hdl_path_top.rv32_hart_wf_cnt, hart_ids_q[`hdl_path_top.rv32_hart_wf_cnt]));
             if (hart_ids_q[`hdl_path_top.rv32_hart_wf_cnt] == 1) begin
                 // exp_instr      = instr_q.pop_front();
@@ -251,10 +267,11 @@ class pito_monitor extends BaseObj;
                 rv32i_pred.predict(act_instr, instr, pc_cnt, pc_orig_cnt, read_regs(hart_id), read_csrs(hart_id), read_dmem_word(instr, hart_id), hart_id);
                 // $display("\n");
                 // @(posedge clk);
+                // this.show_regs(0);
                 hart_valid = 0;
             end
         end
-        logger.print($sformatf("Exception signal was received from HART[%0d] code name: %s", hart_id, `hdl_path_top.rv32_wf_opcode.name));
+        logger.print($sformatf("Exception signal was received from HART[%0d] code name: %s, %8h", hart_id, `hdl_path_top.rv32_wf_opcode.name, `hdl_path_top.rv32_wf_opcode));
     endtask
 
 endclass

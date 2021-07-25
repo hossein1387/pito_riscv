@@ -144,6 +144,7 @@ logic            rv32_dmem_w_en;
 
 // Data Memory signals
 rv32_dmem_addr_t rv32_dw_addr;
+rv32_dmem_addr_t rv32_dw_addr_temp;
 rv32_data_t      rv32_dw_data;
 logic            rv32_dw_en  ;
 rv32_dmem_addr_t rv32_dr_addr;
@@ -326,7 +327,7 @@ rv32_instruction_memory i_mem(
                         .q         (rv32_instr        )
     );
 
-assign rv32_dw_addr = (inf.pito_io_program) ? inf.pito_io_dmem_addr : rv32_dmem_addr;
+assign rv32_dw_addr_temp = (inf.pito_io_program) ? inf.pito_io_dmem_addr : rv32_dmem_addr;
 assign rv32_dw_data = (inf.pito_io_program) ? inf.pito_io_dmem_data : rv32_dmem_data;
 assign rv32_dw_en   = (inf.pito_io_program) ? inf.pito_io_dmem_w_en : rv32_dmem_w_en;
 
@@ -340,7 +341,8 @@ rv32_data_memory d_mem(
     );
 
 // for now, we access 32 bit at a time
-assign rv32_dr_addr = rv32_ex_readd_addr>>2;
+assign rv32_dr_addr = rv32_ex_readd_addr >> 2;
+assign rv32_dw_addr = rv32_dw_addr_temp >> 2;
 // connect io clock and reset to internal logic
 assign clk   = inf.clk;
 assign rst_n = inf.pito_io_rst_n;
@@ -463,6 +465,7 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
                 (rv32_dec_opcode == rv32_pkg::RV32_LW ) ||
                 (rv32_dec_opcode == rv32_pkg::RV32_LBU) ||
                 (rv32_dec_opcode == rv32_pkg::RV32_LHU) ) begin
+                // $display($sformatf("LOAD instruction ===> Accessing mem at: %8h + %8h", rv32_dec_imm , rv32_regf_rd1));
                 rv32_ex_readd_addr <= rv32_dec_imm + rv32_regf_rd1;
             end else begin
                 if (alu_src == `PITO_ALU_SRC_RS2 ) begin

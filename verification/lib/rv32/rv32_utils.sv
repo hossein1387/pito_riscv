@@ -703,7 +703,7 @@ class RV32IPredictor extends BaseObj;
             end
             RV32_SB     : begin
                 addr      = (rs1==0) ? signed'(imm) : regf_model[hart_id][rs1]+signed'(imm);
-                addr      = addr - `PITO_DATA_MEM_OFFSET;
+                addr      = (addr - `PITO_DATA_MEM_OFFSET)  >> 2;
                 exp_val   = regf_model[hart_id][rs2];
                 real_val  = mem_val;
                 info      = instr_str;
@@ -713,7 +713,7 @@ class RV32IPredictor extends BaseObj;
             end
             RV32_SH     : begin
                 addr      = (rs1==0) ? signed'(imm) : regf_model[hart_id][rs1]+signed'(imm);
-                addr      = addr - `PITO_DATA_MEM_OFFSET;
+                addr      = (addr - `PITO_DATA_MEM_OFFSET)  >> 2;
                 exp_val   = regf_model[hart_id][rs2];
                 real_val  = mem_val;
                 info      = instr_str;
@@ -723,7 +723,7 @@ class RV32IPredictor extends BaseObj;
             end
             RV32_SW     : begin
                 addr      = (rs1==0) ? signed'(imm) : regf_model[hart_id][rs1]+signed'(imm);
-                addr      = addr - `PITO_DATA_MEM_OFFSET;
+                addr      = (addr - `PITO_DATA_MEM_OFFSET)  >> 2;
                 exp_val   = regf_model[hart_id][rs2];
                 real_val  = mem_val;
                 info      = instr_str;
