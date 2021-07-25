@@ -565,15 +565,17 @@ class RV32IPredictor extends BaseObj;
             if (access_type == RV32_WLRL || access_type == RV32_WARL) begin
                 case (csr_op)
                     MRET           : this.logger.print($sformatf("ERROR: MRET instruction attempts to write to CSR file mode on HART[%0d]", hart_id));
-                    CSR_READ_WRITE : this.regf_model[hart_id][csr] = val;
-                    CSR_SET        : this.regf_model[hart_id][csr] = this.regf_model[hart_id][csr] | val;
-                    CSR_CLEAR      : this.regf_model[hart_id][csr] = (~this.regf_model[hart_id][csr]) & val;
+                    CSR_READ_WRITE : this.csrf_model[hart_id][csr] = val;
+                    CSR_SET        : this.csrf_model[hart_id][csr] = this.csrf_model[hart_id][csr] | val;
+                    CSR_CLEAR      : this.csrf_model[hart_id][csr] = (~this.csrf_model[hart_id][csr]) & val;
                     default : /* default */;
                 endcase
             end else begin
                 this.logger.print($sformatf("ERROR: Attempt to write to hart[%1d].csr[%s] has failed. No write access is allowed.", hart_id, csr.name));
             end
         end
+        // this.logger.print($sformatf("\t\t\t=>CSR_MRET: %8h", this.csrf_model[hart_id][pito_pkg::CSR_MRET]));
+        // this.logger.print($sformatf("\t\t\t=>CSR_MEPC: %8h", this.csrf_model[hart_id][pito_pkg::CSR_MEPC]));
     endfunction
 
     function void write_to_mem(int addr, int val, int size);
@@ -644,10 +646,10 @@ class RV32IPredictor extends BaseObj;
         info = $sformatf("%s pc=%4h", info, int'(pc_cnt));
         if ( exp_val == real_val) begin
             this.test_stat.pass_cnt ++;
-            this.logger.print($sformatf("[HART_ID:%1d]Test Pass [0x%8h: %s]: Expecting %0d got %0d", hart_id, act_instr, info, exp_val, real_val));
+            this.logger.print($sformatf("[HART_ID:%1d]Test Pass [0x%8h: %s]: Expecting %8h got %8h", hart_id, act_instr, info, exp_val, real_val));
         end else begin
             this.test_stat.fail_cnt ++;
-            this.logger.print($sformatf("[HART_ID:%1d]Test Fail [0x%8h: %s]: Expecting %0d got %0d", hart_id, act_instr, info, exp_val, real_val));
+            this.logger.print($sformatf("[HART_ID:%1d]Test Fail [0x%8h: %s]: Expecting %8h got %8h", hart_id, act_instr, info, exp_val, real_val));
         end
     endfunction
 
@@ -966,11 +968,11 @@ class RV32IPredictor extends BaseObj;
             RV32_CSRRW  : begin
                 exp_val  = csrf_model[csr];
                 real_val = regf[rd];
-                info     = $sformatf("%s %18s",instr_str, csr_str);
+                info     = $sformatf("%s %11s",instr_str, csr_str);
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
                 exp_val  = regf_model[hart_id][rs1];
                 real_val = csrs[csr];
-                info     = $sformatf("%s %18s",instr_str, csr_str);
+                info     = $sformatf("%s %11s",instr_str, csr_str);
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
                 has_csr_update = 1;
                 csr_op   = pito_pkg::CSR_READ_WRITE;
@@ -978,11 +980,11 @@ class RV32IPredictor extends BaseObj;
             RV32_CSRRS  : begin
                 exp_val  = csrf_model[csr];
                 real_val = regf[rd];
-                info     = $sformatf("%s %18s",instr_str, csr_str);
+                info     = $sformatf("%s %11s",instr_str, csr_str);
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
                 exp_val  = regf_model[hart_id][rs1] | csrs[csr];
                 real_val = csrs[csr];
-                info     = $sformatf("%s %18s",instr_str, csr_str);
+                info     = $sformatf("%s %11s",instr_str, csr_str);
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
                 has_csr_update = 1;
                 csr_op   = pito_pkg::CSR_SET;
@@ -990,11 +992,11 @@ class RV32IPredictor extends BaseObj;
             RV32_CSRRC  : begin
                 exp_val  = csrf_model[csr];
                 real_val = regf[rd];
-                info     = $sformatf("%s %18s",instr_str, csr_str);
+                info     = $sformatf("%s %11s",instr_str, csr_str);
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
                 exp_val  = (~regf_model[hart_id][rs1]) & csrs[csr];
                 real_val = csrs[csr];
-                info     = $sformatf("%s %18s",instr_str, csr_str);
+                info     = $sformatf("%s %11s",instr_str, csr_str);
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
                 has_csr_update = 1;
                 csr_op   = pito_pkg::CSR_CLEAR;
@@ -1002,11 +1004,11 @@ class RV32IPredictor extends BaseObj;
             RV32_CSRRWI : begin
                 exp_val  = csrf_model[csr];
                 real_val = regf[rd];
-                info     = $sformatf("%s %18s",instr_str, csr_str);
+                info     = $sformatf("%s %11s",instr_str, csr_str);
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
                 exp_val  = signed'(imm[4:0]);
                 real_val = csrs[csr];
-                info     = $sformatf("%s %18s",instr_str, csr_str);
+                info     = $sformatf("%s %11s",instr_str, csr_str);
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
                 has_csr_update = 1;
                 csr_op   = pito_pkg::CSR_READ_WRITE;
@@ -1014,11 +1016,11 @@ class RV32IPredictor extends BaseObj;
             RV32_CSRRSI : begin
                 exp_val  = csrf_model[csr];
                 real_val = regf[rd];
-                info     = $sformatf("%s %18s",instr_str, csr_str);
+                info     = $sformatf("%s %11s",instr_str, csr_str);
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
                 exp_val  = imm | csrs[csr];
                 real_val = csrs[csr];
-                info     = $sformatf("%s %18s",instr_str, csr_str);
+                info     = $sformatf("%s %11s",instr_str, csr_str);
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
                 has_csr_update = 1;
                 csr_op   = pito_pkg::CSR_SET;
@@ -1026,24 +1028,24 @@ class RV32IPredictor extends BaseObj;
             RV32_CSRRCI : begin
                 exp_val  = csrf_model[csr];
                 real_val = regf[rd];
-                info     = $sformatf("%s %18s",instr_str, csr_str);
+                info     = $sformatf("%s %11s",instr_str, csr_str);
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
                 exp_val  = (~imm) & csrs[csr];
                 real_val = csrs[csr];
-                info     = $sformatf("%s %18s",instr_str, csr_str);
+                info     = $sformatf("%s %11s",instr_str, csr_str);
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
                 has_csr_update = 1;
                 csr_op   = pito_pkg::CSR_CLEAR;
             end
             RV32_MRET: begin
                 csr_op   = pito_pkg::MRET;
-                exp_val  = csrf_model[CSR_MEPC];
-                real_val = csrs[CSR_MEPC];
-                info     = $sformatf("%s %18s --> checking epc is matching model epc",instr_str, csr_str);
+                exp_val  = csrf_model[hart_id][pito_pkg::CSR_MEPC];
+                real_val = csrs[pito_pkg::CSR_MEPC];
+                info     = $sformatf("%s %s--> checking epc =? model.epc", instr_str.substr (0, 56), csr_str);
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
-                exp_val  = csrf_model[CSR_MEPC];
+                exp_val  = csrf_model[hart_id][pito_pkg::CSR_MEPC];
                 real_val = pc_cnt;
-                info     = $sformatf("%s %18s --> checking epc is written to pc",instr_str, csr_str);
+                info     = $sformatf("%s %s--> checking epc =? pc",instr_str.substr (0, 56), csr_str);
                 check_res(act_instr, exp_val, real_val, hart_id, info, pc_cnt);
             end
             RV32_FENCEI, RV32_FENCE, RV32_ECALL, RV32_EBREAK, 
@@ -1098,12 +1100,12 @@ function automatic string get_instr_str(rv32_inst_dec_t instr);
     string   rd        = rv32_abi_reg_s[instr.rd ];
     string   inst_type = instr.inst_type.name     ;
     case (instr.inst_type)
-        RV32_TYPE_R       : instr_str = $sformatf("%17s.%12s: rd=%4s rs1=%4s rs2=  %4s          ", inst_type, opcode, rd, rs1, rs2);
-        RV32_TYPE_I       : instr_str = $sformatf("%17s.%12s: rd=%4s rs1=%4s           imm=%4d", inst_type, opcode, rd, rs1,  signed'(imm));
-        RV32_TYPE_S       : instr_str = $sformatf("%17s.%12s:        rs1=%4s rs2=  %4s imm=%4d", inst_type, opcode, rs1, rs2, signed'(imm));
-        RV32_TYPE_B       : instr_str = $sformatf("%17s.%12s:        rs1=%4s rs2=  %4s imm=%4d", inst_type, opcode, rs1, rs2, signed'(imm));
-        RV32_TYPE_U       : instr_str = $sformatf("%17s.%12s: rd=%4s rs1=%4s           imm=%4d", inst_type, opcode, rd, rs1,  signed'(imm));
-        RV32_TYPE_J       : instr_str = $sformatf("%17s.%12s: rd=%4s                imm=%4d", inst_type, opcode, rd, signed'(imm));
+        RV32_TYPE_R       : instr_str = $sformatf("%17s.%12s: rd=%4s rs1=%4s rs2=%4s         ", inst_type, opcode, rd, rs1, rs2);
+        RV32_TYPE_I       : instr_str = $sformatf("%17s.%12s: rd=%4s rs1=%4s          imm=%4d", inst_type, opcode, rd, rs1,  signed'(imm));
+        RV32_TYPE_S       : instr_str = $sformatf("%17s.%12s:         rs1=%4s rs2=%4s imm=%4d", inst_type, opcode, rs1, rs2, signed'(imm));
+        RV32_TYPE_B       : instr_str = $sformatf("%17s.%12s:         rs1=%4s rs2=%4s imm=%4d", inst_type, opcode, rs1, rs2, signed'(imm));
+        RV32_TYPE_U       : instr_str = $sformatf("%17s.%12s: rd=%4s rs1=%4s          imm=%4d", inst_type, opcode, rd, rs1,  signed'(imm));
+        RV32_TYPE_J       : instr_str = $sformatf("%17s.%12s: rd=%4s                   imm=%4d", inst_type, opcode, rd, signed'(imm));
         RV32_TYPE_NOP     : instr_str = $sformatf("  %17s.%12s:                             ", inst_type, opcode);
         RV32_TYPE_UNKNOWN : instr_str = "!unknown instruction!";
     endcase

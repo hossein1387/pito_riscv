@@ -186,7 +186,7 @@ class pito_monitor extends BaseObj;
         int NUM_WAIT_CYCELS = 100*`PITO_NUM_HARTS;
         rv32_inst_dec_t exp_instr = rv32i_dec.decode_instr(this.instr_q[0]);
         rv32_inst_dec_t act_instr; 
-        logger.print($sformatf("Attempt to Sync with DUT hart id %1d...", this.hart_ids_q));
+        logger.print($sformatf("Attempt to Sync with DUT hart id %1d...", this.hart_ids_q[0]));
         for (int cycle=0; cycle<NUM_WAIT_CYCELS; cycle++) begin
             logger.print($sformatf("hart id=%1d", `hdl_path_top.rv32_hart_wf_cnt));
             if (this.hart_ids_q[`hdl_path_top.rv32_hart_wf_cnt] == 1) begin
