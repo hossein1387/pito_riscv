@@ -382,10 +382,12 @@ class RV32IPredictor extends BaseObj;
     rv32_regfile_t regf_model[];
     int riscv_data_mem [logic[31:0]];
     int num_harts;
+    const int MEM_SIZE;
 
-    function new (Logger logger, rv32_data_q data_q, int num_harts, test_stats_t test_stat);
+    function new (Logger logger, rv32_data_q data_q, int num_harts, test_stats_t test_stat, int mem_size=(1024*8));
         super.new(logger);   // Calls 'new' method of parent class
         this.num_harts = num_harts;
+        this.MEM_SIZE = mem_size;
         test_stat = '{pass_cnt: 0, fail_cnt: 0};
         regf_model = new[num_harts];
         csrf_model = new[`NUM_CSR];
@@ -575,6 +577,9 @@ class RV32IPredictor extends BaseObj;
     endfunction
 
     function void write_to_mem(int addr, int val, int size);
+        if (addr > this.MEM_SIZE) begin
+            this.logger.print($sformatf("ERROR: Access out of region, requested addr=0x%8h, memory size=0x%8h", addr, this.MEM_SIZE));
+        end
         if (size==1) begin
             riscv_data_mem[addr] = { {24{val[7]}} , val[7:0]};
         end else if (size==2) begin
@@ -586,11 +591,14 @@ class RV32IPredictor extends BaseObj;
             // riscv_data_mem[addr+2] = val[23 : 16];
             // riscv_data_mem[addr+3] = val[31 : 24];
         end else begin
-            this.logger.print($sformatf("ERROR: Address not accessible for a variable size %0d", size));
+            this.logger.print($sformatf("ERROR: Access out of region, requested addr=0x%8h, memory size=0x%8h", addr, this.MEM_SIZE));
         end
     endfunction
 
     function int read_val_partial(int ret_val, int addr, int size, bit is_signed);
+        if (addr > this.MEM_SIZE) begin
+            this.logger.print($sformatf("ERROR: Access out of region, addr=0x%8h, mem_size=0x%8h", addr, this.MEM_SIZE));
+        end
         if (size==1) begin
             if (is_signed) begin
                 case (addr[1:0])
@@ -663,7 +671,7 @@ class RV32IPredictor extends BaseObj;
         case (opcode)
             RV32_LB     : begin
                 addr      = (rs1==0) ? signed'(imm) : regf_model[hart_id][rs1]+signed'(imm);
-                exp_val   = (rd==0) ? 0 : read_val_partial(riscv_data_mem[addr >> 2], addr, 1, 1);
+                exp_val   = (rd==0) ? 0 : read_val_partial(riscv_data_mem[addr], addr, 1, 1);
                 real_val  = (rd==0) ? 0 : regf[rd];
                 info      = instr_str;
                 has_rf_update=1;
@@ -671,7 +679,7 @@ class RV32IPredictor extends BaseObj;
             end
             RV32_LH     : begin
                 addr      = (rs1==0) ? signed'(imm) : regf_model[hart_id][rs1]+signed'(imm);
-                exp_val   = (rd==0) ? 0 : read_val_partial(riscv_data_mem[addr >> 2], addr, 2, 1);
+                exp_val   = (rd==0) ? 0 : read_val_partial(riscv_data_mem[addr], addr, 2, 1);
                 real_val  = (rd==0) ? 0 : regf[rd];
                 info      = instr_str;
                 has_rf_update=1;
@@ -679,7 +687,7 @@ class RV32IPredictor extends BaseObj;
             end
             RV32_LW     : begin
                 addr      = (rs1==0) ? signed'(imm) : regf_model[hart_id][rs1]+signed'(imm);
-                exp_val   = (rd==0) ? 0 : read_val_partial(riscv_data_mem[addr >> 2], addr, 4, 1);
+                exp_val   = (rd==0) ? 0 : read_val_partial(riscv_data_mem[addr], addr, 4, 1);
                 real_val  = (rd==0) ? 0 : regf[rd];
                 info      = instr_str;
                 has_rf_update=1;
@@ -687,7 +695,7 @@ class RV32IPredictor extends BaseObj;
             end
             RV32_LBU    : begin
                 addr      = (rs1==0) ? signed'(imm) : regf_model[hart_id][rs1]+signed'(imm);
-                exp_val   = (rd==0) ? 0 : read_val_partial(riscv_data_mem[addr >> 2], addr, 1, 0);
+                exp_val   = (rd==0) ? 0 : read_val_partial(riscv_data_mem[addr], addr, 1, 0);
                 real_val  = (rd==0) ? 0 : regf[rd];
                 info      = instr_str;
                 has_rf_update=1;
@@ -695,7 +703,7 @@ class RV32IPredictor extends BaseObj;
             end
             RV32_LHU    : begin
                 addr      = (rs1==0) ? signed'(imm) : regf_model[hart_id][rs1]+signed'(imm);
-                exp_val   = (rd==0) ? 0 : read_val_partial(riscv_data_mem[addr >> 2], addr, 2, 0);
+                exp_val   = (rd==0) ? 0 : read_val_partial(riscv_data_mem[addr], addr, 2, 0);
                 real_val  = (rd==0) ? 0 : regf[rd];
                 info      = instr_str;
                 has_rf_update=1;
@@ -723,7 +731,7 @@ class RV32IPredictor extends BaseObj;
             end
             RV32_SW     : begin
                 addr      = (rs1==0) ? signed'(imm) : regf_model[hart_id][rs1]+signed'(imm);
-                addr      = (addr - `PITO_DATA_MEM_OFFSET)  >> 2;
+                addr      = (addr - `PITO_DATA_MEM_OFFSET);
                 exp_val   = regf_model[hart_id][rs2];
                 real_val  = mem_val;
                 info      = instr_str;

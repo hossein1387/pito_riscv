@@ -143,6 +143,7 @@ class pito_monitor extends BaseObj;
             end
         endcase
             // logger.print($sformatf("\t ->    addr[%8h] reg_val=%4d + imm=%4d - off=%d ", addr, reg_val, signed'(imm), `PITO_DATA_MEM_OFFSET));
+            addr = addr >> 2;
             read_val = `hdl_path_top.d_mem.bram_32Kb_inst.inst.native_mem_module.blk_mem_gen_v8_4_3_inst.memory[addr];
             // logger.print($sformatf("\t -> %s is accessing mem[%8h]: %d", opcode.name, addr, read_val));
         // if (opcode==RV32_SB || opcode==RV32_SH || opcode==RV32_SW) begin
