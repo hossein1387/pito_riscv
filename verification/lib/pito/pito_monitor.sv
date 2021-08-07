@@ -217,20 +217,48 @@ class pito_monitor extends BaseObj;
         end
     endtask
 
-    function void show_regs(int hart_id);
+    function void show_regs(int hart_id, data_q_t regs_to_monitor);
         rv32_regfile_t regs;
         int idx=0;
         string temp_str = "";
+        int pc;
         regs = read_regs(hart_id);
-        for (int i=0; i<4; i++) begin
-            for (int j=0; j<8; j++) begin
-                idx = j + i*8;
+        if (regs_to_monitor.size()==0) begin
+            for (int i=0; i<4; i++) begin
+                for (int j=0; j<8; j++) begin
+                    idx = j + i*8;
+                    temp_str = $sformatf("%s  %4s: 0x%8h", temp_str, rv32_abi_reg_s[idx], regs[idx]);
+                end
+                logger.print($sformatf("%s", temp_str));
+                temp_str = "";
+            end
+        end else begin
+            foreach (regs_to_monitor[i]) begin
+                idx = regs_to_monitor[i];
                 temp_str = $sformatf("%s  %4s: 0x%8h", temp_str, rv32_abi_reg_s[idx], regs[idx]);
+            end
+            pc = `hdl_path_top.rv32_wf_pc[0];
+            temp_str = $sformatf("%s  %4s: 0x%8h", temp_str, "pc", pc);
+            logger.print($sformatf("%s", temp_str));
+        end
+    endfunction
+
+    function void show_stack(int start_addr);
+        int addr=0;
+        int read_val;
+        string temp_str = "";
+        start_addr = start_addr >> 2;
+        for (int i=0; i<8; i++) begin
+            for (int j=0; j<4; j++) begin
+                addr = start_addr - (j + i*4);
+                read_val = `hdl_path_top.d_mem.bram_32Kb_inst.inst.native_mem_module.blk_mem_gen_v8_4_3_inst.memory[addr];
+                temp_str = $sformatf("%s  %4h: 0x%8h", temp_str, addr, read_val);
             end
             logger.print($sformatf("%s", temp_str));
             temp_str = "";
         end
     endfunction
+
 
     task automatic run();
         rv32_opcode_enum_t rv32_wf_opcode;
@@ -240,6 +268,9 @@ class pito_monitor extends BaseObj;
         rv32_pc_cnt_t   pc_cnt, pc_orig_cnt;
         int hart_id;
         int hart_valid = 0;
+        data_q_t regs_to_monitor;
+        regs_to_monitor.push_back(rv32_abi_reg_i["ra"]);
+        regs_to_monitor.push_back(rv32_abi_reg_i["sp"]);
         logger.print("Starting Monitor Task");
         logger.print("Monitoring the following harts:");
         foreach(this.hart_ids_q[i]) begin
@@ -268,7 +299,8 @@ class pito_monitor extends BaseObj;
                 rv32i_pred.predict(act_instr, instr, pc_cnt, pc_orig_cnt, read_regs(hart_id), read_csrs(hart_id), read_dmem_word(instr, hart_id), hart_id);
                 // $display("\n");
                 // @(posedge clk);
-                // this.show_regs(0);
+                this.show_regs(0, regs_to_monitor);
+                this.show_stack(1024);
                 hart_valid = 0;
             end
         end
