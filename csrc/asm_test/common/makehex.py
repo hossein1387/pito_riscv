@@ -21,6 +21,8 @@ for i in range(nwords):
     if i < len(bindata) // 4:
         w = bindata[4*i : 4*i+4]
         print("%02x%02x%02x%02x" % (w[3], w[2], w[1], w[0]))
+    elif i%1024 == 1:
+        print("ffdff06f")
     else:
         print("00000013")
 
