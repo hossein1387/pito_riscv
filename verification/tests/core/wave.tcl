@@ -1,4 +1,3 @@
-# set_property display_limit 300000 [current_wave_config]
 add_wave_group core
     add_wave -into core {{/testbench_top/core/clk}}
     add_wave -into core {{/testbench_top/core/rst_n}}
@@ -157,6 +156,7 @@ add_wave_group csr
     add_wave_group -into csr csr0
             add_wave -into csr0 {{/testbench_top/core/csr/\genblk1[0].csrfile }}
 add_wave_group mems
+    set_property display_limit 3000000 [current_wave_config]
     add_wave_group -into mems i_mem
         add_wave -into i_mem {{/testbench_top/core/i_mem/clock}}
         add_wave -into i_mem {{/testbench_top/core/i_mem/data}}
@@ -176,4 +176,4 @@ add_wave_group mems
         add_wave -into d_mem {{core/d_mem/bram_32Kb_inst/inst/\native_mem_module.blk_mem_gen_v8_4_3_inst /memory}}
         # add_wave -into d_mem {{/testbench_top/core/d_mem/altsyncram_component/mem_data}}
 
-set_property display_limit 300000 [current_wave_config]
+
