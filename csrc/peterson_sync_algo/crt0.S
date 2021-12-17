@@ -1,5 +1,4 @@
 .globl _start
-.globl _eoc
 .globl get_pito_hart_id
 .globl _fail
 .section .text;
