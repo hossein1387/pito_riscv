@@ -374,8 +374,8 @@ assign rst_n = inf.pito_io_rst_n;
             // reset, we set the pc_sel to PITO_PC_SEL_PLUS_4 so that the pc counter starts
             // executing instruction from memory.
             if (rv32_pc[rv32_hart_cnt] == `EOF_ADDRESS) begin
-                // rv32_pc[rv32_hart_cnt] <= `RESET_ADDRESS; //rv32_hart_cnt << 12;
-                rv32_pc[rv32_hart_cnt] <= rv32_hart_cnt << 12;
+                rv32_pc[rv32_hart_cnt] <= `RESET_ADDRESS; //rv32_hart_cnt << 12;
+                // rv32_pc[rv32_hart_cnt] <= rv32_hart_cnt << 12;
             end else begin
                 if (pc_sel[rv32_hart_cnt] == `PITO_PC_SEL_PLUS_4) begin
                     rv32_pc[rv32_hart_cnt] <= rv32_pc[rv32_hart_cnt] + 4;
