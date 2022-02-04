@@ -43,9 +43,11 @@ reset_vector:
     li      x29, 0
     li      x30, 0
     li      x31, 0
-    # set sp to the end of the memory
-    li      sp, 0x00003fc 
-    csrw mtvec, a0
+    # init the SP with an offset for each hart
+    csrr    sp, mhartid
+    addi    sp, sp, 1
+    slli    sp, sp, 9
+    csrw    mtvec, a0
     // Set up a PMP to permit all accesses
     // Delegate no traps
     csrwi   mie, 0
