@@ -3,7 +3,7 @@
 
 %.elf: %.c
 	riscv32-unknown-elf-gcc -nostartfiles -march=rv32i -Tlink.ld -DTEST_FUNC_NAME=$(notdir $(basename $<)) \
-		-DTEST_FUNC_TXT='"$(notdir $(basename $<))"' -DTEST_FUNC_RET=$(notdir $(basename $<))_ret $< -c crt0.S -nostdlib -std=gnu99 -O3 -ffast-math -fno-common -fno-builtin-printf
+		-DTEST_FUNC_TXT='"$(notdir $(basename $<))"' -DTEST_FUNC_RET=$(notdir $(basename $<))_ret $< -c crt0.S -nostdlib -std=gnu99 -ffast-math -fno-common -fno-builtin-printf
 	riscv32-unknown-elf-gcc -nostartfiles -march=rv32i -Tlink.ld -DTEST_FUNC_NAME=$(notdir $(basename $<)) \
 		-DTEST_FUNC_TXT='"$(notdir $(basename $<))"' -DTEST_FUNC_RET=$(notdir $(basename $<))_ret $< crt0.o -o $(notdir $(basename $<)).elf
 	riscv32-unknown-elf-objdump -D $(notdir $(basename $<)).elf > $(notdir $(basename $<)).obj
