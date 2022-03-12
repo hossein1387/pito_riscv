@@ -22,7 +22,7 @@ class core_tester extends pito_testbench_base;
         logger.print_banner("Testbench Run phase");
         fork
             this.monitor.run();
-            monitor_instr(); 
+            // monitor_instr(); 
         join_any
     endtask
 
