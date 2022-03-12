@@ -92,6 +92,27 @@ typedef struct packed {
 } rv32_dec_op_t;
 
 
+typedef logic [`PITO_INSTR_MEM_BYTE_ENABLE_WIDTH-1:0]   imem_be_t;
+typedef logic [`PITO_DATA_MEM_BYTE_ENABLE_WIDTH-1:0]    dmem_be_t;
+
+typedef struct packed {
+    rv32_data_t [`PITO_INSTR_MEM_PORTS-1:0] wdata;
+    rv32_data_t [`PITO_INSTR_MEM_PORTS-1:0] rdata;
+    rv32_imem_addr_t [`PITO_INSTR_MEM_PORTS-1:0] addr;
+    logic [`PITO_INSTR_MEM_PORTS-1:0] req;
+    logic [`PITO_INSTR_MEM_PORTS-1:0] we;
+    imem_be_t [`PITO_INSTR_MEM_PORTS-1:0] be;
+} rv32_imem_t;
+
+typedef struct packed {
+    rv32_data_t [`PITO_DATA_MEM_PORTS-1:0] wdata;
+    rv32_data_t [`PITO_DATA_MEM_PORTS-1:0] rdata;
+    rv32_dmem_addr_t [`PITO_DATA_MEM_PORTS-1:0] addr;
+    logic [`PITO_DATA_MEM_PORTS-1:0] req;
+    logic [`PITO_DATA_MEM_PORTS-1:0] we;
+    dmem_be_t [`PITO_DATA_MEM_PORTS-1:0] be;
+} rv32_dmem_t;
+
 //typedef union packed {
 //    logic [`XPR_LEN-1:0] rv32_instr_t;
 //    // rv32_dec_op_t        rv32_dec_op;

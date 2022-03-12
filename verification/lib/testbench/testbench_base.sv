@@ -62,7 +62,7 @@ class pito_testbench_base extends BaseObj;
 
     task write_data_to_ram(rv32_data_q data_q);
         for (int i=0; i<data_q.size(); i++) begin
-            `hdl_path_dmem[i] = data_q[i];
+            `hdl_path_dmem_init[i] = data_q[i];
         end
     endtask
 
@@ -73,7 +73,7 @@ class pito_testbench_base extends BaseObj;
         end
         if (backdoor == 1) begin
             for (int addr=0 ; addr<this.instr_q.size(); addr++) begin
-                `hdl_path_imem[addr] = this.instr_q[addr];
+                `hdl_path_imem_init[addr] = this.instr_q[addr];
                 if(log_to_console) begin
                     logger.print($sformatf("[%4d]: 0x%8h     %s", addr, this.instr_q[addr], rv32_utils::get_instr_str(rv32i_dec.decode_instr(this.instr_q[addr]))));
                 end

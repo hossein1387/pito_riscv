@@ -48,7 +48,8 @@ rv32_instr_t        rv32_dec_instr;
 rv32_instr_t        rv32_ex_instr;
 rv32_instr_t        rv32_wb_instr;
 rv32_instr_t        rv32_wf_instr;
-
+rv32_imem_t         rv32_imem;
+rv32_dmem_t         rv32_dmem;
 //====================================================================
 // DEC stage wires
 //====================================================================
@@ -317,35 +318,70 @@ rv32_next_pc rv32_next_pc_cal(
 // instruction memory  just by using inf.pito_io_imem_w_en since 
 // all the write  operations are done by io ports and all 
 // the reads are done by internal logic.
-
-rv32_instruction_memory i_mem(
-                        .clock     (clk               ),
-                        .data      (inf.pito_io_imem_data ),
-                        .rdaddress (rv32_i_addr       ),
-                        .wraddress (inf.pito_io_imem_addr ),
-                        .wren      (inf.pito_io_imem_w_en ),
-                        .q         (rv32_instr        )
-    );
-
-assign rv32_dw_addr_temp = (inf.pito_io_program) ? inf.pito_io_dmem_addr : rv32_dmem_addr;
-assign rv32_dw_data = (inf.pito_io_program) ? inf.pito_io_dmem_data : rv32_dmem_data;
-assign rv32_dw_en   = (inf.pito_io_program) ? inf.pito_io_dmem_w_en : rv32_dmem_w_en;
-
-rv32_data_memory d_mem(
-                        .clock     (clk         ),
-                        .data      (rv32_dw_data),
-                        .rdaddress (rv32_dr_addr),
-                        .wraddress (rv32_dw_addr),
-                        .wren      (rv32_dw_en  ),
-                        .q         (rv32_dr_data)
-    );
-
 // for now, we access 32 bit at a time
 assign rv32_dr_addr = rv32_ex_readd_addr >> 2;
 assign rv32_dw_addr = rv32_dw_addr_temp >> 2;
 // connect io clock and reset to internal logic
 assign clk   = inf.clk;
 assign rst_n = inf.pito_io_rst_n;
+
+
+
+// Dual port SRAM memory for instruction Cache. Port 0 is used for I/O
+// and port 1 is used for local interface.
+assign rv32_imem.wdata[`PITO_INSTR_MEM_IO_PORT] = inf.pito_io_imem_data;
+assign rv32_imem.addr     = {rv32_i_addr, inf.pito_io_imem_addr};
+assign rv32_instr         = rv32_imem.rdata[`PITO_INSTR_MEM_LOCAL_PORT];
+assign rv32_imem.req      = {1'b1, 1'b0};
+assign rv32_imem.be       = {4'b1111, 4'b1111};
+assign rv32_imem.we       = {inf.pito_io_imem_w_en, 1'b0};
+rv32_instruction_memory#(
+    .NumWords   (`PITO_INSTR_MEM_SIZE ),
+    .DataWidth  (`DATA_WIDTH          ),
+    .ByteWidth  (`BYTE_WIDTH          ),
+    .NumPorts   (`PITO_INSTR_MEM_PORTS),
+    .Latency    (1                    ),
+    .SimInit    ("zeros"              ), // in simulation, this will this will be overwritten by backdoor access to `hdl_path_imem_init
+    .PrintSimCfg(1                    )) 
+i_mem(
+    .clk_i  (clk),
+    .rst_ni (rst_n),
+    .req_i  (rv32_imem.req  ),
+    .we_i   (rv32_imem.we   ),
+    .addr_i (rv32_imem.addr ),
+    .wdata_i(rv32_imem.wdata),
+    .be_i   (rv32_imem.be   ),
+    .rdata_o(rv32_imem.rdata)
+);
+
+assign rv32_dw_addr_temp = (inf.pito_io_program) ? inf.pito_io_dmem_addr : rv32_dmem_addr;
+assign rv32_dmem.wdata[`PITO_DATA_MEM_LOCAL_PORT] = (inf.pito_io_program) ? inf.pito_io_dmem_data : rv32_dmem_data;
+assign rv32_dmem.we[`PITO_DATA_MEM_LOCAL_PORT]    = (inf.pito_io_program) ? inf.pito_io_dmem_w_en : rv32_dmem_w_en;
+
+assign rv32_dmem.addr[`PITO_DATA_MEM_LOCAL_PORT] = (rv32_dmem.we[`PITO_DATA_MEM_LOCAL_PORT]) ? rv32_dw_addr : rv32_dr_addr;
+assign rv32_dmem.addr[`PITO_DATA_MEM_IO_PORT]    = {`PITO_DATA_MEM_WIDTH{1'b0}};
+assign rv32_dr_data       = rv32_dmem.rdata[`PITO_DATA_MEM_LOCAL_PORT];
+assign rv32_dmem.req      = {1'b1, 1'b0};
+assign rv32_dmem.be       = {4'b1111, 4'b1111};
+
+rv32_data_memory #(    
+    .NumWords   (`PITO_DATA_MEM_SIZE ),
+    .DataWidth  (`DATA_WIDTH         ),
+    .ByteWidth  (`BYTE_WIDTH         ),
+    .NumPorts   (`PITO_DATA_MEM_PORTS),
+    .Latency    (1                   ),
+    .SimInit    ("zeros"             ), // in simulation, this will this will be overwritten by backdoor access to `hdl_path_dmem_init
+    .PrintSimCfg(1                   ))
+d_mem(
+    .clk_i  (clk),
+    .rst_ni (rst_n),
+    .req_i  (rv32_dmem.req  ),
+    .we_i   (rv32_dmem.we   ),
+    .addr_i (rv32_dmem.addr ),
+    .wdata_i(rv32_dmem.wdata),
+    .be_i   (rv32_dmem.be   ),
+    .rdata_o(rv32_dmem.rdata)
+);
 
 //====================================================================
 //                   Barreled HART counter

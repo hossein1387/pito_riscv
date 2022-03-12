@@ -158,13 +158,24 @@ add_wave_group csr
 add_wave_group mems
     set_property display_limit 3000000 [current_wave_config]
     add_wave_group -into mems i_mem
-        add_wave -into i_mem {{/testbench_top/core/i_mem/clock}}
-        add_wave -into i_mem {{/testbench_top/core/i_mem/data}}
-        add_wave -into i_mem {{/testbench_top/core/i_mem/rdaddress}}
-        add_wave -into i_mem {{/testbench_top/core/i_mem/wraddress}}
-        add_wave -into i_mem {{/testbench_top/core/i_mem/wren}}
-        add_wave -into i_mem {{/testbench_top/core/i_mem/q}}
-        add_wave -into i_mem {{core/i_mem/bram_32Kb_inst/inst/\native_mem_module.blk_mem_gen_v8_4_3_inst /memory}}
+        add_wave -into i_mem {{/testbench_top/core/i_mem/ram/clk_i}}
+        add_wave -into i_mem {{/testbench_top/core/i_mem/ram/rst_ni}}
+        add_wave -into i_mem {{/testbench_top/core/i_mem/ram/req_i}}
+        add_wave -into i_mem {{/testbench_top/core/i_mem/ram/we_i}}
+        add_wave -into i_mem {{/testbench_top/core/i_mem/ram/addr_i}}
+        add_wave -into i_mem {{/testbench_top/core/i_mem/ram/wdata_i}}
+        add_wave -into i_mem {{/testbench_top/core/i_mem/ram/be_i}}
+        add_wave -into i_mem {{/testbench_top/core/i_mem/ram/rdata_o}}
+        add_wave -into i_mem {{/testbench_top/core/i_mem/ram/sram}}
+        add_wave -into i_mem {{/testbench_top/core/i_mem/ram/NumWords}}
+        add_wave -into i_mem {{/testbench_top/core/i_mem/ram/NumPorts}}
+        # add_wave -into i_mem {{/testbench_top/core/i_mem/clock}}
+        # add_wave -into i_mem {{/testbench_top/core/i_mem/data}}
+        # add_wave -into i_mem {{/testbench_top/core/i_mem/rdaddress}}
+        # add_wave -into i_mem {{/testbench_top/core/i_mem/wraddress}}
+        # add_wave -into i_mem {{/testbench_top/core/i_mem/wren}}
+        # add_wave -into i_mem {{/testbench_top/core/i_mem/q}}
+        # add_wave -into i_mem {{core/i_mem/bram_32Kb_inst/inst/\native_mem_module.blk_mem_gen_v8_4_3_inst /memory}}
         # add_wave -into i_mem {{/testbench_top/core/i_mem/altsyncram_component/mem_data}}
     add_wave_group -into mems d_mem
         add_wave -into d_mem {{/testbench_top/core/d_mem/clock}}

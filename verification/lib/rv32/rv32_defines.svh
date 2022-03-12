@@ -11,6 +11,16 @@
 `define NUM_MVUS 8
 `define NUM_INSTR_WORDS (1024*`NUM_MVUS)
 //-------------------------------------------------------------------
+//                           Width-related constants
+//-------------------------------------------------------------------
+`define INST_WIDTH       32
+`define DATA_WIDTH       32
+`define REG_ADDR_WIDTH   5
+`define XPR_LEN          32
+`define OPCODE_LEN       7
+`define ALU_OPCODE_WIDTH 4
+`define BYTE_WIDTH       8
+//-------------------------------------------------------------------
 //                          Reset Macros
 //-------------------------------------------------------------------
 `define RESET_ADDRESS        32'h0000_0000
@@ -18,25 +28,25 @@
 //-------------------------------------------------------------------
 //                          pito specific consts
 //-------------------------------------------------------------------
-`define PITO_INSTR_MEM_SIZE  (8192)
-`define PITO_INSTR_MEM_WIDTH $clog2(`PITO_INSTR_MEM_SIZE)
-`define PITO_DATA_MEM_SIZE   (8192)
-`define PITO_DATA_MEM_WIDTH  $clog2(`PITO_DATA_MEM_SIZE)
-`define PITO_DATA_MEM_OFFSET (32'h0000_0000)
-`define PITO_PC_SEL_PLUS_4   (1'b1)
-`define PITO_PC_SEL_COMPUTED (1'b0)
-`define PITO_ALU_SRC_RS2     (1'b1)
-`define PITO_ALU_SRC_IMM     (1'b0)
-`define PITO_NUM_HARTS       (`NUM_MVUS)
-`define PITO_HART_CNT_WIDTH  $clog2(`PITO_NUM_HARTS)
-//-------------------------------------------------------------------
-//                           Width-related constants
-//-------------------------------------------------------------------
-`define INST_WIDTH       32
-`define REG_ADDR_WIDTH   5
-`define XPR_LEN          32
-`define OPCODE_LEN       7
-`define ALU_OPCODE_WIDTH 4
+`define PITO_INSTR_MEM_SIZE              (8192)
+`define PITO_INSTR_MEM_WIDTH             $clog2(`PITO_INSTR_MEM_SIZE)
+`define PITO_INSTR_MEM_PORTS             (2)
+`define PITO_INSTR_MEM_BYTE_ENABLE_WIDTH ((`INST_WIDTH + `BYTE_WIDTH - 32'd1) / `BYTE_WIDTH)
+`define PITO_INSTR_MEM_LOCAL_PORT        (`PITO_INSTR_MEM_PORTS-1)
+`define PITO_INSTR_MEM_IO_PORT           (`PITO_INSTR_MEM_PORTS-2)
+`define PITO_DATA_MEM_SIZE               (8192)
+`define PITO_DATA_MEM_WIDTH              $clog2(`PITO_DATA_MEM_SIZE)
+`define PITO_DATA_MEM_PORTS              (2)
+`define PITO_DATA_MEM_BYTE_ENABLE_WIDTH  ((`DATA_WIDTH + `BYTE_WIDTH - 32'd1) / `BYTE_WIDTH)
+`define PITO_DATA_MEM_LOCAL_PORT         (`PITO_DATA_MEM_PORTS-1)
+`define PITO_DATA_MEM_IO_PORT            (`PITO_DATA_MEM_PORTS-2)
+`define PITO_DATA_MEM_OFFSET             (32'h0000_0000)
+`define PITO_PC_SEL_PLUS_4               (1'b1)
+`define PITO_PC_SEL_COMPUTED             (1'b0)
+`define PITO_ALU_SRC_RS2                 (1'b1)
+`define PITO_ALU_SRC_IMM                 (1'b0)
+`define PITO_NUM_HARTS                   (`NUM_MVUS)
+`define PITO_HART_CNT_WIDTH              $clog2(`PITO_NUM_HARTS)
 //-------------------------------------------------------------------
 //                          ALU opcodes
 //-------------------------------------------------------------------

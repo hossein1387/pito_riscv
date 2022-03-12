@@ -144,7 +144,7 @@ class pito_monitor extends BaseObj;
         endcase
             // logger.print($sformatf("\t ->    addr[%8h] reg_val=%4d + imm=%4d - off=%d ", addr, reg_val, signed'(imm), `PITO_DATA_MEM_OFFSET));
             addr = addr >> 2;
-            read_val = `hdl_path_top.d_mem.bram_32Kb_inst.inst.native_mem_module.blk_mem_gen_v8_4_3_inst.memory[addr];
+            read_val = `hdl_path_dmem[addr];
             // logger.print($sformatf("\t -> %s is accessing mem[%8h]: %d", opcode.name, addr, read_val));
         // if (opcode==RV32_SB || opcode==RV32_SH || opcode==RV32_SW) begin
         //     logger.print($sformatf("\t -> reg_val[%2d]=%4h hart_id=%4d, addr=%4d, read_val=%4d", rs1, reg_val, hart_id, addr, read_val));
@@ -158,7 +158,7 @@ class pito_monitor extends BaseObj;
         addr_from = addr_from;
         addr_to   = addr_to  ;
         for (int addr=addr_from; addr<=addr_to; addr+=4) begin
-            mem_val = `hdl_path_top.d_mem.bram_32Kb_inst.inst.native_mem_module.blk_mem_gen_v8_4_3_inst.memory[addr];
+            mem_val = `hdl_path_dmem[addr];
             if (radix == "int") begin
                 logger.print($sformatf("0x%4h: %8h", addr, mem_val));
             end else begin
@@ -251,7 +251,7 @@ class pito_monitor extends BaseObj;
         for (int i=0; i<8; i++) begin
             for (int j=0; j<4; j++) begin
                 addr = start_addr - (j + i*4);
-                read_val = `hdl_path_top.d_mem.bram_32Kb_inst.inst.native_mem_module.blk_mem_gen_v8_4_3_inst.memory[addr];
+                read_val = `hdl_path_dmem[addr];
                 temp_str = $sformatf("%s  %4h: 0x%8h", temp_str, addr, read_val);
             end
             logger.print($sformatf("%s", temp_str));
@@ -299,8 +299,8 @@ class pito_monitor extends BaseObj;
                 rv32i_pred.predict(act_instr, instr, pc_cnt, pc_orig_cnt, read_regs(hart_id), read_csrs(hart_id), read_dmem_word(instr, hart_id), hart_id);
                 // $display("\n");
                 // @(posedge clk);
-                this.show_regs(0, regs_to_monitor);
-                this.show_stack(1024);
+                // this.show_regs(0, regs_to_monitor);
+                // this.show_stack(1024);
                 hart_valid = 0;
             end
         end
