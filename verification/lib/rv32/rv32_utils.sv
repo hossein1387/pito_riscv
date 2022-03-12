@@ -383,11 +383,13 @@ class RV32IPredictor extends BaseObj;
     int riscv_data_mem [logic[31:0]];
     int num_harts;
     const int MEM_SIZE;
+    logic predictor_silent_mode;
 
-    function new (Logger logger, rv32_data_q data_q, int num_harts, test_stats_t test_stat, int mem_size=(1024*8));
+    function new (Logger logger, rv32_data_q data_q, int num_harts, test_stats_t test_stat, int mem_size=(1024*8), logic predictor_silent_mode);
         super.new(logger);   // Calls 'new' method of parent class
         this.num_harts = num_harts;
         this.MEM_SIZE = mem_size;
+        this.predictor_silent_mode = predictor_silent_mode;
         test_stat = '{pass_cnt: 0, fail_cnt: 0};
         regf_model = new[num_harts];
         csrf_model = new[`NUM_CSR];
@@ -646,10 +648,14 @@ class RV32IPredictor extends BaseObj;
         info = $sformatf("%s pc=%4h", info, int'(pc_cnt));
         if ( exp_val == real_val) begin
             this.test_stat.pass_cnt ++;
-            this.logger.print($sformatf("[HART_ID:%1d]Test Pass [0x%8h: %s]: Expecting %8h got %8h", hart_id, act_instr, info, exp_val, real_val));
+            if (this.predictor_silent_mode == 0) begin
+                this.logger.print($sformatf("[HART_ID:%1d]Test Pass [0x%8h: %s]: Expecting %8h got %8h", hart_id, act_instr, info, exp_val, real_val));
+            end
         end else begin
             this.test_stat.fail_cnt ++;
-            this.logger.print($sformatf("[HART_ID:%1d]Test Fail [0x%8h: %s]: Expecting %8h got %8h", hart_id, act_instr, info, exp_val, real_val));
+            if (this.predictor_silent_mode == 0) begin
+                this.logger.print($sformatf("[HART_ID:%1d]Test Fail [0x%8h: %s]: Expecting %8h got %8h", hart_id, act_instr, info, exp_val, real_val));
+            end
         end
     endfunction
 

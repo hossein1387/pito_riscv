@@ -17,13 +17,15 @@ class pito_testbench_base extends BaseObj;
     rv32_utils::RV32IDecoder rv32i_dec;
     test_stats_t test_stat;
     tb_config cfg;
+    logic predictor_silent_mode;
 
-    function new (Logger logger, virtual pito_interface inf, int hart_mon_en[$]={});
+    function new (Logger logger, virtual pito_interface inf, int hart_mon_en[$]={}, logic predictor_silent_mode=0);
         super.new(logger);
         cfg = new(logger);
         cfg.parse_args();
         this.firmware = cfg.firmware;
         this.inf = inf;
+        this.predictor_silent_mode = predictor_silent_mode;
 
         // read hex file and store the first n words to the ram
         instr_q = process_hex_file(firmware, logger, `NUM_INSTR_WORDS); 
@@ -38,7 +40,7 @@ class pito_testbench_base extends BaseObj;
         end else begin
             this.hart_ids_q = hart_mon_en;
         end
-        monitor = new(this.logger, this.instr_q, this.inf, this.hart_ids_q, this.test_stat);
+        monitor = new(this.logger, this.instr_q, this.inf, this.hart_ids_q, this.test_stat, predictor_silent_mode);
         this.rv32i_dec = new(this.logger);
     endfunction
 
@@ -145,6 +147,6 @@ class pito_testbench_base extends BaseObj;
                 end
             end
         end
-    endtask 
+    endtask
 
 endclass
