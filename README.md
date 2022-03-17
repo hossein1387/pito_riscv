@@ -46,7 +46,22 @@ project file for you.
 
 If you liked this project, please consider citing our paper:
 
-    M. AskariHemmat, O. Bilaniuk, S. Wagner, Y. Savaria and J. -P. David, 
-    "RISC-V Barrel Processor for Deep Neural Network Acceleration," 
-    2021 IEEE International Symposium on Circuits and Systems (ISCAS), 
-    2021, pp. 1-5, doi: 10.1109/ISCAS51556.2021.9401617.
+    @INPROCEEDINGS{9114581,
+      author={AskariHemmat, MohammadHossein and Bilaniuk, Olexa and Wagner, Sean and Savaria, Yvon and David, Jean-Pierre},
+      booktitle={2020 IEEE 28th Annual International Symposium on Field-Programmable Custom Computing Machines (FCCM)}, 
+      title={RISC-V Barrel Processor for Accelerator Control}, 
+      year={2020},
+      volume={},
+      number={},
+      pages={212-212},
+      doi={10.1109/FCCM48280.2020.00063}}
+      
+      @INPROCEEDINGS{9401617,
+      author={AskariHemmat, MohammadHossein and Bilaniuk, Olexa and Wagner, Sean and Savaria, Yvon and David, Jean-Pierre},
+      booktitle={2021 IEEE International Symposium on Circuits and Systems (ISCAS)}, 
+      title={RISC-V Barrel Processor for Deep Neural Network Acceleration}, 
+      year={2021},
+      volume={},
+      number={},
+      pages={1-5},
+      doi={10.1109/ISCAS51556.2021.9401617}}
