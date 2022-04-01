@@ -29,6 +29,7 @@ typedef rv32_data_t                          rv32_data_q[$];
 typedef logic [`PITO_HART_CNT_WIDTH-1  : 0 ] rv32_hart_cnt_t;
 typedef logic [`XPR_LEN-1              : 0 ] rv32_instr_t;
 typedef int                                  data_q_t[$];
+typedef logic [`BYTE_WIDTH-1           : 0 ] rv32_byte_t;
 
 //-------------------------------------------------------------------
 //                          RV32 Insrtuction Types Decoding

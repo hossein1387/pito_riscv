@@ -3,7 +3,7 @@
 class core_tester extends pito_testbench_base;
 
     function new(Logger logger, virtual pito_interface inf);
-        super.new(logger, inf);
+        super.new(logger, inf, {}, 0);
     endfunction
 
     task tb_setup();

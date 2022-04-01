@@ -6,11 +6,13 @@ module testbench_top import utils::*; ();
 // Test variables
     localparam CLOCK_SPEED = 50; // 10MHZ
     Logger logger;
-    string sim_log_file = "csr_tester.log";
+    string sim_log_file = "core_tester.log";
 //==================================================================================================
     logic clk;
-    pito_interface pito_inf(clk);
-    rv32_core core(pito_inf.system_interface);
+    pito_soc_ext_interface pito_inf(clk);
+    mvu_interface mvu_inf();
+    rv32_core core(pito_inf.soc_ext,
+                  mvu_inf.mvu);
     // interface_tester tb;
     core_tester tb;
 

@@ -5,8 +5,12 @@
 import rv32_pkg::*;
 import pito_pkg::*;
 
-module rv32_core (pito_interface.system_interface inf);
+// module rv32_core (pito_interface.system_interface inf);
 
+module rv32_core (
+    pito_imem_interface imem_interface,
+    pito_dmem_interface dmem_interface,
+    pito_mvu_interface  mvu_interface );
 
 //====================================================================
 // HART related signals
@@ -48,8 +52,6 @@ rv32_instr_t        rv32_dec_instr;
 rv32_instr_t        rv32_ex_instr;
 rv32_instr_t        rv32_wb_instr;
 rv32_instr_t        rv32_wf_instr;
-rv32_imem_t         rv32_imem;
-rv32_dmem_t         rv32_dmem;
 //====================================================================
 // DEC stage wires
 //====================================================================
