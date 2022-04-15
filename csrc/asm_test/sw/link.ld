@@ -1,18 +1,25 @@
 OUTPUT_ARCH( "riscv" )
 ENTRY(_start)
 
-SECTIONS
+MEMORY
 {
-  . = 0x00000000;
-  .text.init : { *(.text.init) }
-  . = ALIGN(0x1000);
-  .tohost : { *(.tohost) }
-  . = ALIGN(0x1000);
-  .text : { *(.text) }
-  . = ALIGN(0x1000);
-  .data : { *(.data) }
-  .data.string : { *(.data.string)}
-  .bss : { *(.bss) }
-  _end = .;
+    ROM (x!rw) : ORIGIN = 0x00000000, LENGTH = 0x1000
+    RAM (rwx) : ORIGIN = 0x00001000, LENGTH = 0x8000
 }
 
+SECTIONS
+{
+    .text :
+    {
+        *(.boot)
+        *(.text)
+    } > ROM
+    .data :
+    {
+        *(.rodata*)
+        *(.data)
+        *(.sbss)
+        *(.bss)
+    } > RAM
+   PROVIDE ( _stack = ORIGIN(RAM) + LENGTH(RAM) );
+}

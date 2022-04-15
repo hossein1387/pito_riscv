@@ -36,7 +36,6 @@
 #define NULL  (void *)0
 
 int putchar(int c);
-char *gets(char *p,int s);
 void putstr(char *p);
 int puts(char *p);
 int printf(char *fmt,...);
@@ -48,7 +47,7 @@ char *memset(char *dptr, int c, int len);
 char *strtok(char *str,char *dptr);
 int atoi(char *);
 int xtoi(char *);
-void usleep(int);
+// void usleep(int);
 void set_mtvec(void (*f)(void));
 void set_mepc(void (*f)(void));
 void set_mie(int);

@@ -11,8 +11,6 @@
 .section .text;
 .section .text.init;
 
-#include "pito_def.h"
-
 // For the riscv-tests environment
 .weak mtvec_handler
 
@@ -60,10 +58,13 @@ reset_vector:
     csrwi   mie, 0
     la      t0, trap_vector
     csrw    mtvec, t0
+    la      a0,_boot0msg
+    call    printf
     // Call main
     la      t0, main
     csrw    mepc, t0
     mret
+    j _prog_end
 
 enable_mvu_irq:
     addi sp, sp, -4

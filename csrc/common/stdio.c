@@ -36,42 +36,9 @@ int putchar(int c)
 {
   if(c=='\n')
   {
-    while(io.uart.stat&1); // uart busy, wait...
     io.uart.fifo = '\r';  
   }
-  
-  while(io.uart.stat&1); // uart busy, wait...
   return io.uart.fifo = c;
-}
-
-// high-level functions use the getchar/putchar
-
-char *gets(char *p,int s)
-{
-  char *ret = p;
-  int c;
-
-  while(--s)
-  {
-    c=getchar();
-    
-    if(c=='\n'||c=='\r') break;
-    putchar(c);
-    if(c=='\b') // backspace!
-    {
-        if(p!=ret) 
-        {
-            *--p = 0;
-            s++;
-        }
-    }
-    else
-        *p++ = c;
-  }
-  putchar('\n');
-  *p=0;
-  
-  return p==ret ? NULL : ret;
 }
 
 void putstr(char *p)
@@ -86,38 +53,38 @@ int puts(char *p)
     return putchar('\n');
 }
 
-void putnum(unsigned i, int base)
-{
-    char ascii[]="0123456789abcdef";
-    char stack[32];
-    int  ptr = 0;
+// void putnum(unsigned i, int base)
+// {
+//     char ascii[]="0123456789abcdef";
+//     char stack[32];
+//     int  ptr = 0;
 
-    if(base==10)
-    {
-        int j = i;
+//     if(base==10)
+//     {
+//         int j = i;
         
-        if(j<0)
-        {
-            putchar('-');
-            i = -j;
-        }
-    }
+//         if(j<0)
+//         {
+//             putchar('-');
+//             i = -j;
+//         }
+//     }
 
-    do
-    {
-        stack[ptr++] = ascii[(i%base)];
-        i/=base;
+//     do
+//     {
+//         stack[ptr++] = ascii[(i%base)];
+//         i/=base;
         
-        if(base!=10)
-        {
-            stack[ptr++] = ascii[(i%base)];
-            i/=base;
-        }        
-    } 
-    while(i);
+//         if(base!=10)
+//         {
+//             stack[ptr++] = ascii[(i%base)];
+//             i/=base;
+//         }        
+//     } 
+//     while(i);
 
-    while(ptr) putchar(stack[--ptr]);
-}
+//     while(ptr) putchar(stack[--ptr]);
+// }
 
 int printf(char *fmt,...)
 {
@@ -129,8 +96,8 @@ int printf(char *fmt,...)
         {
             fmt++;
                  if(*fmt=='s') putstr(va_arg(ap,char *));
-            else if(*fmt=='x') putnum(va_arg(ap,int),16);
-            else if(*fmt=='d') putnum(va_arg(ap,int),10);
+            // else if(*fmt=='x') putnum(va_arg(ap,int),16);
+            // else if(*fmt=='d') putnum(va_arg(ap,int),10);
             else putchar(*fmt);
         }
         else putchar(*fmt);
@@ -219,20 +186,20 @@ int xtoi(char *s1)
 
 // time management
 
-void usleep(int delay)
-{
-    if(get_mtvec()) 
-    {
-        while(delay--)
-        {
-            for(int t=utimers;t==utimers;); // with interrupts
-        }
-    }
-    else
-    {
-        while(delay--) 
-        {
-            for(io.irq=IRQ_TIMR;!io.irq;); // without interrupts
-        }
-    }
-}
+// void usleep(int delay)
+// {
+//     if(get_mtvec()) 
+//     {
+//         while(delay--)
+//         {
+//             for(int t=utimers;t==utimers;); // with interrupts
+//         }
+//     }
+//     else
+//     {
+//         while(delay--) 
+//         {
+//             for(io.irq=IRQ_TIMR;!io.irq;); // without interrupts
+//         }
+//     }
+// }
