@@ -11,6 +11,13 @@
 `define NUM_MVUS 8
 `define NUM_INSTR_WORDS (1024*`NUM_MVUS)
 //-------------------------------------------------------------------
+//                           Clock Speed
+//-------------------------------------------------------------------
+`define REF_CLOCK 100000000 
+`define CLOCK_SPEED_NS (1000000000/`REF_CLOCK)
+`define __UARTSPEED__ 115200
+`define  __BAUD__ ((`REF_CLOCK/`__UARTSPEED__))
+//-------------------------------------------------------------------
 //                           Width-related constants
 //-------------------------------------------------------------------
 `define INST_WIDTH       32
@@ -29,13 +36,15 @@
 //                          pito specific consts
 //-------------------------------------------------------------------
 `define PITO_INSTR_MEM_SIZE              (8192)
-`define PITO_INSTR_MEM_WIDTH             $clog2(`PITO_INSTR_MEM_SIZE)
+`define PITO_INSTR_ADDR_WIDTH            (32)
+`define PITO_INSTR_MEM_ADDR_WIDTH        $clog2(`PITO_INSTR_MEM_SIZE)
 `define PITO_INSTR_MEM_PORTS             (2)
 `define PITO_INSTR_MEM_BYTE_ENABLE_WIDTH ((`INST_WIDTH + `BYTE_WIDTH - 32'd1) / `BYTE_WIDTH)
 `define PITO_INSTR_MEM_LOCAL_PORT        (`PITO_INSTR_MEM_PORTS-1)
 `define PITO_INSTR_MEM_EXT_PORT          (`PITO_INSTR_MEM_PORTS-2)
 `define PITO_DATA_MEM_SIZE               (8192)
-`define PITO_DATA_MEM_WIDTH              $clog2(`PITO_DATA_MEM_SIZE)
+`define PITO_DATA_ADDR_WIDTH             (32)
+`define PITO_DATA_MEM_ADDR_WIDTH         $clog2(`PITO_DATA_MEM_SIZE)
 `define PITO_DATA_MEM_PORTS              (2)
 `define PITO_DATA_MEM_BYTE_ENABLE_WIDTH  ((`DATA_WIDTH + `BYTE_WIDTH - 32'd1) / `BYTE_WIDTH)
 `define PITO_DATA_MEM_LOCAL_PORT         (`PITO_DATA_MEM_PORTS-1)

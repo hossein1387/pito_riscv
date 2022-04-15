@@ -3,7 +3,7 @@ interface pito_core_interface(input logic clk);
     import rv32_pkg::*;
     import pito_pkg::*;
 
-    logic  rst_n;  // Synchronous reset active low
+    logic  rst_n;   // Synchronous reset active low
     logic  pito_program; // pito program signal
     // Pito Memory Interface signals
     rv32_data_t      imem_wdata;
@@ -33,7 +33,7 @@ modport  mem (
     output  imem_addr ,
     output  imem_req  ,
     output  imem_we   ,
-    output  imem_be   
+    output  imem_be   ,
     output  dmem_wdata,
     input   dmem_rdata,
     output  dmem_addr ,
@@ -43,6 +43,7 @@ modport  mem (
 );
 
 modport  io (
+    input clk,
     input rst_n,
     input pito_program,
     input uart_irq
@@ -168,6 +169,10 @@ endinterface
 interface pito_soc_ext_interface(input logic clk);
 import rv32_pkg::*;
 import pito_pkg::*;
+logic            rst_n;
+logic            uart_rx;
+logic            uart_tx;
+logic            pito_program;
 rv32_data_t      imem_wdata;
 rv32_data_t      imem_rdata;
 rv32_imem_addr_t imem_addr;
@@ -185,6 +190,7 @@ dmem_be_t        dmem_be;
 modport  soc_ext (
     input  clk,
     input  rst_n,
+    output pito_program,
     input  dmem_wdata,
     output dmem_rdata,
     input  dmem_addr ,
@@ -199,6 +205,26 @@ modport  soc_ext (
     input  imem_be   ,
     input  uart_rx   ,
     output uart_tx
+);
+
+modport  tb (
+    input  clk,
+    output rst_n,
+    output pito_program,
+    output dmem_wdata,
+    input  dmem_rdata,
+    output dmem_addr ,
+    output dmem_req  ,
+    output dmem_we   ,
+    output dmem_be   ,
+    output imem_wdata,
+    input  imem_rdata,
+    output imem_addr ,
+    output imem_req  ,
+    output imem_we   ,
+    output imem_be   ,
+    output uart_rx   ,
+    input  uart_tx
 );
 
 endinterface

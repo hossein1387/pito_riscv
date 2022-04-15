@@ -2,7 +2,8 @@
 // hard coded HDL paths for verification 
 //================================================================
  
-`define hdl_path_top testbench_top.core
+`define hdl_path_soc_top   testbench_top.soc
+`define hdl_path_top       `hdl_path_soc_top.pito
 `define hdl_path_regf      `hdl_path_top.regfile.genblk1
 `define hdl_path_regf_0    `hdl_path_regf[0].regfile.data
 `define hdl_path_regf_1    `hdl_path_regf[1].regfile.data
@@ -21,7 +22,7 @@
 `define hdl_path_csrf_5    `hdl_path_csrf[5].csrfile
 `define hdl_path_csrf_6    `hdl_path_csrf[6].csrfile
 `define hdl_path_csrf_7    `hdl_path_csrf[7].csrfile
-`define hdl_path_dmem      `hdl_path_top.d_mem.ram.sram
-`define hdl_path_dmem_init `hdl_path_top.d_mem.ram.init_val
-`define hdl_path_imem      `hdl_path_top.i_mem.ram.sram
-`define hdl_path_imem_init `hdl_path_top.i_mem.ram.init_val
+`define hdl_path_dmem      `hdl_path_soc_top.d_mem.ram.sram
+`define hdl_path_dmem_init `hdl_path_soc_top.d_mem.ram.init_val
+`define hdl_path_imem      `hdl_path_soc_top.i_mem.ram.sram
+`define hdl_path_imem_init `hdl_path_soc_top.i_mem.ram.init_val

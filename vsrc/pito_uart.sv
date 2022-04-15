@@ -29,8 +29,8 @@
  */
 
  `timescale 1ns / 1ps
- `include "../rtl/config.vh"
- 
+ `include "rv32_defines.svh"
+
  // the following defines are automatically defined:
  /*
  `ifdef __ICARUS__
@@ -71,7 +71,7 @@
  // 2: baud rate msb   rw (not used)
  // 3: baud rate lsb   rw (not used)
  
- module darkuart
+ module pito_uart
  //#(
  // parameter [15:0] BAUD = 0
  //) 

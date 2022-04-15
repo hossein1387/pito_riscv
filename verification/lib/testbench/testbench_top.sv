@@ -1,25 +1,23 @@
 `timescale 1ns/1ps
 `include "pito_inf.svh"
 `include "core_tester.sv"
+`include "rv32_defines.svh"
 module testbench_top import utils::*; ();
 //==================================================================================================
 // Test variables
-    localparam CLOCK_SPEED = 50; // 10MHZ
     Logger logger;
     string sim_log_file = "core_tester.log";
 //==================================================================================================
     logic clk;
     pito_soc_ext_interface pito_inf(clk);
     mvu_interface mvu_inf();
-    rv32_core core(pito_inf.soc_ext,
-                  mvu_inf.mvu);
+    pito_soc soc(pito_inf.soc_ext,
+                 mvu_inf.mvu);
     // interface_tester tb;
     core_tester tb;
-
     initial begin
         logger = new(sim_log_file);
-        tb = new(logger, pito_inf.tb_interface);
-
+        tb = new(logger, pito_inf.tb);
         tb.tb_setup();
         tb.run();
         tb.report();
@@ -34,7 +32,7 @@ module testbench_top import utils::*; ();
         $timeformat(-9, 2, " ns", 12);
         clk   = 0;
         forever begin
-            #((CLOCK_SPEED)*1ns) clk = !clk;
+            #((`CLOCK_SPEED_NS)*1ns) clk = !clk;
         end
     end
 

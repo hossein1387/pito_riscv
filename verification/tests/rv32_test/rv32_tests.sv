@@ -7,7 +7,7 @@ class rv32_tests extends pito_testbench_base;
                                   "bne","j","jal","jalr","lb","lbu","lh","lhu","lui",
                                   "lw","or","ori","sb","sh","sll","slli","slt","slti","sra","srai",
                                   "srl","srli","sub","sw","xor","xori"};
-    function new(Logger logger, virtual pito_interface inf);
+    function new(Logger logger, virtual pito_soc_ext_interface inf);
         super.new(logger, inf, {}, 1);
     endfunction
 

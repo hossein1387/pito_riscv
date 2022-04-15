@@ -1,6 +1,8 @@
-module pito_soc(
-    pito_soc_ext_interface ext_intf,
-    pito_mvu_interface  mvu_intf,
+`include "rv32_defines.svh"
+
+module pito_soc import rv32_pkg::*;import pito_pkg::*;(
+    pito_soc_ext_interface.soc_ext ext_intf,
+    mvu_interface  mvu_intf
 );
 
 logic clk;
@@ -11,21 +13,33 @@ assign rst_n = ext_intf.rst_n;
 
 rv32_dmem_t rv32_dmem;
 rv32_imem_t rv32_imem;
-
-pito_core_interface core_intf(clk); 
-
+rv32_imem_addr_t imem_addr;
+rv32_dmem_addr_t dmem_addr;
 //====================================================================
 //                   Pito Core 
 //====================================================================
 
-rv32_core pito(
-    .clk(clk)
-    .rst_n(rst_n)
-    .imem_intf(core_intf.imem),
-    .dmem_intf(core_intf.dmem),
-    .mvu_interface (mvu_intf)
-);
+assign rv32_imem.addr[`PITO_INSTR_MEM_LOCAL_PORT] = imem_addr[`PITO_INSTR_MEM_ADDR_WIDTH-1:0];
+assign rv32_dmem.addr[`PITO_DATA_MEM_LOCAL_PORT]  = dmem_addr[`PITO_DATA_MEM_ADDR_WIDTH-1:0];
 
+rv32_core pito(
+    .clk          (clk                                        ),
+    .rst_n        (rst_n                                      ),
+    .pito_program (ext_intf.pito_program                      ),
+    .imem_wdata   (rv32_imem.wdata[`PITO_INSTR_MEM_LOCAL_PORT]),
+    .imem_rdata   (rv32_imem.rdata[`PITO_INSTR_MEM_LOCAL_PORT]),
+    .imem_addr    (imem_addr                                  ),
+    .imem_req     (rv32_imem.req  [`PITO_INSTR_MEM_LOCAL_PORT]),
+    .imem_we      (rv32_imem.we   [`PITO_INSTR_MEM_LOCAL_PORT]),
+    .imem_be      (rv32_imem.be   [`PITO_INSTR_MEM_LOCAL_PORT]),
+    .dmem_wdata   (rv32_dmem.wdata[`PITO_DATA_MEM_LOCAL_PORT] ),
+    .dmem_rdata   (rv32_dmem.rdata[`PITO_DATA_MEM_LOCAL_PORT] ),
+    .dmem_addr    (dmem_addr                                  ),
+    .dmem_req     (rv32_dmem.req  [`PITO_DATA_MEM_LOCAL_PORT] ),
+    .dmem_we      (rv32_dmem.we   [`PITO_DATA_MEM_LOCAL_PORT] ),
+    .dmem_be      (rv32_dmem.be   [`PITO_DATA_MEM_LOCAL_PORT] ),
+    .mvu_if       (mvu_intf                                   )
+);
 
 //====================================================================
 //                   Pito Memory Interface
@@ -33,14 +47,12 @@ rv32_core pito(
 
 // Dual port SRAM memory for instruction Cache. Port 0 is used for external
 // interface and port 1 is used for local interface.
-assign rv32_imem.req      = {ext_intf.pito_imem_req  , core_intf.mem.imem_req  };
-assign rv32_imem.we       = {ext_intf.pito_imem_we   , core_intf.mem.imem_we   };
-assign rv32_imem.addr     = {ext_intf.pito_imem_addr , core_intf.mem.imem_addr };
-assign rv32_imem.wdata    = {ext_intf.pito_imem_wdata, core_intf.mem.imem_wdata};
-assign rv32_imem.be       = {ext_intf.pito_imem_be   , core_intf.mem.imem_be   };
-
-assign ext_intf.pito_imem_rdata = rv32_imem.rdata[`PITO_INSTR_MEM_EXT_PORT];
-assign core_intf.mem.imem_rdata = rv32_imem.rdata[`PITO_INSTR_MEM_LOCAL_PORT];
+assign rv32_imem.req  [`PITO_INSTR_MEM_EXT_PORT] = ext_intf.imem_req  ;
+assign rv32_imem.we   [`PITO_INSTR_MEM_EXT_PORT] = ext_intf.imem_we   ;
+assign rv32_imem.addr [`PITO_INSTR_MEM_EXT_PORT] = ext_intf.imem_addr[`PITO_INSTR_MEM_ADDR_WIDTH-1:0];
+assign rv32_imem.wdata[`PITO_INSTR_MEM_EXT_PORT] = ext_intf.imem_wdata;
+assign rv32_imem.be   [`PITO_INSTR_MEM_EXT_PORT] = ext_intf.imem_be   ;
+assign ext_intf.imem_rdata = rv32_imem.rdata[`PITO_INSTR_MEM_EXT_PORT];
 
 rv32_instruction_memory#(
     .NumWords   (`PITO_INSTR_MEM_SIZE ),
@@ -61,14 +73,13 @@ i_mem(
     .rdata_o(rv32_imem.rdata)
 );
 
-assign rv32_dmem.req      = {ext_intf.pito_dmem_req  , core_intf.mem.dmem_req  };
-assign rv32_dmem.we       = {ext_intf.pito_dmem_we   , core_intf.mem.dmem_we   };
-assign rv32_dmem.addr     = {ext_intf.pito_dmem_addr , core_intf.mem.dmem_addr };
-assign rv32_dmem.wdata    = {ext_intf.pito_dmem_wdata, core_intf.mem.dmem_wdata};
-assign rv32_dmem.be       = {ext_intf.pito_dmem_be   , core_intf.mem.dmem_be   };
+assign rv32_dmem.req  [`PITO_DATA_MEM_EXT_PORT] = ext_intf.dmem_req  ;
+assign rv32_dmem.we   [`PITO_DATA_MEM_EXT_PORT] = ext_intf.dmem_we   ;
+assign rv32_dmem.addr [`PITO_DATA_MEM_EXT_PORT] = ext_intf.dmem_addr[`PITO_DATA_MEM_ADDR_WIDTH-1:0] ;
+assign rv32_dmem.wdata[`PITO_DATA_MEM_EXT_PORT] = ext_intf.dmem_wdata;
+assign rv32_dmem.be   [`PITO_DATA_MEM_EXT_PORT] = ext_intf.dmem_be   ;
 
-assign ext_intf.pito_dmem_rdata = rv32_dmem.rdata[`PITO_DATA_MEM_EXT_PORT];
-assign core_intf.mem.dmem_rdata = rv32_dmem.rdata[`PITO_DATA_MEM_LOCAL_PORT];
+assign ext_intf.dmem_rdata = rv32_dmem.rdata[`PITO_DATA_MEM_EXT_PORT];
 
 rv32_data_memory #(    
     .NumWords   (`PITO_DATA_MEM_SIZE ),
@@ -97,21 +108,32 @@ logic uart_wr_logic;
 logic uart_rd_logic;
 logic uart_irq;
 rv32_data_t uart_data_out;
+rv32_data_t uart_data_in;
 rv32_byte_t uart_rx;
 logic[3:0] uart_debug;
+dmem_be_t  uart_be;
+rv32_dmem_addr_t uart_addr;
 
-assign uart_wr_logic = rv32_dmem.we && rv32_dmem.addr[31]==1 && rv32_dmem.addr[30:0]==0;
+assign uart_data_in  = rv32_dmem.wdata[`PITO_DATA_MEM_LOCAL_PORT];
+assign uart_addr     = rv32_dmem.addr[`PITO_DATA_MEM_LOCAL_PORT];
+assign uart_wr_logic = rv32_dmem.we[`PITO_DATA_MEM_LOCAL_PORT] &&
+                       uart_addr[31]==1 && 
+                       uart_addr[30:0]==0;
 assign uart_rd_logic = 1'b0; // For now, no read from UART is supported
+assign uart_be       = rv32_dmem.be[`PITO_DATA_MEM_LOCAL_PORT];
+
 pito_uart uart(
-    .CLK   (inf.clk)
-    .RES   (inf.pito_io_rst_n)
-    .RD    (uart_rd_logic)
-    .WR    (uart_wr_logic)
-    .BE    (rv32_dmem.be)
-    .DATAI (rv32_dmem.wdata)
-    .DATAO (uart_data_out)
-    .IRQ   (uart_irq)
-    .RXD   (uart_rx)
-    .TXD   (uart_tx)
-    .DEBUG (uart_debug)
-)
+    .CLK   (ext_intf.clk    ),
+    .RES   (ext_intf.rst_n  ),
+    .RD    (uart_rd_logic   ),
+    .WR    (uart_wr_logic   ),
+    .BE    (uart_be         ),
+    .DATAI (uart_data_in    ),
+    .DATAO (uart_data_out   ),
+    .IRQ   (uart_irq        ),
+    .RXD   (ext_intf.uart_rx),
+    .TXD   (ext_intf.uart_tx),
+    .DEBUG (uart_debug      )
+);
+
+endmodule

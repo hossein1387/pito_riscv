@@ -8,14 +8,14 @@ import rv32_pkg::*;
 
 class pito_monitor extends BaseObj;
 
-    virtual pito_interface inf;
+    virtual pito_soc_ext_interface inf;
     rv32_utils::RV32IDecoder rv32i_dec;
     rv32_utils::RV32IPredictor rv32i_pred;
     rv32_pkg::rv32_data_q instr_q;
     int hart_ids_q[$]; // hart id to monitor
     logic predictor_silent_mode;
 
-    function new (Logger logger, rv32_pkg::rv32_data_q instr_q, virtual pito_interface pito_inf, int hart_ids_q[$], test_stats_t test_stat, logic predictor_silent_mode=0);
+    function new (Logger logger, rv32_pkg::rv32_data_q instr_q, virtual pito_soc_ext_interface pito_inf, int hart_ids_q[$], test_stats_t test_stat, logic predictor_silent_mode=0);
         super.new (logger);   // Calls 'new' method of parent class
         this.inf = pito_inf;
         this.instr_q = instr_q;

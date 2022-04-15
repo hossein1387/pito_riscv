@@ -10,7 +10,7 @@ import pito_pkg::*;
 class pito_testbench_base extends BaseObj;
 
     string firmware;
-    virtual pito_interface inf;
+    virtual pito_soc_ext_interface inf;
     rv32_pkg::rv32_data_q instr_q;
     pito_monitor monitor;
     int hart_ids_q[$]; // hart id to monitor
@@ -19,10 +19,10 @@ class pito_testbench_base extends BaseObj;
     tb_config cfg;
     logic predictor_silent_mode;
 
-    function new (Logger logger, virtual pito_interface inf, int hart_mon_en[$]={}, logic predictor_silent_mode=0);
+    function new (Logger logger, virtual pito_soc_ext_interface inf, int hart_mon_en[$]={}, logic predictor_silent_mode=0);
         super.new(logger);
         cfg = new(logger);
-        cfg.parse_args();
+        void'(cfg.parse_args());
         this.firmware = cfg.firmware;
         this.inf = inf;
         this.predictor_silent_mode = predictor_silent_mode;
@@ -82,18 +82,18 @@ class pito_testbench_base extends BaseObj;
             end
         end else begin
             @(posedge inf.clk);
-            inf.pito_io_imem_w_en = 1'b1;
+            inf.imem_we = 1'b1;
             @(posedge inf.clk);
             for (int addr=0; addr<instr_q.size(); addr++) begin
                 @(posedge inf.clk);
-                inf.pito_io_imem_data = instr_q[addr];
-                inf.pito_io_imem_addr = addr;
+                inf.imem_wdata = instr_q[addr];
+                inf.imem_addr = addr;
                 if(log_to_console) begin
                     logger.print($sformatf("[%4d]: 0x%8h     %s", addr, instr_q[addr], rv32_utils::get_instr_str(rv32i_dec.decode_instr(instr_q[addr]))));
                 end
             end
             @(posedge inf.clk);
-            inf.pito_io_imem_w_en = 1'b0;
+            inf.imem_we = 1'b0;
         end
     endtask
 
@@ -101,23 +101,28 @@ class pito_testbench_base extends BaseObj;
         logger.print_banner("Testbench Setup Phase");
         // Put DUT to reset and relax memory interface
         logger.print("Putting DUT to reset mode");
-        inf.pito_io_rst_n     = 1'b1;
-        inf.pito_io_dmem_w_en = 1'b0;
-        inf.pito_io_imem_w_en = 1'b0;
-        inf.pito_io_imem_addr = 32'b0;
-        inf.pito_io_dmem_addr = 32'b0;
-        inf.pito_io_program   = 0;
-        inf.mvu_irq_i         = 0;
+        inf.rst_n        = 1'b1;
+        inf.dmem_we      = 1'b0;
+        inf.dmem_be      = 4'b1111;
+        inf.dmem_req     = 1'b0;
+        inf.dmem_addr    = {`PITO_DATA_ADDR_WIDTH{1'b0}};
+        inf.dmem_wdata   = 32'b0;
+        inf.imem_we      = 1'b0;
+        inf.imem_be      = 4'b1111;
+        inf.imem_req     = 1'b0;
+        inf.imem_addr    = {`PITO_INSTR_ADDR_WIDTH{1'b0}};
+        inf.imem_wdata   = 32'b0;
+        inf.pito_program = 0;
 
         @(posedge inf.clk);
-        inf.pito_io_rst_n = 1'b0;
+        inf.rst_n = 1'b0;
         @(posedge inf.clk);
 
         this.write_instr_to_ram(1, 0);
         this.write_data_to_ram(instr_q);
 
         @(posedge inf.clk);
-        inf.pito_io_rst_n = 1'b1;
+        inf.rst_n = 1'b1;
         @(posedge inf.clk);
 
         logger.print("Setup Phase Done ...");

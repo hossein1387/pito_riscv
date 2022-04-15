@@ -2,15 +2,25 @@
 `include "rv32_defines.svh"
 `include "pito_inf.svh"
 
-import rv32_pkg::*;
-import pito_pkg::*;
-
-// module rv32_core (pito_interface.system_interface inf);
-
-module rv32_core (
-    pito_imem_interface imem_interface,
-    pito_dmem_interface dmem_interface,
-    pito_mvu_interface  mvu_interface );
+module rv32_core import rv32_pkg::*;import pito_pkg::*; 
+(
+    input  logic            clk,
+    input  logic            rst_n,
+    input  logic            pito_program, 
+    output rv32_data_t      imem_wdata,
+    input  rv32_data_t      imem_rdata,
+    output rv32_imem_addr_t imem_addr,
+    output logic            imem_req,
+    output logic            imem_we,
+    output imem_be_t        imem_be,
+    output rv32_data_t      dmem_wdata,
+    input  rv32_data_t      dmem_rdata,
+    output rv32_dmem_addr_t dmem_addr,
+    output logic            dmem_req,
+    output logic            dmem_we,
+    output dmem_be_t        dmem_be,
+    mvu_interface.mvu       mvu_if
+);
 
 //====================================================================
 // HART related signals
@@ -42,8 +52,6 @@ rv32_register_t     rv32_cap_alu_rs1;
 rv32_register_t     rv32_cap_alu_rs2;
 `endif
 // General signals
-logic              clk;
-logic              rst_n;
 rv32_pc_cnt_t      rv32_pc [`PITO_NUM_HARTS-1 : 0];
 
 // raw un-decoded rv32 instruction
@@ -120,7 +128,7 @@ rv32_register_t    rv32_wb_reg_pc;
 rv32_pc_cnt_t      rv32_wb_next_pc_val;
 rv32_data_t        rv32_wb_store_val;
 // rv32_dmem_addr_t   rv32_wb_readd_addr;
-logic [`PITO_DATA_MEM_WIDTH-1  : 0 ] rv32_wb_readd_addr;
+rv32_imem_addr_t rv32_wb_readd_addr;
 //====================================================================
 // WF stage wires
 //====================================================================
@@ -156,17 +164,6 @@ logic [`XPR_LEN-1 : 0 ] rv32_dr_data;
 //====================================================================
 //                   Module instansiation
 //====================================================================
-// Generate register file for all harts
-// rv32_regfile regfile(
-//                         .clk(clk              ),
-//                         .ra1(rv32_dec_rs1[4:0]),
-//                         .rd1(rv32_regf_rd1    ),
-//                         .ra2(rv32_dec_rs2[4:0]),
-//                         .rd2(rv32_regf_rd2    ),
-//                         .wen(rv32_regf_wen    ),
-//                         .wa (rv32_regf_wa     ),
-//                         .wd (rv32_regf_wd     )
-//                     );
 
 rv32_barrel_regfiles regfile(
                         .clk     (clk              ),
@@ -232,68 +229,68 @@ for (hart_cnt_gen_var = 0; hart_cnt_gen_var < `PITO_NUM_HARTS; hart_cnt_gen_var+
 end
 
 rv32_barrel_csrfiles csr(
-                    .clk                (clk                   ),
-                    .rst_n              (rst_n                 ),
-                    .csr_addr           (rv32_ex_csr_addr      ),
-                    .csr_wdata          (rv32_ex_csr_data      ),
-                    .csr_op             (rv32_ex_csr_op        ),
-                    .csr_rdata          (csr_rdata             ),
-                    .irq                (csr_irq               ),
-                    .time_irq           (csr_timer_irq         ),
-                    .ipi                (csr_ipi_irq           ),
-                    .boot_addr          (csr_boot_addr         ),
-                    .mvu_irq            (inf.mvu_irq_i         ),
-                    .csr_exception      (csr_exception         ),
-                    .csr_mvuwbaseptr    (inf.csr_mvuwbaseptr   ),
-                    .csr_mvuibaseptr    (inf.csr_mvuibaseptr   ),
-                    .csr_mvusbaseptr    (inf.csr_mvusbaseptr   ),
-                    .csr_mvubbaseptr    (inf.csr_mvubbaseptr   ),
-                    .csr_mvuobaseptr    (inf.csr_mvuobaseptr   ),
-                    .csr_mvuwjump_0     (inf.csr_mvuwjump_0    ),
-                    .csr_mvuwjump_1     (inf.csr_mvuwjump_1    ),
-                    .csr_mvuwjump_2     (inf.csr_mvuwjump_2    ),
-                    .csr_mvuwjump_3     (inf.csr_mvuwjump_3    ),
-                    .csr_mvuwjump_4     (inf.csr_mvuwjump_4    ),
-                    .csr_mvuijump_0     (inf.csr_mvuijump_0    ),
-                    .csr_mvuijump_1     (inf.csr_mvuijump_1    ),
-                    .csr_mvuijump_2     (inf.csr_mvuijump_2    ),
-                    .csr_mvuijump_3     (inf.csr_mvuijump_3    ),
-                    .csr_mvuijump_4     (inf.csr_mvuijump_4    ),
-                    .csr_mvusjump_0     (inf.csr_mvusjump_0    ),
-                    .csr_mvusjump_1     (inf.csr_mvusjump_1    ),
-                    .csr_mvubjump_0     (inf.csr_mvubjump_0    ),
-                    .csr_mvubjump_1     (inf.csr_mvubjump_1    ),
-                    .csr_mvuojump_0     (inf.csr_mvuojump_0    ),
-                    .csr_mvuojump_1     (inf.csr_mvuojump_1    ),
-                    .csr_mvuojump_2     (inf.csr_mvuojump_2    ),
-                    .csr_mvuojump_3     (inf.csr_mvuojump_3    ),
-                    .csr_mvuojump_4     (inf.csr_mvuojump_4    ),
-                    .csr_mvuwlength_1   (inf.csr_mvuwlength_1  ),
-                    .csr_mvuwlength_2   (inf.csr_mvuwlength_2  ),
-                    .csr_mvuwlength_3   (inf.csr_mvuwlength_3  ),
-                    .csr_mvuwlength_4   (inf.csr_mvuwlength_4  ),
-                    .csr_mvuilength_1   (inf.csr_mvuilength_1  ),
-                    .csr_mvuilength_2   (inf.csr_mvuilength_2  ),
-                    .csr_mvuilength_3   (inf.csr_mvuilength_3  ),
-                    .csr_mvuilength_4   (inf.csr_mvuilength_4  ),
-                    .csr_mvuslength_1   (inf.csr_mvuslength_1  ),
-                    .csr_mvublength_1   (inf.csr_mvublength_1  ),
-                    .csr_mvuolength_1   (inf.csr_mvuolength_1  ),
-                    .csr_mvuolength_2   (inf.csr_mvuolength_2  ),
-                    .csr_mvuolength_3   (inf.csr_mvuolength_3  ),
-                    .csr_mvuolength_4   (inf.csr_mvuolength_4  ),
-                    .csr_mvuprecision   (inf.csr_mvuprecision  ),
-                    .csr_mvustatus      (inf.csr_mvustatus     ),
-                    .csr_mvucommand     (inf.csr_mvucommand    ),
-                    .csr_mvuquant       (inf.csr_mvuquant      ),
-                    .csr_mvuscaler      (inf.csr_mvuscaler     ),
-                    .csr_mvuconfig1     (inf.csr_mvuconfig1    ),
-                    .mvu_start          (inf.mvu_start         ),
-                    .pc                 (rv32_pc               ),
-                    .cause              (csr_cause             ),
-                    .enable_cycle_count (csr_enable_cycle_count),
-                    .csr_irq_evt        (csr_irq_evt           ),
-                    .hart_id_i          (rv32_hart_dec_cnt     )
+                    .clk                (clk                    ),
+                    .rst_n              (rst_n                  ),
+                    .csr_addr           (rv32_ex_csr_addr       ),
+                    .csr_wdata          (rv32_ex_csr_data       ),
+                    .csr_op             (rv32_ex_csr_op         ),
+                    .csr_rdata          (csr_rdata              ),
+                    .irq                (csr_irq                ),
+                    .time_irq           (csr_timer_irq          ),
+                    .ipi                (csr_ipi_irq            ),
+                    .boot_addr          (csr_boot_addr          ),
+                    .mvu_irq            (mvu_if.mvu_irq_i       ),
+                    .csr_exception      (csr_exception          ),
+                    .csr_mvuwbaseptr    (mvu_if.csr_mvuwbaseptr ),
+                    .csr_mvuibaseptr    (mvu_if.csr_mvuibaseptr ),
+                    .csr_mvusbaseptr    (mvu_if.csr_mvusbaseptr ),
+                    .csr_mvubbaseptr    (mvu_if.csr_mvubbaseptr ),
+                    .csr_mvuobaseptr    (mvu_if.csr_mvuobaseptr ),
+                    .csr_mvuwjump_0     (mvu_if.csr_mvuwjump_0  ),
+                    .csr_mvuwjump_1     (mvu_if.csr_mvuwjump_1  ),
+                    .csr_mvuwjump_2     (mvu_if.csr_mvuwjump_2  ),
+                    .csr_mvuwjump_3     (mvu_if.csr_mvuwjump_3  ),
+                    .csr_mvuwjump_4     (mvu_if.csr_mvuwjump_4  ),
+                    .csr_mvuijump_0     (mvu_if.csr_mvuijump_0  ),
+                    .csr_mvuijump_1     (mvu_if.csr_mvuijump_1  ),
+                    .csr_mvuijump_2     (mvu_if.csr_mvuijump_2  ),
+                    .csr_mvuijump_3     (mvu_if.csr_mvuijump_3  ),
+                    .csr_mvuijump_4     (mvu_if.csr_mvuijump_4  ),
+                    .csr_mvusjump_0     (mvu_if.csr_mvusjump_0  ),
+                    .csr_mvusjump_1     (mvu_if.csr_mvusjump_1  ),
+                    .csr_mvubjump_0     (mvu_if.csr_mvubjump_0  ),
+                    .csr_mvubjump_1     (mvu_if.csr_mvubjump_1  ),
+                    .csr_mvuojump_0     (mvu_if.csr_mvuojump_0  ),
+                    .csr_mvuojump_1     (mvu_if.csr_mvuojump_1  ),
+                    .csr_mvuojump_2     (mvu_if.csr_mvuojump_2  ),
+                    .csr_mvuojump_3     (mvu_if.csr_mvuojump_3  ),
+                    .csr_mvuojump_4     (mvu_if.csr_mvuojump_4  ),
+                    .csr_mvuwlength_1   (mvu_if.csr_mvuwlength_1),
+                    .csr_mvuwlength_2   (mvu_if.csr_mvuwlength_2),
+                    .csr_mvuwlength_3   (mvu_if.csr_mvuwlength_3),
+                    .csr_mvuwlength_4   (mvu_if.csr_mvuwlength_4),
+                    .csr_mvuilength_1   (mvu_if.csr_mvuilength_1),
+                    .csr_mvuilength_2   (mvu_if.csr_mvuilength_2),
+                    .csr_mvuilength_3   (mvu_if.csr_mvuilength_3),
+                    .csr_mvuilength_4   (mvu_if.csr_mvuilength_4),
+                    .csr_mvuslength_1   (mvu_if.csr_mvuslength_1),
+                    .csr_mvublength_1   (mvu_if.csr_mvublength_1),
+                    .csr_mvuolength_1   (mvu_if.csr_mvuolength_1),
+                    .csr_mvuolength_2   (mvu_if.csr_mvuolength_2),
+                    .csr_mvuolength_3   (mvu_if.csr_mvuolength_3),
+                    .csr_mvuolength_4   (mvu_if.csr_mvuolength_4),
+                    .csr_mvuprecision   (mvu_if.csr_mvuprecision),
+                    .csr_mvustatus      (mvu_if.csr_mvustatus   ),
+                    .csr_mvucommand     (mvu_if.csr_mvucommand  ),
+                    .csr_mvuquant       (mvu_if.csr_mvuquant    ),
+                    .csr_mvuscaler      (mvu_if.csr_mvuscaler   ),
+                    .csr_mvuconfig1     (mvu_if.csr_mvuconfig1  ),
+                    .mvu_start          (mvu_if.mvu_start       ),
+                    .pc                 (rv32_pc                ),
+                    .cause              (csr_cause              ),
+                    .enable_cycle_count (csr_enable_cycle_count ),
+                    .csr_irq_evt        (csr_irq_evt            ),
+                    .hart_id_i          (rv32_hart_dec_cnt      )
 );
 
 
@@ -323,67 +320,24 @@ rv32_next_pc rv32_next_pc_cal(
 // for now, we access 32 bit at a time
 assign rv32_dr_addr = rv32_ex_readd_addr >> 2;
 assign rv32_dw_addr = rv32_dw_addr_temp >> 2;
-// connect io clock and reset to internal logic
-assign clk   = inf.clk;
-assign rst_n = inf.pito_io_rst_n;
-
-
 
 // Dual port SRAM memory for instruction Cache. Port 0 is used for I/O
 // and port 1 is used for local interface.
-assign rv32_imem.wdata[`PITO_INSTR_MEM_IO_PORT] = inf.pito_io_imem_data;
-assign rv32_imem.addr     = {rv32_i_addr, inf.pito_io_imem_addr};
-assign rv32_instr         = rv32_imem.rdata[`PITO_INSTR_MEM_LOCAL_PORT];
-assign rv32_imem.req      = {1'b1, 1'b0};
-assign rv32_imem.be       = {4'b1111, 4'b1111};
-assign rv32_imem.we       = {inf.pito_io_imem_w_en, 1'b0};
-rv32_instruction_memory#(
-    .NumWords   (`PITO_INSTR_MEM_SIZE ),
-    .DataWidth  (`DATA_WIDTH          ),
-    .ByteWidth  (`BYTE_WIDTH          ),
-    .NumPorts   (`PITO_INSTR_MEM_PORTS),
-    .Latency    (1                    ),
-    .SimInit    ("zeros"              ), // in simulation, this will this will be overwritten by backdoor access to `hdl_path_imem_init
-    .PrintSimCfg(1                    )) 
-i_mem(
-    .clk_i  (clk),
-    .rst_ni (rst_n),
-    .req_i  (rv32_imem.req  ),
-    .we_i   (rv32_imem.we   ),
-    .addr_i (rv32_imem.addr ),
-    .wdata_i(rv32_imem.wdata),
-    .be_i   (rv32_imem.be   ),
-    .rdata_o(rv32_imem.rdata)
-);
 
-assign rv32_dw_addr_temp = (inf.pito_io_program) ? inf.pito_io_dmem_addr : rv32_dmem_addr;
-assign rv32_dmem.wdata[`PITO_DATA_MEM_LOCAL_PORT] = (inf.pito_io_program) ? inf.pito_io_dmem_data : rv32_dmem_data;
-assign rv32_dmem.we[`PITO_DATA_MEM_LOCAL_PORT]    = (inf.pito_io_program) ? inf.pito_io_dmem_w_en : rv32_dmem_w_en;
+assign imem_wdata= 32'hDEAD_BEEF;
+assign imem_addr = rv32_i_addr;
+assign rv32_instr= imem_rdata;
+assign imem_req  = 1'b1;
+assign imem_be   = 4'b1111;
+assign imem_we   = 1'b0;
 
-assign rv32_dmem.addr[`PITO_DATA_MEM_LOCAL_PORT] = (rv32_dmem.we[`PITO_DATA_MEM_LOCAL_PORT]) ? rv32_dw_addr : rv32_dr_addr;
-assign rv32_dmem.addr[`PITO_DATA_MEM_IO_PORT]    = {`PITO_DATA_MEM_WIDTH{1'b0}};
-assign rv32_dr_data       = rv32_dmem.rdata[`PITO_DATA_MEM_LOCAL_PORT];
-assign rv32_dmem.req      = {1'b1, 1'b0};
-assign rv32_dmem.be       = {4'b1111, 4'b1111};
-
-rv32_data_memory #(    
-    .NumWords   (`PITO_DATA_MEM_SIZE ),
-    .DataWidth  (`DATA_WIDTH         ),
-    .ByteWidth  (`BYTE_WIDTH         ),
-    .NumPorts   (`PITO_DATA_MEM_PORTS),
-    .Latency    (1                   ),
-    .SimInit    ("zeros"             ), // in simulation, this will this will be overwritten by backdoor access to `hdl_path_dmem_init
-    .PrintSimCfg(1                   ))
-d_mem(
-    .clk_i  (clk),
-    .rst_ni (rst_n),
-    .req_i  (rv32_dmem.req  ),
-    .we_i   (rv32_dmem.we   ),
-    .addr_i (rv32_dmem.addr ),
-    .wdata_i(rv32_dmem.wdata),
-    .be_i   (rv32_dmem.be   ),
-    .rdata_o(rv32_dmem.rdata)
-);
+assign rv32_dw_addr_temp = rv32_dmem_addr;
+assign dmem_wdata        = rv32_dmem_data;
+assign dmem_we           = rv32_dmem_w_en;
+assign dmem_addr         = rv32_dmem_w_en ? rv32_dw_addr : rv32_dr_addr;
+assign rv32_dr_data      = dmem_rdata;
+assign dmem_req          = 1'b1;
+assign dmem_be           = 4'b1111;
 
 //====================================================================
 //                   Barreled HART counter
@@ -400,7 +354,7 @@ d_mem(
 //                   Fetch Stage
 //====================================================================
     always @(posedge clk) begin
-        if(inf.pito_io_rst_n == 1'b0) begin
+        if(rst_n == 1'b0) begin
             for (int i = 0; i < `PITO_NUM_HARTS; i++) begin
                 rv32_pc[i]  <= `EOF_ADDRESS;
             end
@@ -432,7 +386,7 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
     // Decoder samples instruction right from the memory (no registering)
     assign rv32_dec_instr = rv32_instr;
     always @(posedge clk) begin
-        // if(inf.pito_io_rst_n == 1'b0) begin
+        // if(rst_n == 1'b0) begin
         //     rv32_dec_pc <= 0;
         // end else begin
             rv32_dec_pc       <= rv32_pc[rv32_hart_fet_cnt];
@@ -482,7 +436,7 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
                         (rv32_dec_opcode == rv32_pkg::RV32_BGE ) || (rv32_dec_opcode == rv32_pkg::RV32_BLTU ) || (rv32_dec_opcode == rv32_pkg::RV32_BGEU) ||
                         (rv32_dec_opcode == rv32_pkg::RV32_SUB ) ) ? `PITO_ALU_SRC_RS2 : `PITO_ALU_SRC_IMM ;
     always @(posedge clk) begin
-        // if(inf.pito_io_rst_n == 1'b0) begin
+        // if(rst_n == 1'b0) begin
         //     rv32_ex_pc    <= 0;
         //     rv32_ex_readd_addr  <= 0;
         // end else begin
@@ -546,7 +500,7 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
     end
 
     always @(posedge clk) begin
-        // if(inf.pito_io_rst_n == 1'b0) begin
+        // if(rst_n == 1'b0) begin
         //     rv32_wb_pc     <= 0;
         //     rv32_wb_instr  <= {32{1'b0}};
         //     rv32_dmem_w_en <= 1'b0;
@@ -628,7 +582,7 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
     end
 
     always @(posedge clk) begin
-        // if(inf.pito_io_rst_n == 1'b0) begin
+        // if(rst_n == 1'b0) begin
         //     rv32_regf_wa <= 0;
         //     for (int i=0; i<`PITO_NUM_HARTS; i++) begin
         //         rv32_wf_pc[i] <= 0;
@@ -705,7 +659,7 @@ logic is_end;
 assign is_end = ((rv32_wf_opcode ==  rv32_pkg::RV32_ECALL) || (rv32_wf_opcode ==  rv32_pkg::RV32_EBREAK)) ? 1'b1 : 1'b0;
 
     always @(posedge clk) begin
-        if(inf.pito_io_rst_n == 1'b0) begin
+        if(rst_n == 1'b0) begin
             rv32_cap_pc     <= 0;
         end else begin
             rv32_cap_pc      <= rv32_wf_pc[rv32_hart_wf_cnt];

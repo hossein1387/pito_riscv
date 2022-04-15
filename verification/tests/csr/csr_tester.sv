@@ -1,7 +1,7 @@
 
 class core_tester extends testbench_base;
 
-    function new(Logger logger, virtual pito_interface inf, string firmware="Null.hex");
+    function new(Logger logger, virtual pito_soc_ext_interface inf, string firmware="Null.hex");
         firmware = "csr.hex";
         super.new(logger, firmware, inf);
     endfunction
