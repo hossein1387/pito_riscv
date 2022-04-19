@@ -41,7 +41,8 @@ all:
 	$(CC) $(CCFLAGS) -I$(COMMON_DIR) $(HDRFILES) -c $(SRCFILES) -o $(OUT_DIR)/$(SRC_OBJS)
 	$(LD) $(LDFLAGS) -o $(OUT_DIR)/$(PROJ).elf $(OBJS)
 	$(OD) -D $(OUT_DIR)/$(PROJ).elf > $(OUT_DIR)/$(PROJ).obj
-	python3 $(COMMON_DIR)/makehex.py $(OUT_DIR)/$(PROJ).elf 8192 > $(OUT_DIR)/$(PROJ).hex
+	$(OC) -O binary $(OUT_DIR)/$(PROJ).elf $(OUT_DIR)/$(PROJ).bin
+	python3 $(COMMON_DIR)/makehex.py $(OUT_DIR)/$(PROJ).bin 8192 > $(OUT_DIR)/$(PROJ).hex
 
 .PHONY: clean
 clean:
