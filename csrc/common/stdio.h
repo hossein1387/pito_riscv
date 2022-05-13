@@ -47,7 +47,6 @@ char *memset(char *dptr, int c, int len);
 char *strtok(char *str,char *dptr);
 int atoi(char *);
 int xtoi(char *);
-// void usleep(int);
 void set_mtvec(void (*f)(void));
 void set_mepc(void (*f)(void));
 void set_mie(int);

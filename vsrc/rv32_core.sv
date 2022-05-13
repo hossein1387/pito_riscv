@@ -318,8 +318,8 @@ rv32_next_pc rv32_next_pc_cal(
 // all the write  operations are done by io ports and all 
 // the reads are done by internal logic.
 // for now, we access 32 bit at a time
-assign rv32_dr_addr = rv32_ex_readd_addr >> 2;
-assign rv32_dw_addr = rv32_dw_addr_temp >> 2;
+assign rv32_dr_addr = rv32_ex_readd_addr;
+assign rv32_dw_addr = rv32_dw_addr_temp ;
 
 // Dual port SRAM memory for instruction Cache. Port 0 is used for I/O
 // and port 1 is used for local interface.

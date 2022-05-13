@@ -106,34 +106,31 @@ d_mem(
 
 logic uart_wr_logic;
 logic uart_rd_logic;
-logic uart_irq;
 rv32_data_t uart_data_out;
 rv32_data_t uart_data_in;
-rv32_byte_t uart_rx;
-logic[3:0] uart_debug;
-dmem_be_t  uart_be;
+logic      uart_busy;
+logic uart_valid;
 rv32_dmem_addr_t uart_addr;
 
 assign uart_data_in  = rv32_dmem.wdata[`PITO_DATA_MEM_LOCAL_PORT];
-assign uart_addr     = rv32_dmem.addr[`PITO_DATA_MEM_LOCAL_PORT];
+assign uart_addr     = dmem_addr;
 assign uart_wr_logic = rv32_dmem.we[`PITO_DATA_MEM_LOCAL_PORT] &&
                        uart_addr[31]==1 && 
                        uart_addr[30:0]==0;
+                       
 assign uart_rd_logic = 1'b0; // For now, no read from UART is supported
-assign uart_be       = rv32_dmem.be[`PITO_DATA_MEM_LOCAL_PORT];
 
 pito_uart uart(
-    .CLK   (ext_intf.clk    ),
-    .RES   (ext_intf.rst_n  ),
-    .RD    (uart_rd_logic   ),
-    .WR    (uart_wr_logic   ),
-    .BE    (uart_be         ),
-    .DATAI (uart_data_in    ),
-    .DATAO (uart_data_out   ),
-    .IRQ   (uart_irq        ),
-    .RXD   (ext_intf.uart_rx),
-    .TXD   (ext_intf.uart_tx),
-    .DEBUG (uart_debug      )
+    .clk     (ext_intf.clk    ),
+    .rst_n   (ext_intf.rst_n  ),
+    .tx      (ext_intf.uart_tx),
+    .rx      (ext_intf.uart_rx),
+    .wr      (uart_wr_logic   ),
+    .rd      (uart_rd_logic   ),
+    .tx_data (uart_data_in [7:0]),
+    .rx_data (uart_data_out[7:0]),
+    .valid   (uart_valid      ),
+    .busy    (uart_busy      )
 );
 
 endmodule

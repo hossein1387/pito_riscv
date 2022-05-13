@@ -48,11 +48,16 @@ reset_vector:
     li      x29, 0
     li      x30, 0
     li      x31, 0
-    # init the SP with an offset for each hart
+    # init the stack with an offset for each hart
     csrr    sp, mhartid
-    addi    sp, sp, 1
-    slli    sp, sp, 9
-    csrw    mtvec, a0
+    la      t0, _stack_base
+    la      t1, _stack_top
+    sub     t2, t1, t0
+    srli    sp, t2, 3
+    addi    t3, t3, 1
+    slli    t3, t3, 9
+    add     sp, t3, sp
+
     // Set up a PMP to permit all accesses
     // Delegate no traps
     csrwi   mie, 0

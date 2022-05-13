@@ -53,38 +53,6 @@ int puts(char *p)
     return putchar('\n');
 }
 
-// void putnum(unsigned i, int base)
-// {
-//     char ascii[]="0123456789abcdef";
-//     char stack[32];
-//     int  ptr = 0;
-
-//     if(base==10)
-//     {
-//         int j = i;
-        
-//         if(j<0)
-//         {
-//             putchar('-');
-//             i = -j;
-//         }
-//     }
-
-//     do
-//     {
-//         stack[ptr++] = ascii[(i%base)];
-//         i/=base;
-        
-//         if(base!=10)
-//         {
-//             stack[ptr++] = ascii[(i%base)];
-//             i/=base;
-//         }        
-//     } 
-//     while(i);
-
-//     while(ptr) putchar(stack[--ptr]);
-// }
 
 int printf(char *fmt,...)
 {

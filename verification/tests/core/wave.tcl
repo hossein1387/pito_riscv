@@ -1,3 +1,42 @@
+add_wave_group soc
+    add_wave_group -into soc soc_ext_intf
+        add_wave -into soc_ext_intf {{/testbench_top/pito_inf/soc_ext/clk}}
+        add_wave -into soc_ext_intf {{/testbench_top/pito_inf/soc_ext/rst_n}}
+        add_wave -into soc_ext_intf {{/testbench_top/pito_inf/soc_ext/pito_program}}
+        add_wave -into soc_ext_intf {{/testbench_top/pito_inf/soc_ext/dmem_wdata}}
+        add_wave -into soc_ext_intf {{/testbench_top/pito_inf/soc_ext/dmem_rdata}}
+        add_wave -into soc_ext_intf {{/testbench_top/pito_inf/soc_ext/dmem_addr}}
+        add_wave -into soc_ext_intf {{/testbench_top/pito_inf/soc_ext/dmem_req}}
+        add_wave -into soc_ext_intf {{/testbench_top/pito_inf/soc_ext/dmem_we}}
+        add_wave -into soc_ext_intf {{/testbench_top/pito_inf/soc_ext/dmem_be}}
+        add_wave -into soc_ext_intf {{/testbench_top/pito_inf/soc_ext/imem_wdata}}
+        add_wave -into soc_ext_intf {{/testbench_top/pito_inf/soc_ext/imem_rdata}}
+        add_wave -into soc_ext_intf {{/testbench_top/pito_inf/soc_ext/imem_addr}}
+        add_wave -into soc_ext_intf {{/testbench_top/pito_inf/soc_ext/imem_req}}
+        add_wave -into soc_ext_intf {{/testbench_top/pito_inf/soc_ext/imem_we}}
+        add_wave -into soc_ext_intf {{/testbench_top/pito_inf/soc_ext/imem_be}}
+        add_wave -into soc_ext_intf {{/testbench_top/pito_inf/soc_ext/uart_rx}}
+        add_wave -into soc_ext_intf {{/testbench_top/pito_inf/soc_ext/uart_tx}}
+    add_wave_group -into soc pito
+        add_wave -into pito {{/testbench_top/soc/rv32_dmem}}
+        add_wave -into pito {{/testbench_top/soc/rv32_imem}}
+        add_wave -into pito {{/testbench_top/soc/imem_addr}}
+        add_wave -into pito {{/testbench_top/soc/dmem_addr}}
+    add_wave_group -into soc uart
+        add_wave -into uart {{/testbench_top/soc/uart/rst_n}}
+        add_wave -into uart {{/testbench_top/soc/uart/tx}}
+        add_wave -into uart {{/testbench_top/soc/uart/rx}}
+        add_wave -into uart {{/testbench_top/soc/uart/wr}}
+        add_wave -into uart {{/testbench_top/soc/uart/rd}}
+        add_wave -into uart {{/testbench_top/soc/uart/tx_data}}
+        add_wave -into uart {{/testbench_top/soc/uart/rx_data}}
+        add_wave -into uart {{/testbench_top/soc/uart/busy}}
+        add_wave -into uart {{/testbench_top/soc/uart/valid}}
+        add_wave -into uart {{/testbench_top/soc/uart/send_pattern}}
+        add_wave -into uart {{/testbench_top/soc/uart/send_dummy}}
+        add_wave -into uart {{/testbench_top/soc/uart/send_bitcnt}}
+        add_wave -into uart {{/testbench_top/soc/uart/send_divcnt}}
+
 add_wave_group core
     add_wave -into core {{/testbench_top/soc/pito/clk}}
     add_wave -into core {{/testbench_top/soc/pito/rst_n}}
@@ -84,6 +123,9 @@ add_wave_group core
         add_wave -into WBStage {{/testbench_top/soc/pito/rv32_wb_skip}}
         add_wave -into WBStage {{/testbench_top/soc/pito/rv32_wb_instr}}
         add_wave -into WBStage {{/testbench_top/soc/pito/rv32_wb_readd_addr}}
+        add_wave -into WBStage {{/testbench_top/soc/pito/rv32_alu_res}}
+        add_wave -into WBStage {{/testbench_top/soc/pito/rv32_dmem_addr}}
+        add_wave -into WBStage {{/testbench_top/soc/pito/rv32_dmem_data}}
     add_wave_group -into core WFStage
         add_wave -into WFStage {{/testbench_top/soc/pito/rv32_wf_opcode}}
         add_wave -into WFStage {{/testbench_top/soc/pito/rv32_wf_pc}}

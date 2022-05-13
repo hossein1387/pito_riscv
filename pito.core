@@ -20,6 +20,8 @@ filesets:
             - vsrc/rv32_next_pc.sv
             - vsrc/rv32_csr.sv
             - vsrc/rv32_barrel_csrfiles.sv
+            - vsrc/pito_uart.sv
+            - vsrc/pito_soc.sv
         file_type : systemVerilogSource
     synth:
         file_type : systemVerilogSource
@@ -41,8 +43,6 @@ filesets:
             - vsrc/rv32_next_pc.sv
             - vsrc/rv32_csr.sv
             - vsrc/rv32_barrel_csrfiles.sv
-            - ip/xilinx/bram_32Kb.xci:
-                file_type: xci
             - synthesis/constraint_files/pito_core.xdc:
                 file_type: xdc
     tb:
@@ -88,5 +88,5 @@ targets:
 parameters:
     firmware:
         datatype  : file
-        default   : /users/hemmat/MyRepos/pito_riscv/csrc/asm_test/add/add.hex
+        default   : /users/hemmat/MyRepos/pito_riscv/csrc/uart/build/uart.hex
         paramtype : plusarg
