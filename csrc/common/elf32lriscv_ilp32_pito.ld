@@ -241,9 +241,12 @@ SECTIONS{
   
   
   /**************** Stack Segment ****************/
-  __stack     = ORIGIN(PITO_DATA) + LENGTH(PITO_DATA) - 4K;
-  _stack_top  = ORIGIN(PITO_DATA) + LENGTH(PITO_DATA);
-  _stack_base = ORIGIN(PITO_DATA) + LENGTH(PITO_DATA) - 0x200;
+  .stack              : {
+    . = ALIGN(MAX(., ORIGIN(PITO_DATA) + LENGTH(PITO_DATA)), 16);
+    __stack_top  = ALIGN(.,      16);
+    __stack      = ALIGN(. - 4K, 16);
+    __stack_base = ALIGN(. - 4K, 16);
+  } > PITO_DATA
   
   
   /**************** I/O Segment ****************/

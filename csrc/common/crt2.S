@@ -41,10 +41,9 @@ _start:
     la     gp,   __global_pointer$
 .option pop
     csrr   a0,   mhartid
-    addi   a0,   a0,    1
     slli   a0,   a0,    9
-    la     sp,   __stack
-    add    sp,   sp,    a0
+    la     sp,   __stack_top
+    sub    sp,   sp,    a0
     
     
     # CLEAR ALL OTHER REGISTERS
