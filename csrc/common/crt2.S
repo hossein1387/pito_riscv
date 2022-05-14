@@ -40,7 +40,7 @@ _start:
 .option norelax
     la     gp,   __global_pointer$
 .option pop
-    csrr   a0,   mhartid
+    jal    get_pito_hart_id
     slli   a0,   a0,    9
     la     sp,   __stack_top
     sub    sp,   sp,    a0
@@ -60,7 +60,7 @@ _start:
 0:  bge    s0,   s1,   1f
     lw     t0,   0(s0)     # Load function pointer
     addi   s0,   s0,   4   # Increment iterator through function pointers by one word
-    csrr   a0,   mhartid   # Set up mhartid argument to function.
+    jal    get_pito_hart_id# Set up mhartid argument to function.
     la     ra,   0b        # Prepare "return" address, actually a backward label
     jr     t0              # Call function. Return will be to backward label.
 1:  
@@ -71,7 +71,7 @@ _start:
 2:  bge    s0,   s1,   3f
     lw     t0,   0(s0)     # Load function pointer
     addi   s0,   s0,   4   # Increment iterator through function pointers by one word
-    csrr   a0,   mhartid   # Set up mhartid argument to function.
+    jal    get_pito_hart_id# Set up mhartid argument to function.
     la     ra,   2b        # Prepare "return" address, actually a backward label
     jr     t0              # Call function. Return will be to backward label.
 3:  li     s0,   0
@@ -80,7 +80,7 @@ _start:
     
     
     # ************* CALL MAIN *************
-    csrr   a0,   mhartid   # Set up mhartid argument to main().
+    jal    get_pito_hart_id# Set up mhartid argument to main().
     jal    main            # MAIN USER PROGRAM CALL
     mv     s2,   a0        # Save integer exit code
     
@@ -91,7 +91,7 @@ _start:
 4:  bge    s0,   s1,   5f
     lw     t0,   0(s0)     # Load function pointer
     addi   s0,   s0,   4   # Increment iterator through function pointers by one word
-    csrr   a0,   mhartid   # Set up mhartid argument to function.
+    jal    get_pito_hart_id# Set up mhartid argument to function.
     la     ra,   4b        # Prepare "return" address, actually a backward label
     jr     t0              # Call function. Return will be to backward label.
 5:  
@@ -100,6 +100,14 @@ _start:
     mv     a0,   s2
     jal    exit
     ebreak
+
+
+.weak  get_pito_hart_id
+.globl get_pito_hart_id
+get_pito_hart_id:
+    csrr a0, mhartid
+    ret
+
 
 
 #
