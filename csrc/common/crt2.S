@@ -12,9 +12,10 @@ _boot0msg:
 
 
 # Program code
-.section .text
+.section .init
 
 .globl _start
+.balign 4
 _start:
     #
     # SET STACK POINTER AND GLOBAL POINTER

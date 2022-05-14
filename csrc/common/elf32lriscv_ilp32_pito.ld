@@ -35,8 +35,21 @@ SEARCH_DIR("=/usr/lib");
 
 
 MEMORY{
-  PITO_INSTR   (RAX) : ORIGIN = 2M,    LENGTH = 8K
+  /**
+   * The order in which these MEMORY regions are declared and their attributes
+   * matters! The input ELF sections are matched by attribute and placed in the
+   * first region that matches. Thus it is important to:
+   * 
+   *   - Declare PITO_DATA first, readable and writable (RWA), since
+   *     read-only data like strings need to end up in it;
+   *   - Exclude from PITO_DATA all executable sections (!X), as they belong in
+   *     the executable region
+   *   - Declare PITO_INSTR second, and executable, even though by address it
+   *     is first, to avoid having read-only data match into it first.
+   */
+  
   PITO_DATA  (RWA!X) : ORIGIN = 2M+8K, LENGTH = 8K
+  PITO_INSTR   (RAX) : ORIGIN = 2M,    LENGTH = 8K
   IO          (RW!X) : ORIGIN = 2048M, LENGTH = 0x10
 }
 
