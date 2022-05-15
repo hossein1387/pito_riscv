@@ -138,7 +138,7 @@ __mulsi3:             # P = a*b
 
 .balign 16
 __udivsi3:            # Q,M = D/d
-    mv     a3, a1     # Save a3=a1 (d)
+0:  mv     a3, a1     # Save a3=a1 (d)
     li     a2, 1      # Load constant 1
     li     a1, 0      # Load constant 0
     beq    a3, a2, 1f # If d == 1, return {D, 0}
@@ -150,41 +150,37 @@ __udivsi3:            # Q,M = D/d
     #
     # The easy cases are inapplicable. Begin long division process.
     #
-    ### COND:    D > d && d > 1
-    ### INIT:    Q = 1; q = 1; D -= d;
-    ### ASCENT:  while D>=d:
-    ###              Q += q; q <<= 1; D -= d; d <<= 1;
-    ### DESCENT: while q:
-    ###              if D >= d:
-    ###                  Q += q; D -= d;
-    ###              q >>= 1; d >>= 1;
+    ### PRECOND:  D>d && d>1
     ### RETURN:  {Q, M}
-    ### REGISTER ASSIGNMENTS:
-    ###          a0 = Q
-    ###          a1 = D
-    ###          a2 = 1
-    ###          a3 = d
-    ###          a4 = q
+    ### REGISTER ASSIGNMENTS
+    ###         BEGINNING  ENDING
+    ###          a0 = 1    Q=D/d
+    ###          a1 = D    M=D%d
+    ###          a2 = q      0
+    ###          a3 = d      -
+    #
+    # The precondition is D>d && d>1. Therefore, the quotient is always
+    # at least one. Initialize Q=1 and execute one subtraction D -= d.
+    # Afterwards, two possibilities:
+    #
+    #   1. d >= 0x80000000. In this case, D is now guaranteed < d. Division complete!
+    #   2. d <  0x80000000. In this case it is safe to enter the q/d-alignment loop.
     #
     mv     a0, a2     # Q   = 1
-    mv     a4, a2     # q   = 1
     sub    a1, a1, a3 # D  -= d
-    # Ascent begins
-    bltu   a1, a3, 6f # If D<d, exit. Else:
-5:  sub    a1, a1, a3 # D  -= d
-    add    a0, a0, a4 # Q  += q
-    slli   a3, a3, 1  # d <<= 1
-    slli   a4, a4, 1  # q <<= 1
-    bgeu   a1, a3, 5b # while D>=d
-6:  # Descent begins
-    bltu   a1, a3, 7f # if D<d, skip
-    add    a0, a0, a4 # Q  += q
-    sub    a1, a1, a3 # D  -= d
-7:  srli   a3, a3, 1  # d >>= 1
-    srli   a4, a4, 1  # q >>= 1
-    bnez   a4, 6b     # while q
+5:                    # do{                            (Ascent  begins)
+    bltu   a1, a3, 6f #     if(D<d) break;
+    slli   a2, a2, 1  #     q <<= 1
+    slli   a3, a3, 1  #     d <<= 1
+    bgez   a3,     5b # }while(no overflow on d+d)
+6:                    # do{                            (Descent begins)
+    bltu   a1, a3, 7f #     if D>=d:
+    add    a0, a0, a2 #         Q  += q
+    sub    a1, a1, a3 #         D  -= d
+7:  srli   a2, a2, 1  #     q >>= 1
+    srli   a3, a3, 1  #     d >>= 1
+    bnez   a2,     6b # }while(q)
 1:  ret               # Return {a0,a1} = {Q,M} = {D/d,D%d}
-    
 2:  li     a2, 0      # (If entered directly) Return  0U
 3:  neg    a2, a2     # (If entered directly) Return -1U (Divide-by-zero)
 4:  mv     a0, a2     # (If entered directly) Return  1U
@@ -192,9 +188,10 @@ __udivsi3:            # Q,M = D/d
 
 .balign 16
 __umodsi3:
-    mv     a5, ra
-    jal    __udivsi3
-    mv     a0, a1
+    mv     a4, ra
+    jal    0b         # We do *not* reference __udivsi3 by name since that
+    mv     a0, a1     # generates an interposable relocation to a __udivsi3
+    mv     ra, a4     # that may not be "ours" (and thus doesn't return in a1)
     ret
 
 
