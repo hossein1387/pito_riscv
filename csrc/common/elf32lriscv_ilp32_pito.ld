@@ -241,7 +241,7 @@ SECTIONS{
   
   
   /**************** Stack Segment ****************/
-  .stack              : {
+  .stack              : ALIGN(16) {
     . = ALIGN(MAX(., ORIGIN(PITO_DATA) + LENGTH(PITO_DATA)), 16);
     __stack_top  = ALIGN(.,      16);
     __stack      = ALIGN(. - 4K, 16);
