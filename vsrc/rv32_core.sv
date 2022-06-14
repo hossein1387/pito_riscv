@@ -102,7 +102,6 @@ logic              rv32_alu_z;
 rv32_opcode_enum_t rv32_ex_opcode;
 rv32_pc_cnt_t      rv32_ex_pc;
 rv32_imm_t         rv32_ex_imm;
-rv32_dmem_addr_t   rv32_ex_readd_addr;
 logic              rv32_ex_is_exception;
 logic              rv32_ex_is_csrrw;
 logic              rv32_ex_skip;
@@ -127,8 +126,7 @@ logic              rv32_wb_skip;
 rv32_register_t    rv32_wb_reg_pc;
 rv32_pc_cnt_t      rv32_wb_next_pc_val;
 rv32_data_t        rv32_wb_store_val;
-// rv32_dmem_addr_t   rv32_wb_readd_addr;
-rv32_imem_addr_t rv32_wb_readd_addr;
+dmem_be_t          rv32_wb_dmem_be;
 //====================================================================
 // WF stage wires
 //====================================================================
@@ -154,12 +152,7 @@ rv32_data_t      rv32_dmem_data;
 logic            rv32_dmem_w_en;
 
 // Data Memory signals
-rv32_dmem_addr_t rv32_dw_addr;
-rv32_dmem_addr_t rv32_dw_addr_temp;
-rv32_data_t      rv32_dw_data;
-logic            rv32_dw_en  ;
-rv32_dmem_addr_t rv32_dr_addr;
-// rv32_data_t      rv32_dr_data;
+rv32_dmem_addr_t rv32_ex_dmem_addr;
 logic [`XPR_LEN-1 : 0 ] rv32_dr_data;
 //====================================================================
 //                   Module instansiation
@@ -318,8 +311,6 @@ rv32_next_pc rv32_next_pc_cal(
 // all the write  operations are done by io ports and all 
 // the reads are done by internal logic.
 // for now, we access 32 bit at a time
-assign rv32_dr_addr = rv32_ex_readd_addr;
-assign rv32_dw_addr = rv32_dw_addr_temp ;
 
 // Dual port SRAM memory for instruction Cache. Port 0 is used for I/O
 // and port 1 is used for local interface.
@@ -331,13 +322,12 @@ assign imem_req  = 1'b1;
 assign imem_be   = 4'b1111;
 assign imem_we   = 1'b0;
 
-assign rv32_dw_addr_temp = rv32_dmem_addr;
 assign dmem_wdata        = rv32_dmem_data;
 assign dmem_we           = rv32_dmem_w_en;
-assign dmem_addr         = rv32_dmem_w_en ? rv32_dw_addr : rv32_dr_addr;
+assign dmem_addr         = rv32_dmem_addr;
 assign rv32_dr_data      = dmem_rdata;
 assign dmem_req          = 1'b1;
-assign dmem_be           = 4'b1111;
+// assign dmem_be           = 4'b1111;
 
 //====================================================================
 //                   Barreled HART counter
@@ -367,7 +357,7 @@ assign dmem_be           = 4'b1111;
             // executing instruction from memory.
             if (rv32_pc[rv32_hart_cnt] == `EOF_ADDRESS) begin
                 rv32_pc[rv32_hart_cnt] <= `RESET_ADDRESS; //rv32_hart_cnt << 12;
-                // rv32_pc[rv32_hart_cnt] <= rv32_hart_cnt << 12;
+                // rv32_pc[rv32_hart_cnt] <= `RESET_ADDRESS + rv32_hart_cnt << 12;
             end else begin
                 if (pc_sel[rv32_hart_cnt] == `PITO_PC_SEL_PLUS_4) begin
                     rv32_pc[rv32_hart_cnt] <= rv32_pc[rv32_hart_cnt] + 4;
@@ -436,11 +426,6 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
                         (rv32_dec_opcode == rv32_pkg::RV32_BGE ) || (rv32_dec_opcode == rv32_pkg::RV32_BLTU ) || (rv32_dec_opcode == rv32_pkg::RV32_BGEU) ||
                         (rv32_dec_opcode == rv32_pkg::RV32_SUB ) ) ? `PITO_ALU_SRC_RS2 : `PITO_ALU_SRC_IMM ;
     always @(posedge clk) begin
-        // if(rst_n == 1'b0) begin
-        //     rv32_ex_pc    <= 0;
-        //     rv32_ex_readd_addr  <= 0;
-        // end else begin
-            // rv32_regf_wen    <= 1'b0;
             rv32_ex_opcode   <= rv32_dec_opcode;
             rv32_ex_instr    <= rv32_dec_instr;
             rv32_ex_imm      <= rv32_dec_imm;
@@ -458,7 +443,7 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
                 (rv32_dec_opcode == rv32_pkg::RV32_LBU) ||
                 (rv32_dec_opcode == rv32_pkg::RV32_LHU) ) begin
                 // $display($sformatf("LOAD instruction ===> Accessing mem at: %8h + %8h", rv32_dec_imm , rv32_regf_rd1));
-                rv32_ex_readd_addr <= rv32_dec_imm + rv32_regf_rd1;
+                rv32_dmem_addr <= rv32_dec_imm + rv32_regf_rd1;
             end else begin
                 if (alu_src == `PITO_ALU_SRC_RS2 ) begin
                     rv32_alu_rs2 <= rv32_regf_rd2;
@@ -492,42 +477,72 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
     // the circuit below takes the correct value from the ram output.
     always_comb begin
         case (rv32_ex_opcode)
-             rv32_pkg::RV32_SB : rv32_wb_store_val = { {24{rv32_wb_rs2_skip[7 ]}}, rv32_wb_rs2_skip[7 : 0]};
-             rv32_pkg::RV32_SH : rv32_wb_store_val = { {16{rv32_wb_rs2_skip[15]}}, rv32_wb_rs2_skip[15: 0]};
-             rv32_pkg::RV32_SW : rv32_wb_store_val = rv32_wb_rs2_skip;
-             default : rv32_wb_store_val = {32{1'b0}};
+             rv32_pkg::RV32_SB : begin
+                rv32_wb_store_val = { {24{rv32_wb_rs2_skip[7 ]}}, rv32_wb_rs2_skip[7 : 0]};
+                case (rv32_alu_res[1:0])
+                   2'b00: begin
+                       rv32_wb_dmem_be = 4'b0001;
+                       rv32_wb_store_val = { {24{rv32_wb_rs2_skip[7 ]}}, rv32_wb_rs2_skip[7 : 0]};
+                   end
+                   2'b01: begin
+                       rv32_wb_dmem_be = 4'b0010;
+                       rv32_wb_store_val = { {16{rv32_wb_rs2_skip[7 ]}}, rv32_wb_rs2_skip[7 : 0], {8{1'b0}} };
+                   end
+                   2'b10: begin
+                       rv32_wb_dmem_be = 4'b0100;
+                       rv32_wb_store_val = { {8{rv32_wb_rs2_skip[7 ]}}, rv32_wb_rs2_skip[7 : 0], {16{1'b0}} };
+                   end
+                   2'b11: begin
+                       rv32_wb_dmem_be = 4'b1000;
+                       rv32_wb_store_val = { rv32_wb_rs2_skip[7 : 0], {24{1'b0}} };
+                   end
+                endcase
+             end
+             rv32_pkg::RV32_SH : begin
+                case (rv32_alu_res[1])
+                   0: begin
+                       rv32_wb_dmem_be = 4'b0011;
+                       rv32_wb_store_val = { {16{rv32_wb_rs2_skip[15]}}, rv32_wb_rs2_skip[15: 0]};
+                   end
+                   1: begin
+                       rv32_wb_dmem_be = 4'b1100;
+                       rv32_wb_store_val = { rv32_wb_rs2_skip[15: 0],  {16{1'b0}}};
+                   end
+                endcase
+             end
+             rv32_pkg::RV32_SW : begin
+                 rv32_wb_store_val = rv32_wb_rs2_skip;
+                 rv32_wb_dmem_be = 4'b1111;
+             end
+             default : begin
+                 rv32_wb_store_val = {32{1'b0}};
+                 rv32_wb_dmem_be = 4'b1111;
+             end
         endcase
     end
 
     always @(posedge clk) begin
-        // if(rst_n == 1'b0) begin
-        //     rv32_wb_pc     <= 0;
-        //     rv32_wb_instr  <= {32{1'b0}};
-        //     rv32_dmem_w_en <= 1'b0;
-        // end else begin
-            rv32_wb_pc        <= rv32_ex_pc;
-            rv32_wb_opcode    <= rv32_ex_opcode;
-
-            rv32_wb_instr     <= rv32_ex_instr;
-            rv32_wb_imm       <= rv32_ex_imm;
-            rv32_wb_rs1       <= rv32_ex_rs1;
-            rv32_wb_rd        <= rv32_ex_rd;
-            rv32_dmem_w_en    <= 1'b0;
-            rv32_wb_readd_addr<= rv32_ex_readd_addr;
-            rv32_hart_wb_cnt  <= rv32_hart_ex_cnt;
-            if (rv32_wb_skip) begin
-                rv32_wb_out <= rv32_ex_res_val;
-            end else begin
-                rv32_dmem_addr <= rv32_alu_res - `PITO_DATA_MEM_OFFSET;
-                rv32_dmem_data <= rv32_wb_store_val;
-                rv32_dmem_w_en <= 1'b1; 
-            end
-            `ifdef DEBUG
-                rv32_org_wb_pc <= rv32_org_ex_pc;
-                rv32_wb_alu_rs1<= rv32_alu_rs1;
-                rv32_wb_alu_rs2<= rv32_alu_rs2;
-            `endif
-        // end
+        rv32_wb_pc        <= rv32_ex_pc;
+        rv32_wb_opcode    <= rv32_ex_opcode;
+        rv32_wb_instr     <= rv32_ex_instr;
+        rv32_wb_imm       <= rv32_ex_imm;
+        rv32_wb_rs1       <= rv32_ex_rs1;
+        rv32_wb_rd        <= rv32_ex_rd;
+        rv32_dmem_w_en    <= 1'b0;
+        rv32_hart_wb_cnt  <= rv32_hart_ex_cnt;
+        dmem_be           <= rv32_wb_dmem_be;
+        if (rv32_wb_skip) begin
+            rv32_wb_out    <= rv32_ex_res_val;
+        end else begin
+            rv32_dmem_addr <= rv32_alu_res;
+            rv32_dmem_data <= rv32_wb_store_val;
+            rv32_dmem_w_en <= 1'b1; 
+        end
+        `ifdef DEBUG
+            rv32_org_wb_pc <= rv32_org_ex_pc;
+            rv32_wb_alu_rs1<= rv32_alu_rs1;
+            rv32_wb_alu_rs2<= rv32_alu_rs2;
+        `endif
     end
 
 //====================================================================
@@ -545,7 +560,7 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
     always_comb begin
         case (rv32_wb_opcode)
              rv32_pkg::RV32_LB : begin
-                        case (rv32_wb_readd_addr[1:0])
+                        case (rv32_dmem_addr[1:0])
                             2'b00: rv32_wf_load_val = { {24{rv32_dr_data[7 ]}}, rv32_dr_data[7 : 0]};
                             2'b01: rv32_wf_load_val = { {24{rv32_dr_data[15]}}, rv32_dr_data[15: 8]};
                             2'b10: rv32_wf_load_val = { {24{rv32_dr_data[23]}}, rv32_dr_data[23:16]};
@@ -554,7 +569,7 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
                         endcase
                        end
              rv32_pkg::RV32_LH :  begin
-                        case (rv32_wb_readd_addr[1:0])
+                        case (rv32_dmem_addr[1:0])
                             2'b00: rv32_wf_load_val = { {16{rv32_dr_data[15]}}, rv32_dr_data[15: 0]};
                             2'b10: rv32_wf_load_val = { {16{rv32_dr_data[31]}}, rv32_dr_data[31:16]};
                             default : rv32_wf_load_val = 0;
@@ -562,7 +577,7 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
                        end
              rv32_pkg::RV32_LW : rv32_wf_load_val = rv32_dr_data;
              rv32_pkg::RV32_LBU: begin
-                        case (rv32_wb_readd_addr[1:0])
+                        case (rv32_dmem_addr[1:0])
                             2'b00: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[7 : 0]};
                             2'b01: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[15: 8]};
                             2'b10: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[23:16]};
@@ -571,7 +586,7 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
                         endcase
                        end
              rv32_pkg::RV32_LHU: begin
-                        case (rv32_wb_readd_addr[1:0])
+                        case (rv32_dmem_addr[1:0])
                             2'b00: rv32_wf_load_val = { {16{1'b0}}, rv32_dr_data[15: 0]};
                             2'b10: rv32_wf_load_val = { {16{1'b0}}, rv32_dr_data[31:16]};
                             default : rv32_wf_load_val = 0;
@@ -593,6 +608,7 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
             rv32_wf_opcode    <= rv32_wb_opcode;
             rv32_wf_instr     <= rv32_wb_instr;
             rv32_hart_wf_cnt  <= rv32_hart_wb_cnt;
+            rv32_regf_wen     <= 1'b0;
             //=================================================================================
             // Register File
             //=================================================================================
