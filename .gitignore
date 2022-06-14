@@ -18,3 +18,7 @@ synthesis/
 *.obj
 .DS_Store
 build/
+csrc/asm/**/*.data
+csrc/asm/**/*.map
+csrc/asm/**/*.elf
+csrc/asm/**/*.text
