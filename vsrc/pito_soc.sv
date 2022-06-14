@@ -11,16 +11,31 @@ logic rst_n;
 assign clk = ext_intf.clk;
 assign rst_n = ext_intf.rst_n;
 
+// soc logic
+logic mem_out_bound;
+logic dmem_wen;
+
 rv32_dmem_t rv32_dmem;
 rv32_imem_t rv32_imem;
 rv32_imem_addr_t imem_addr;
 rv32_dmem_addr_t dmem_addr;
+rv32_data_t dmem_rdata;
+
+// UART
+logic uart_wr_logic;
+logic uart_rd_logic;
+rv32_data_t uart_data_out;
+rv32_data_t uart_data_in;
+logic uart_busy;
+logic uart_valid;
+rv32_dmem_addr_t uart_addr;
+
 //====================================================================
 //                   Pito Core 
 //====================================================================
 
 assign rv32_imem.addr[`PITO_INSTR_MEM_LOCAL_PORT] = imem_addr[`PITO_INSTR_MEM_ADDR_WIDTH-1:0];
-assign rv32_dmem.addr[`PITO_DATA_MEM_LOCAL_PORT]  = dmem_addr[`PITO_DATA_MEM_ADDR_WIDTH-1:0];
+assign rv32_dmem.addr[`PITO_DATA_MEM_LOCAL_PORT]  = dmem_addr[`PITO_DATA_MEM_ADDR_WIDTH-1:0]>>2;
 
 rv32_core pito(
     .clk          (clk                                        ),
@@ -33,13 +48,19 @@ rv32_core pito(
     .imem_we      (rv32_imem.we   [`PITO_INSTR_MEM_LOCAL_PORT]),
     .imem_be      (rv32_imem.be   [`PITO_INSTR_MEM_LOCAL_PORT]),
     .dmem_wdata   (rv32_dmem.wdata[`PITO_DATA_MEM_LOCAL_PORT] ),
-    .dmem_rdata   (rv32_dmem.rdata[`PITO_DATA_MEM_LOCAL_PORT] ),
+    .dmem_rdata   (dmem_rdata                                 ),
     .dmem_addr    (dmem_addr                                  ),
     .dmem_req     (rv32_dmem.req  [`PITO_DATA_MEM_LOCAL_PORT] ),
-    .dmem_we      (rv32_dmem.we   [`PITO_DATA_MEM_LOCAL_PORT] ),
+    .dmem_we      (dmem_wen                                   ),
     .dmem_be      (rv32_dmem.be   [`PITO_DATA_MEM_LOCAL_PORT] ),
     .mvu_if       (mvu_intf                                   )
 );
+
+logic uart_busy_d1;
+
+assign dmem_rdata = (dmem_addr == 32'h8000_0001) ? rv32_data_t'(uart_busy) : rv32_dmem.rdata[`PITO_DATA_MEM_LOCAL_PORT];
+assign mem_out_bound = (|dmem_addr[31:22]);
+assign rv32_dmem.we[`PITO_DATA_MEM_LOCAL_PORT]  =  mem_out_bound ? 0 : dmem_wen;
 
 //====================================================================
 //                   Pito Memory Interface
@@ -104,20 +125,12 @@ d_mem(
 //                   Pito I/Os
 //====================================================================
 
-logic uart_wr_logic;
-logic uart_rd_logic;
-rv32_data_t uart_data_out;
-rv32_data_t uart_data_in;
-logic      uart_busy;
-logic uart_valid;
-rv32_dmem_addr_t uart_addr;
-
 assign uart_data_in  = rv32_dmem.wdata[`PITO_DATA_MEM_LOCAL_PORT];
 assign uart_addr     = dmem_addr;
 assign uart_wr_logic = rv32_dmem.we[`PITO_DATA_MEM_LOCAL_PORT] &&
                        uart_addr[31]==1 && 
                        uart_addr[30:0]==0;
-                       
+
 assign uart_rd_logic = 1'b0; // For now, no read from UART is supported
 
 pito_uart uart(
