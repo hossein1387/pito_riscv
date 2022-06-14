@@ -10,8 +10,10 @@ import pito_pkg::*;
 class pito_testbench_base extends BaseObj;
 
     string firmware;
+    string rodata;
     virtual pito_soc_ext_interface inf;
     rv32_pkg::rv32_data_q instr_q;
+    rv32_pkg::rv32_data_q rodata_q;
     pito_monitor monitor;
     int hart_ids_q[$]; // hart id to monitor
     rv32_utils::RV32IDecoder rv32i_dec;
@@ -24,11 +26,13 @@ class pito_testbench_base extends BaseObj;
         cfg = new(logger);
         void'(cfg.parse_args());
         this.firmware = cfg.firmware;
+        this.rodata = cfg.rodata;
         this.inf = inf;
         this.predictor_silent_mode = predictor_silent_mode;
 
         // read hex file and store the first n words to the ram
         instr_q = process_hex_file(firmware, logger, `NUM_INSTR_WORDS); 
+        rodata_q = process_hex_file(rodata, logger, `NUM_INSTR_WORDS); 
         // Check if user has requested to monitor any particular hart/s
         if (hart_mon_en.size()==0) begin
             // Initialize harts in the system
@@ -40,7 +44,7 @@ class pito_testbench_base extends BaseObj;
         end else begin
             this.hart_ids_q = hart_mon_en;
         end
-        monitor = new(this.logger, this.instr_q, this.inf, this.hart_ids_q, this.test_stat, predictor_silent_mode);
+        monitor = new(this.logger, this.instr_q, this.rodata_q, this.inf, this.hart_ids_q, this.test_stat, predictor_silent_mode);
         this.rv32i_dec = new(this.logger);
     endfunction
 
@@ -62,15 +66,15 @@ class pito_testbench_base extends BaseObj;
         return instr_q;
     endfunction
 
-    task write_data_to_ram(rv32_data_q data_q);
-        for (int i=0; i<data_q.size(); i++) begin
-            `hdl_path_dmem_init[i] = data_q[i];
-        end
-    endtask
+    // task write_data_to_ram(rv32_data_q data_q);
+    //     for (int i=0; i<data_q.size(); i++) begin
+    //         `hdl_path_dmem_init[i] = data_q[i];
+    //     end
+    // endtask
 
     task write_instr_to_ram(int backdoor, int log_to_console);
         if(log_to_console) begin
-            logger.print_banner($sformatf("Writing %6d instructions to the RAM", this.instr_q.size()));
+            logger.print_banner($sformatf("Writing %6d instructions to the Instruction RAM", this.instr_q.size()));
             logger.print($sformatf(" ADDR  INSTRUCTION          INSTR TYPE       OPCODE          DECODING"));
         end
         if (backdoor == 1) begin
@@ -97,6 +101,34 @@ class pito_testbench_base extends BaseObj;
         end
     endtask
 
+    task write_data_to_ram(int backdoor, int log_to_console);
+        if(log_to_console) begin
+            logger.print_banner($sformatf("Writing %6d data to the Data RAM", this.rodata_q.size()));
+        end
+        if (backdoor == 1) begin
+            for (int addr=0 ; addr<this.rodata_q.size(); addr++) begin
+                `hdl_path_dmem_init[addr] = this.rodata_q[addr];
+                if(log_to_console) begin
+                    logger.print($sformatf("[%4d]: 0x%8h", addr, this.rodata_q[addr]));
+                end
+            end
+        end else begin
+            @(posedge inf.clk);
+            inf.dmem_we = 1'b1;
+            @(posedge inf.clk);
+            for (int addr=0; addr<this.rodata_q.size(); addr++) begin
+                @(posedge inf.clk);
+                inf.dmem_wdata = this.rodata_q[addr];
+                inf.dmem_addr = addr;
+                if(log_to_console) begin
+                    logger.print($sformatf("[%4d]: 0x%8h", addr, this.rodata_q[addr]));
+                end
+            end
+            @(posedge inf.clk);
+            inf.dmem_we = 1'b0;
+        end
+    endtask
+
     virtual task tb_setup();
         logger.print_banner("Testbench Setup Phase");
         // Put DUT to reset and relax memory interface
@@ -119,7 +151,7 @@ class pito_testbench_base extends BaseObj;
         @(posedge inf.clk);
 
         this.write_instr_to_ram(1, 0);
-        this.write_data_to_ram(instr_q);
+        this.write_data_to_ram(1, 0);
 
         @(posedge inf.clk);
         inf.rst_n = 1'b1;

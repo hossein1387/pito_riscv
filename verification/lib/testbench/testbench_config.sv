@@ -3,6 +3,7 @@ import utils::*;
 class tb_config extends BaseObj;
 
     string firmware;
+    string rodata;
     string testname;
 
     function new(Logger logger);
@@ -17,7 +18,14 @@ class tb_config extends BaseObj;
             logger.print($sformatf("Expecting a command line argument %s", firmware), "ERROR");
             $finish;
         end
-        
+
+        if ($value$plusargs("rodata=%s", this.rodata)) begin
+            logger.print($sformatf("Using %s as read only data", rodata));
+        end else begin
+            logger.print($sformatf("Expecting a command line argument %s", rodata), "ERROR");
+            $finish;
+        end
+
         if ($value$plusargs("testname=%s", this.testname)) begin
             logger.print($sformatf("Using %s as testname", firmware));
         end else begin
