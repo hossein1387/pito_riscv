@@ -31,15 +31,18 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-// putchar uses the "low-level" io
-int putchar(int c)
-{
-  if(c=='\n')
-  {
-    io.uart.fifo = '\r';  
-  }
-  return io.uart.fifo = c;
-}
+// // putchar uses the "low-level" io
+// int putchar(int c)
+// {
+//   if(c=='\n')
+//   {
+//     while(io.uart.stat&1); // uart busy, wait...
+//     io.uart.fifo = '\r';  
+//   }
+  
+//   while(io.uart.stat&1); // uart busy, wait...
+//   return io.uart.fifo = c;
+// }
 
 void putstr(char *p)
 {
