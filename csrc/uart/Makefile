@@ -18,7 +18,7 @@ OBJS = $$(find $(OUT_DIR) -name "*.o")
 #=================================================================================
 
 LDFLAGS = -nostartfiles  -nostdlib  -Tlink.ld -Map=$(OUT_DIR)/$(PROJ).map
-CCFLAGS = -march=rv32i -std=gnu99 -ffast-math -fno-common -fno-builtin-printf
+CCFLAGS = -march=rv32i -std=gnu99 -ffast-math -fno-builtin-printf
 
 #=================================================================================
 # GCC Acronyms
@@ -41,8 +41,10 @@ all:
 	$(CC) $(CCFLAGS) -I$(COMMON_DIR) $(HDRFILES) -c $(SRCFILES) -o $(OUT_DIR)/$(SRC_OBJS)
 	$(LD) $(LDFLAGS) -o $(OUT_DIR)/$(PROJ).elf $(OBJS)
 	$(OD) -D $(OUT_DIR)/$(PROJ).elf > $(OUT_DIR)/$(PROJ).obj
-	$(OC) -O binary $(OUT_DIR)/$(PROJ).elf $(OUT_DIR)/$(PROJ).bin
-	python3 $(COMMON_DIR)/makehex.py $(OUT_DIR)/$(PROJ).bin 8192 > $(OUT_DIR)/$(PROJ).hex
+	$(OC) -O binary $(OUT_DIR)/$(PROJ).elf $(OUT_DIR)/$(PROJ).text --only-section .init --only-section .text
+	python3 $(COMMON_DIR)/makehex.py $(OUT_DIR)/$(PROJ).text 8192 > $(OUT_DIR)/$(PROJ)_text.hex
+	$(OC) -O binary $(OUT_DIR)/$(PROJ).elf $(OUT_DIR)/$(PROJ).data --only-section .rodata
+	python3 $(COMMON_DIR)/makehex.py $(OUT_DIR)/$(PROJ).data 8192 > $(OUT_DIR)/$(PROJ)_data.hex
 
 .PHONY: clean
 clean:
