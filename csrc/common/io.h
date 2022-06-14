@@ -36,6 +36,7 @@ extern volatile int utimers; // microsecond timer
 struct PITOIO {
     struct PITOUART {
         unsigned char fifo; // 00
+        unsigned char stat; // 01
     } uart;
 };
 
