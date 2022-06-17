@@ -74,7 +74,7 @@ targets:
         tools: 
             xsim:
                 xelab_options: [--debug, typical, -L, secureip, -L, unisims_ver, -L, unimacro_ver, -L, work.glbl, --timescale, 1ns/1ps]
-        parameters: [firmware]
+        parameters: [firmware,rodata]
         toplevel: testbench_top
     synth:
         description: Synthesize the design for an FPGA board
@@ -88,5 +88,9 @@ targets:
 parameters:
     firmware:
         datatype  : file
-        default   : /users/hemmat/MyRepos/pito_riscv/csrc/uart/build/uart.hex
+        default   : /users/hemmat/MyRepos/pito_riscv/csrc/uart/build/uart_text.hex
+        paramtype : plusarg
+    rodata:
+        datatype  : file
+        default   : /users/hemmat/MyRepos/pito_riscv/csrc/uart/build/uart_data.hex
         paramtype : plusarg
