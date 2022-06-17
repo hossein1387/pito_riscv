@@ -129,6 +129,7 @@ rv32_register_t    rv32_wb_reg_pc;
 rv32_pc_cnt_t      rv32_wb_next_pc_val;
 rv32_data_t        rv32_wb_store_val;
 dmem_be_t          rv32_wb_dmem_be;
+rv32_dmem_addr_t   rv32_wb_dmem_addr;
 //====================================================================
 // WF stage wires
 //====================================================================
@@ -541,6 +542,7 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
         rv32_hart_wb_cnt  <= rv32_hart_ex_cnt;
         dmem_be           <= rv32_wb_dmem_be;
         rv32_wb_is_load   <= is_load;
+        rv32_wb_dmem_addr <= rv32_dmem_addr; // For loads, need to store it for next stage
         if (is_store) begin
             rv32_dmem_addr <= rv32_alu_res;
             rv32_dmem_data <= rv32_wb_store_val;
@@ -571,7 +573,7 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
     always_comb begin
         case (rv32_wb_opcode)
              rv32_pkg::RV32_LB : begin
-                        case (rv32_dmem_addr[1:0])
+                        case (rv32_wb_dmem_addr[1:0])
                             2'b00: rv32_wf_load_val = { {24{rv32_dr_data[7 ]}}, rv32_dr_data[7 : 0]};
                             2'b01: rv32_wf_load_val = { {24{rv32_dr_data[15]}}, rv32_dr_data[15: 8]};
                             2'b10: rv32_wf_load_val = { {24{rv32_dr_data[23]}}, rv32_dr_data[23:16]};
@@ -580,7 +582,7 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
                         endcase
                        end
              rv32_pkg::RV32_LH :  begin
-                        case (rv32_dmem_addr[1:0])
+                        case (rv32_wb_dmem_addr[1:0])
                             2'b00: rv32_wf_load_val = { {16{rv32_dr_data[15]}}, rv32_dr_data[15: 0]};
                             2'b10: rv32_wf_load_val = { {16{rv32_dr_data[31]}}, rv32_dr_data[31:16]};
                             default : rv32_wf_load_val = 0;
@@ -588,7 +590,7 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
                        end
              rv32_pkg::RV32_LW : rv32_wf_load_val = rv32_dr_data;
              rv32_pkg::RV32_LBU: begin
-                        case (rv32_dmem_addr[1:0])
+                        case (rv32_wb_dmem_addr[1:0])
                             2'b00: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[7 : 0]};
                             2'b01: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[15: 8]};
                             2'b10: rv32_wf_load_val = { {24{1'b0}}, rv32_dr_data[23:16]};
@@ -597,7 +599,7 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
                         endcase
                        end
              rv32_pkg::RV32_LHU: begin
-                        case (rv32_dmem_addr[1:0])
+                        case (rv32_wb_dmem_addr[1:0])
                             2'b00: rv32_wf_load_val = { {16{1'b0}}, rv32_dr_data[15: 0]};
                             2'b10: rv32_wf_load_val = { {16{1'b0}}, rv32_dr_data[31:16]};
                             default : rv32_wf_load_val = 0;

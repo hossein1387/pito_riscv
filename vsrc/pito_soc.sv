@@ -56,9 +56,19 @@ rv32_core pito(
     .mvu_if       (mvu_intf                                   )
 );
 
-logic uart_busy_d1;
+rv32_data_t io_val;
+logic io_read;
+always @(posedge clk) begin
+    if ((rv32_dmem.req[`PITO_DATA_MEM_LOCAL_PORT] ==  1'b1) && (dmem_addr == 32'h8000_0001) && rv32_imem.we[`PITO_INSTR_MEM_LOCAL_PORT]==0) begin
+        io_read <= 1'b1;
+        io_val <= {8'b0, 8'b0, 7'b0, uart_busy, uart_data_out[7:0]};
+    end else  begin
+        io_read <= 1'b0;
+        io_val  <= 32'b0;
+    end
+end
 
-assign dmem_rdata = (dmem_addr == 32'h8000_0001) ? rv32_data_t'(uart_busy) : rv32_dmem.rdata[`PITO_DATA_MEM_LOCAL_PORT];
+assign dmem_rdata = (io_read == 1'b1) ? io_val : rv32_dmem.rdata[`PITO_DATA_MEM_LOCAL_PORT];
 assign mem_out_bound = (|dmem_addr[31:22]);
 assign rv32_dmem.we[`PITO_DATA_MEM_LOCAL_PORT]  =  mem_out_bound ? 0 : dmem_wen;
 
@@ -127,7 +137,7 @@ d_mem(
 
 assign uart_data_in  = rv32_dmem.wdata[`PITO_DATA_MEM_LOCAL_PORT];
 assign uart_addr     = dmem_addr;
-assign uart_wr_logic = rv32_dmem.we[`PITO_DATA_MEM_LOCAL_PORT] &&
+assign uart_wr_logic = dmem_wen &&
                        uart_addr[31]==1 && 
                        uart_addr[30:0]==0;
 

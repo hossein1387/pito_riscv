@@ -8,6 +8,7 @@ void main_thread(int hart_id){
     while(1){
         if (hart_id==0){
             printf("Hello Wolrd!\n");
+            return;
         }
     }
 }
