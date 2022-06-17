@@ -35,6 +35,8 @@ add_wave_group soc
 
     add_wave_group -into soc uart
         add_wave -into uart {{/testbench_top/soc/uart/rst_n}}
+        add_wave -into pito {{/testbench_top/soc/io_read}}
+        add_wave -into pito {{/testbench_top/soc/io_val}}
         add_wave -into uart {{/testbench_top/soc/uart/tx}}
         add_wave -into uart {{/testbench_top/soc/uart/rx}}
         add_wave -into uart {{/testbench_top/soc/uart/wr}}
@@ -123,14 +125,16 @@ add_wave_group core
         add_wave -into EXStage {{/testbench_top/soc/pito/rv32_ex_opcode}}
         add_wave -into EXStage {{/testbench_top/soc/pito/rv32_ex_pc}}
         add_wave -into EXStage {{/testbench_top/soc/pito/rv32_ex_imm}}
+        add_wave -into EXStage {{/testbench_top/soc/pito/rv32_ex_rs2_skip}}
 
     add_wave_group -into core WBStage
         add_wave -into WBStage {{/testbench_top/soc/pito/rv32_wb_opcode}}
         add_wave -into WBStage {{/testbench_top/soc/pito/rv32_wb_rd}}
         add_wave -into WBStage {{/testbench_top/soc/pito/rv32_wb_out}}
-        add_wave -into WBStage {{/testbench_top/soc/pito/rv32_wb_rs2_skip}}
         add_wave -into WBStage {{/testbench_top/soc/pito/rv32_wb_pc}}
-        add_wave -into WBStage {{/testbench_top/soc/pito/rv32_wb_skip}}
+        add_wave -into WBStage {{/testbench_top/soc/pito/is_store}}
+        add_wave -into WBStage {{/testbench_top/soc/pito/is_load}}
+        add_wave -into WBStage {{/testbench_top/soc/pito/rv32_wb_is_load}}
         add_wave -into WBStage {{/testbench_top/soc/pito/rv32_wb_instr}}
         add_wave -into WBStage {{/testbench_top/soc/pito/rv32_alu_res}}
         add_wave -into WBStage {{/testbench_top/soc/pito/rv32_dmem_addr}}
@@ -141,15 +145,17 @@ add_wave_group core
         add_wave -into WFStage {{/testbench_top/soc/pito/pc_sel}}
         add_wave -into WFStage {{/testbench_top/soc/pito/alu_src}}
         add_wave -into WFStage {{/testbench_top/soc/pito/rv32_i_addr}}
-        add_wave -into WFStage {{/testbench_top/soc/pito/rv32_dmem_addr}}
+        add_wave -into WFStage {{/testbench_top/soc/pito/rv32_wb_dmem_addr}}
         add_wave -into WFStage {{/testbench_top/soc/pito/rv32_dmem_data}}
         add_wave -into WFStage {{/testbench_top/soc/pito/rv32_dmem_w_en}}
-        add_wave -into WFStage {{/testbench_top/soc/pito/rv32_wf_is_load}}
         add_wave -into WFStage {{/testbench_top/soc/pito/rv32_dr_data}}
         add_wave -into WFStage {{/testbench_top/soc/pito/rv32_wf_instr}}
         add_wave -into WFStage {{/testbench_top/soc/pito/rv32_wf_load_val}}
         add_wave -into WFStage {{/testbench_top/soc/pito/rv32_regf_wd}}
         add_wave -into WFStage {{/testbench_top/soc/pito/rv32_wf_skip}}
+        add_wave -into WFStage {{/testbench_top/soc/pito/rv32_regf_wen}}
+        add_wave -into WFStage {{/testbench_top/soc/pito/rv32_regf_wa}}
+        add_wave -into WFStage {{/testbench_top/soc/pito/rv32_wf_is_load}}
     add_wave_group -into WFStage Next_PC
             add_wave -into Next_PC {{/testbench_top/soc/pito/rv32_next_pc_cal/rv32_alu_res}}
             add_wave -into Next_PC {{/testbench_top/soc/pito/rv32_next_pc_cal/rv32_rs1}}

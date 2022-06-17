@@ -7,7 +7,6 @@ all_tests= ["addi", "and", "andi", "auipc", "beq", "bge", "bgeu", "blt", "bltu",
 "j", "jal", "jalr", "lb", "lbu", "lh", "lhu", "lui", "lw", "or", "ori", "sll", 
 "slli", "slt", "slti", "sra", "srai", "srl", "srli", "sub", "xor",
 "xori", "bne", "sw", "sb", "sh", "add"]
-# all_tests = ['bne']
 # ommitted tests:
 # 
 
@@ -72,6 +71,6 @@ def parse_logs():
             f.close()
 
 # link_binaries()
-# compile_tests()
-# run_sim()
+compile_tests()
+run_sim()
 parse_logs()
