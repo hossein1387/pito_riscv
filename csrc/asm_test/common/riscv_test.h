@@ -14,7 +14,10 @@
 	.text;				\
 	.global TEST_FUNC_NAME;		\
 	.global TEST_FUNC_RET;		\
+
 TEST_FUNC_NAME:				\
+	csrr a0, mhartid; \
+	bne    a0,   x0,   TEST_FUNC_NAME; \
 	lui	a0,%hi(.test_name);	\
 	addi	a0,a0,%lo(.test_name);	\
 	lui	a2,0x10000000>>12;	\

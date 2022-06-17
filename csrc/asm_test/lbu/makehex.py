@@ -1,1 +1,1 @@
-../common/makehex.py
+../../common/makehex.py
