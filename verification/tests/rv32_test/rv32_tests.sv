@@ -2,35 +2,39 @@
 
 class rv32_tests extends pito_testbench_base;
     const string rv32i_base_path = "/users/hemmat/MyRepos/pito_riscv/csrc/riscv_test_regression";
-    int NUM_RV32I_TESTS = 35;
-    string all_rv32i_tests [35] = '{"addi","and","andi","auipc","beq","bge","bgeu","blt","bltu",
+    int NUM_RV32I_TESTS = 37;
+    string all_rv32i_tests [37] = '{"addi","and","andi","auipc","beq","bge","bgeu","blt","bltu",
                                   "bne","j","jal","jalr","lb","lbu","lh","lhu","lui",
                                   "lw","or","ori","sb","sh","sll","slli","slt","slti","sra","srai",
-                                  "srl","srli","sub","sw","xor","xori"};
+                                  "srl","srli","sub","sw", "sh", "sb", "xor","xori"};
     function new(Logger logger, virtual pito_soc_ext_interface inf);
-        super.new(logger, inf, {}, 1);
+        super.new(logger, inf, {}, 1, 1);
     endfunction
 
-    task reset_and_program_pito(input rv32_pkg::rv32_data_q instr_q);
-        logger.print("Putting PITO to reset mode");
-        inf.pito_io_rst_n     = 1'b1;
-        inf.pito_io_dmem_w_en = 1'b0;
-        inf.pito_io_imem_w_en = 1'b0;
-        inf.pito_io_imem_addr = 32'b0;
-        inf.pito_io_dmem_addr = 32'b0;
-        inf.pito_io_program   = 0;
-        inf.mvu_irq_i         = 0;
-        this.instr_q          = instr_q;
+    task reset_and_program_pito(input rv32_pkg::rv32_data_q instr_q, input rv32_pkg::rv32_data_q rodata_q);
+        logger.print("Putting DUT to reset mode");
+        inf.rst_n        = 1'b1;
+        inf.dmem_we      = 1'b0;
+        inf.dmem_be      = 4'b1111;
+        inf.dmem_req     = 1'b0;
+        inf.dmem_addr    = {`PITO_DATA_ADDR_WIDTH{1'b0}};
+        inf.dmem_wdata   = 32'b0;
+        inf.imem_we      = 1'b0;
+        inf.imem_be      = 4'b1111;
+        inf.imem_req     = 1'b0;
+        inf.imem_addr    = {`PITO_INSTR_ADDR_WIDTH{1'b0}};
+        inf.imem_wdata   = 32'b0;
+        inf.pito_program = 0;
 
         @(posedge inf.clk);
-        inf.pito_io_rst_n = 1'b0;
+        inf.rst_n = 1'b0;
         @(posedge inf.clk);
 
-        super.write_instr_to_ram(1, 0);
-        super.write_data_to_ram(instr_q);
+        this.write_instr_to_ram(1, 0);
+        this.write_data_to_ram(1, 0);
 
         @(posedge inf.clk);
-        inf.pito_io_rst_n = 1'b1;
+        inf.rst_n = 1'b1;
         @(posedge inf.clk);
     endtask
 
@@ -38,23 +42,29 @@ class rv32_tests extends pito_testbench_base;
         logger.print_banner("Testbench Setup Phase");
         // Put DUT to reset and relax memory interface
         logger.print("Putting DUT to reset mode");
-        inf.pito_io_rst_n     = 1'b1;
-        inf.pito_io_dmem_w_en = 1'b0;
-        inf.pito_io_imem_w_en = 1'b0;
-        inf.pito_io_imem_addr = 32'b0;
-        inf.pito_io_dmem_addr = 32'b0;
-        inf.pito_io_program   = 0;
-        inf.mvu_irq_i         = 0;
-        logger.print("Setup Phase Done ...");
+        inf.rst_n        = 1'b1;
+        inf.dmem_we      = 1'b0;
+        inf.dmem_be      = 4'b1111;
+        inf.dmem_req     = 1'b0;
+        inf.dmem_addr    = {`PITO_DATA_ADDR_WIDTH{1'b0}};
+        inf.dmem_wdata   = 32'b0;
+        inf.imem_we      = 1'b0;
+        inf.imem_be      = 4'b1111;
+        inf.imem_req     = 1'b0;
+        inf.imem_addr    = {`PITO_INSTR_ADDR_WIDTH{1'b0}};
+        inf.imem_wdata   = 32'b0;
+        inf.pito_program = 0;
     endtask
 
     task run();
         logger.print_banner("Testbench Run phase");
         for (int test_num=0; test_num<NUM_RV32I_TESTS; test_num++) begin
             string test_name = all_rv32i_tests[test_num];
-            firmware = $sformatf("%s/%s.hex", rv32i_base_path, test_name, test_name);
+            firmware = $sformatf("%s/%s_text.hex", rv32i_base_path, test_name, test_name);
+            rodata = $sformatf("%s/%s_data.hex", rv32i_base_path, test_name, test_name);
             instr_q = process_hex_file(firmware, logger, `NUM_INSTR_WORDS); 
-            reset_and_program_pito(instr_q);
+            rodata_q = process_hex_file(rodata, logger, `NUM_INSTR_WORDS); 
+            reset_and_program_pito(instr_q, rodata_q);
             this.monitor.run();
             check_rv32i_test_result(test_name);
         end

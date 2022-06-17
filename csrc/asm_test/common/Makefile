@@ -10,7 +10,7 @@ SRC_OBJ := $(PROJ).obj
 #=================================================================================
 
 LDFLAGS = -nostartfiles  -nostdlib  -Tlink.ld -Map=$(PROJ).map
-CCFLAGS = -march=rv32i -DTEST_FUNC_NAME=$(PROJ) -DTEST_FUNC_RET=$(PROJ)_ret -DTEST_FUNC_TXT='"$(PROJ)"'
+CCFLAGS = -march=rv32i -DTEST_FUNC_NAME=$(PROJ) -DTEST_FUNC_RET=$(PROJ)_ret -DTEST_FUNC_TXT='"$(PROJ)"' -Wa,-mno-relax
 
 #=================================================================================
 # GCC Acronyms

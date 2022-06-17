@@ -21,18 +21,21 @@ class pito_testbench_base extends BaseObj;
     tb_config cfg;
     logic predictor_silent_mode;
 
-    function new (Logger logger, virtual pito_soc_ext_interface inf, int hart_mon_en[$]={}, logic predictor_silent_mode=0);
+    function new (Logger logger, virtual pito_soc_ext_interface inf, int hart_mon_en[$]={}, logic predictor_silent_mode=0, logic rv_reg_tests=0);
         super.new(logger);
         cfg = new(logger);
         void'(cfg.parse_args());
-        this.firmware = cfg.firmware;
-        this.rodata = cfg.rodata;
         this.inf = inf;
         this.predictor_silent_mode = predictor_silent_mode;
+        // For RISC-V regression tests, we initialize ram at run stage
+        if (rv_reg_tests==0) begin
+            this.firmware = cfg.firmware;
+            this.rodata = cfg.rodata;
+            // read hex file and store the first n words to the ram
+            instr_q = process_hex_file(firmware, logger, `NUM_INSTR_WORDS); 
+            rodata_q = process_hex_file(rodata, logger, `NUM_INSTR_WORDS); 
+        end
 
-        // read hex file and store the first n words to the ram
-        instr_q = process_hex_file(firmware, logger, `NUM_INSTR_WORDS); 
-        rodata_q = process_hex_file(rodata, logger, `NUM_INSTR_WORDS); 
         // Check if user has requested to monitor any particular hart/s
         if (hart_mon_en.size()==0) begin
             // Initialize harts in the system
@@ -73,8 +76,8 @@ class pito_testbench_base extends BaseObj;
     // endtask
 
     task write_instr_to_ram(int backdoor, int log_to_console);
+        logger.print($sformatf("Writing %6d instruction words to the Instruction RAM", this.instr_q.size()));
         if(log_to_console) begin
-            logger.print_banner($sformatf("Writing %6d instructions to the Instruction RAM", this.instr_q.size()));
             logger.print($sformatf(" ADDR  INSTRUCTION          INSTR TYPE       OPCODE          DECODING"));
         end
         if (backdoor == 1) begin
@@ -102,9 +105,7 @@ class pito_testbench_base extends BaseObj;
     endtask
 
     task write_data_to_ram(int backdoor, int log_to_console);
-        if(log_to_console) begin
-            logger.print_banner($sformatf("Writing %6d data to the Data RAM", this.rodata_q.size()));
-        end
+        logger.print($sformatf("Writing %6d data words to the Data RAM", this.rodata_q.size()));
         if (backdoor == 1) begin
             for (int addr=0 ; addr<this.rodata_q.size(); addr++) begin
                 `hdl_path_dmem_init[addr] = this.rodata_q[addr];

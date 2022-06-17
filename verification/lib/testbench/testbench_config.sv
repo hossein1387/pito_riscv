@@ -27,7 +27,7 @@ class tb_config extends BaseObj;
         end
 
         if ($value$plusargs("testname=%s", this.testname)) begin
-            logger.print($sformatf("Using %s as testname", firmware));
+            logger.print($sformatf("Using %s as testname", testname));
         end else begin
             logger.print($sformatf("Expecting a command line argument %s", testname));
         end
