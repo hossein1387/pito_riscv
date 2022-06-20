@@ -264,31 +264,32 @@ class pito_monitor extends BaseObj;
         end
     endfunction
 
+    task automatic monitor_uart();
+        string str= $sformatf("");
+        int char;
+        logger.print("Monitoring UART ...");
+        while (1) begin
+            @(posedge `hdl_path_soc_top.uart_busy);
+            char = `hdl_path_soc_top.uart_data_in[7:0];
+            if (char==10) begin
+                logger.print($sformatf("%s", str));
+                str  = "";
+            end
+            str = $sformatf("%s%s", str, string'(char));
+        end
+    endtask
 
-    task automatic run();
+    task automatic monitor_instructions();
+        int hart_valid = 0;
         rv32_opcode_enum_t rv32_wf_opcode;
         rv32_inst_dec_t instr;
-        rv32_instr_t    exp_instr;
         rv32_instr_t    act_instr;
         rv32_pc_cnt_t   pc_cnt, pc_orig_cnt;
         int hart_id;
-        int hart_valid = 0;
-        data_q_t regs_to_monitor;
-        regs_to_monitor.push_back(rv32_abi_reg_i["ra"]);
-        regs_to_monitor.push_back(rv32_abi_reg_i["sp"]);
-        logger.print("Starting Monitor Task");
-        logger.print("Monitoring the following harts:");
-        foreach(this.hart_ids_q[i]) begin
-            if (this.hart_ids_q[i]==1) begin
-                logger.print($sformatf("\tHart[%0d]", i));
-            end
-        end
-        this.sync_with_dut();
         while(`hdl_path_top.is_end == 1'b0) begin
             // logger.print($sformatf("pc=%d       decode:%s", `hdl_path_top.rv32_dec_pc, `hdl_path_top.rv32_dec_opcode.name));
             // logger.print($sformatf("hart id=%1d  is_set=%1d", `hdl_path_top.rv32_hart_wf_cnt, hart_ids_q[`hdl_path_top.rv32_hart_wf_cnt]));
             if (hart_ids_q[`hdl_path_top.rv32_hart_wf_cnt] == 1) begin
-                // exp_instr      = instr_q.pop_front();
                 pc_cnt         = `hdl_path_top.rv32_wf_pc[`hdl_path_top.rv32_hart_wf_cnt];
                 pc_orig_cnt    = `hdl_path_top.rv32_org_wf_pc;
                 act_instr      = `hdl_path_top.rv32_wf_instr;
@@ -310,6 +311,24 @@ class pito_monitor extends BaseObj;
             end
         end
         logger.print($sformatf("Exception signal was received from HART[%0d] code name: %s, %8h", hart_id, `hdl_path_top.rv32_wf_opcode.name, `hdl_path_top.rv32_wf_opcode));
+    endtask
+
+    task automatic run();
+        data_q_t regs_to_monitor;
+        regs_to_monitor.push_back(rv32_abi_reg_i["ra"]);
+        regs_to_monitor.push_back(rv32_abi_reg_i["sp"]);
+        logger.print("Starting Monitor Task");
+        logger.print("Monitoring the following harts:");
+        foreach(this.hart_ids_q[i]) begin
+            if (this.hart_ids_q[i]==1) begin
+                logger.print($sformatf("\tHart[%0d]", i));
+            end
+        end
+        this.sync_with_dut();
+        fork
+            monitor_instructions();
+            monitor_uart();
+        join_any
     endtask
 
 endclass

@@ -573,7 +573,9 @@ class RV32IPredictor extends BaseObj;
                     default : /* default */;
                 endcase
             end else begin
-                this.logger.print($sformatf("ERROR: Attempt to write to hart[%1d].csr[%s] has failed. No write access is allowed.", hart_id, csr.name));
+                if (this.predictor_silent_mode!=1) begin
+                    this.logger.print($sformatf("ERROR: Attempt to write to hart[%1d].csr[%s] has failed. No write access is allowed.", hart_id, csr.name));
+                end
             end
         end
         // this.logger.print($sformatf("\t\t\t=>CSR_MRET: %8h", this.csrf_model[hart_id][pito_pkg::CSR_MRET]));
@@ -582,7 +584,9 @@ class RV32IPredictor extends BaseObj;
 
     function void write_to_mem(int addr, int val, int size);
         if (addr > this.MEM_SIZE) begin
-            this.logger.print($sformatf("ERROR: Access out of region, requested addr=0x%8h, memory size=0x%8h", addr, this.MEM_SIZE));
+            if (this.predictor_silent_mode!=1) begin
+                this.logger.print($sformatf("ERROR: Access out of region, requested addr=0x%8h, memory size=0x%8h", addr, this.MEM_SIZE));
+            end
         end
         if (size==1) begin
             riscv_data_mem[addr] = { {24{val[7]}} , val[7:0]};
@@ -595,13 +599,17 @@ class RV32IPredictor extends BaseObj;
             // riscv_data_mem[addr+2] = val[23 : 16];
             // riscv_data_mem[addr+3] = val[31 : 24];
         end else begin
-            this.logger.print($sformatf("ERROR: Access out of region, requested addr=0x%8h, memory size=0x%8h", addr, this.MEM_SIZE));
+            if (this.predictor_silent_mode!=1) begin
+                this.logger.print($sformatf("ERROR: Access out of region, requested addr=0x%8h, memory size=0x%8h", addr, this.MEM_SIZE));
+            end
         end
     endfunction
 
     function int read_val_partial(int ret_val, int addr, int size, bit is_signed);
         if (addr > this.MEM_SIZE) begin
-            this.logger.print($sformatf("ERROR: Access out of region, addr=0x%8h, mem_size=0x%8h", addr, this.MEM_SIZE));
+            if (this.predictor_silent_mode!=1) begin
+                this.logger.print($sformatf("ERROR: Access out of region, addr=0x%8h, mem_size=0x%8h", addr, this.MEM_SIZE));
+            end
         end
         if (size==1) begin
             if (is_signed) begin

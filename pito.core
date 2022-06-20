@@ -73,7 +73,7 @@ targets:
         description: Simulate the design
         tools: 
             xsim:
-                xelab_options: [--debug, typical, -L, secureip, -L, unisims_ver, -L, unimacro_ver, -L, work.glbl, --timescale, 1ns/1ps]
+                xelab_options: [--debug, typical, -L, secureip, -L, unisims_ver, -L, unimacro_ver, -L, work.glbl, --timescale, 1ns/1ps, --define, SIMULATION_MODE]
         parameters: [firmware,rodata]
         toplevel: testbench_top
     synth:
@@ -94,3 +94,4 @@ parameters:
         datatype  : file
         default   : /users/hemmat/MyRepos/pito_riscv/csrc/uart/build/uart_data.hex
         paramtype : plusarg
+
