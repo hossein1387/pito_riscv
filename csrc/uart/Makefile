@@ -43,7 +43,7 @@ all:
 	$(OD) -D $(OUT_DIR)/$(PROJ).elf > $(OUT_DIR)/$(PROJ).obj
 	$(OC) -O binary $(OUT_DIR)/$(PROJ).elf $(OUT_DIR)/$(PROJ).text --only-section .init --only-section .text
 	python3 $(COMMON_DIR)/makehex.py $(OUT_DIR)/$(PROJ).text 8192 > $(OUT_DIR)/$(PROJ)_text.hex
-	$(OC) -O binary $(OUT_DIR)/$(PROJ).elf $(OUT_DIR)/$(PROJ).data --only-section .rodata
+	$(OC) -O binary $(OUT_DIR)/$(PROJ).elf $(OUT_DIR)/$(PROJ).data --only-section .rodata --only-section .sdata  --only-section .sdata* --only-section .sbss* --only-section .bss 
 	python3 $(COMMON_DIR)/makehex.py $(OUT_DIR)/$(PROJ).data 8192 > $(OUT_DIR)/$(PROJ)_data.hex
 
 .PHONY: clean
