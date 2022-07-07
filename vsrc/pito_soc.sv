@@ -1,5 +1,5 @@
 `include "rv32_defines.svh"
-
+`include "testbench_macros.svh"
 module pito_soc import rv32_pkg::*;import pito_pkg::*;(
     pito_soc_ext_interface.soc_ext ext_intf,
     mvu_interface  mvu_intf
@@ -55,6 +55,17 @@ rv32_core pito(
     .dmem_be      (rv32_dmem.be   [`PITO_DATA_MEM_LOCAL_PORT] ),
     .mvu_if       (mvu_intf                                   )
 );
+
+
+always @(posedge clk) begin
+    if (rv32_dmem.req  [`PITO_DATA_MEM_LOCAL_PORT]==1) begin
+        if (dmem_wen==1) begin
+                $display($sformatf("%t HART[%1d] is writing %8h to %8h",$time(), `hdl_path_top.rv32_hart_wb_cnt, rv32_dmem.wdata[`PITO_DATA_MEM_LOCAL_PORT], dmem_addr));
+        end else begin
+                $display($sformatf("%t HART[%1d] is reading from %8h",$time(), `hdl_path_top.rv32_hart_ex_cnt, dmem_addr));
+        end
+    end
+end
 
 rv32_data_t io_val;
 logic io_read;
