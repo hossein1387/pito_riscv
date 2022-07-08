@@ -37,6 +37,7 @@
 
 int putchar(int c);
 void putstr(char *p);
+void putnum(unsigned i, int base);
 int puts(char *p);
 int printf(char *fmt,...);
 int strcmp(char *s1, char *s2);

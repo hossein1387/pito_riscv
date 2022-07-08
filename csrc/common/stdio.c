@@ -67,8 +67,8 @@ int printf(char *fmt,...)
         {
             fmt++;
                  if(*fmt=='s') putstr(va_arg(ap,char *));
-            // else if(*fmt=='x') putnum(va_arg(ap,int),16);
-            // else if(*fmt=='d') putnum(va_arg(ap,int),10);
+            else if(*fmt=='x') putnum(va_arg(ap,int),16);
+            else if(*fmt=='d') putnum(va_arg(ap,int),10);
             else putchar(*fmt);
         }
         else putchar(*fmt);
@@ -79,6 +79,36 @@ int printf(char *fmt,...)
     return 0;
 }
 
+void putnum(unsigned i, int base)
+{
+    char ascii[]="0123456789abcdef";
+    char stack[32];
+    int  ptr = 0;
+    if(base==10)
+    {
+        int j = i;
+        
+        if(j<0)
+        {
+            i = -j;
+        }
+    }
+
+    do
+    {
+        stack[ptr++] = ascii[(i%base)];
+        i/=base;
+        
+        if(base!=10)
+        {
+            stack[ptr++] = ascii[(i%base)];
+            i/=base;
+        }        
+    } 
+    while(i);
+
+    while(ptr) putchar(stack[--ptr]);
+}
 // string manipulation
 
 int strncmp(char *s1,char *s2,int len)

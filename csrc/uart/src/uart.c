@@ -9,7 +9,7 @@ int hart_id_cnt = 7;
 void main_thread(int hart_id){
     while(hart_id_cnt!=-1){
         if (hart_id==hart_id_cnt){
-            printf("Hello Wolrd!\n");
+            printf("Hello World from HART:%d\n", hart_id);
             hart_id_cnt = hart_id_cnt -1;
         }
     }
