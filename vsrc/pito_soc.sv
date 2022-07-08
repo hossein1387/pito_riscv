@@ -56,16 +56,17 @@ rv32_core pito(
     .mvu_if       (mvu_intf                                   )
 );
 
-
-always @(posedge clk) begin
-    if (rv32_dmem.req  [`PITO_DATA_MEM_LOCAL_PORT]==1) begin
-        if (dmem_wen==1) begin
-                $display($sformatf("%t HART[%1d] is writing %8h to %8h",$time(), `hdl_path_top.rv32_hart_wb_cnt, rv32_dmem.wdata[`PITO_DATA_MEM_LOCAL_PORT], dmem_addr));
-        end else begin
-                $display($sformatf("%t HART[%1d] is reading from %8h",$time(), `hdl_path_top.rv32_hart_ex_cnt, dmem_addr));
+`ifdef DEBUG
+    always @(posedge clk) begin
+        if (rv32_dmem.req  [`PITO_DATA_MEM_LOCAL_PORT]==1) begin
+            if (dmem_wen==1) begin
+                    $display($sformatf("%t HART[%1d] is writing %8h to %8h",$time(), `hdl_path_top.rv32_hart_ex_cnt, rv32_dmem.wdata[`PITO_DATA_MEM_LOCAL_PORT], dmem_addr));
+            end else begin
+                    $display($sformatf("%t HART[%1d] is reading from %8h",$time(), `hdl_path_top.rv32_hart_ex_cnt, dmem_addr));
+            end
         end
     end
-end
+`endif 
 
 rv32_data_t io_val;
 logic io_read;

@@ -45,11 +45,6 @@ add_wave_group soc
         add_wave -into uart {{/testbench_top/soc/uart/rx_data}}
         add_wave -into uart {{/testbench_top/soc/uart/busy}}
         add_wave -into uart {{/testbench_top/soc/uart/valid}}
-        add_wave -into uart {{/testbench_top/soc/uart/send_pattern}}
-        add_wave -into uart {{/testbench_top/soc/uart/send_dummy}}
-        add_wave -into uart {{/testbench_top/soc/uart/send_bitcnt}}
-        add_wave -into uart {{/testbench_top/soc/uart/send_divcnt}}
-
 add_wave_group core
     add_wave -into core {{/testbench_top/soc/pito/clk}}
     add_wave -into core {{/testbench_top/soc/pito/rst_n}}
@@ -126,6 +121,7 @@ add_wave_group core
         add_wave -into EXStage {{/testbench_top/soc/pito/rv32_ex_pc}}
         add_wave -into EXStage {{/testbench_top/soc/pito/rv32_ex_imm}}
         add_wave -into EXStage {{/testbench_top/soc/pito/rv32_ex_rs2_skip}}
+        add_wave -into EXStage {{/testbench_top/soc/pito/rv32_ex_dmem_addr}}
 
     add_wave_group -into core WBStage
         add_wave -into WBStage {{/testbench_top/soc/pito/rv32_wb_opcode}}
@@ -138,6 +134,7 @@ add_wave_group core
         add_wave -into WBStage {{/testbench_top/soc/pito/rv32_wb_instr}}
         add_wave -into WBStage {{/testbench_top/soc/pito/rv32_alu_res}}
         add_wave -into WBStage {{/testbench_top/soc/pito/rv32_dmem_addr}}
+        
         add_wave -into WBStage {{/testbench_top/soc/pito/rv32_dmem_data}}
     add_wave_group -into core WFStage
         add_wave -into WFStage {{/testbench_top/soc/pito/rv32_wf_opcode}}

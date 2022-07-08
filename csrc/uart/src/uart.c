@@ -4,11 +4,13 @@
 #define N 8
 extern int get_pito_hart_id();
 
+int hart_id_cnt = 7;
+
 void main_thread(int hart_id){
-    while(1){
-        if (hart_id==0){
+    while(hart_id_cnt!=-1){
+        if (hart_id==hart_id_cnt){
             printf("Hello Wolrd!\n");
-            return;
+            hart_id_cnt = hart_id_cnt -1;
         }
     }
 }
