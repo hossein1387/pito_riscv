@@ -7,28 +7,31 @@ typedef rv32_instr_t;
 //-------------------------------------------------------------------
 //                        None-Structured data types
 //-------------------------------------------------------------------
-typedef logic [`XPR_LEN-1              : 0 ] rv32_pc_cnt_t;
-typedef logic [4                       : 0 ] rv32_register_field_t;
-typedef logic [`XPR_LEN-1              : 0 ] rv32_register_t;
-typedef logic [`ALU_OPCODE_WIDTH-1     : 0 ] alu_opcode_t;
-typedef logic [`XPR_LEN-1              : 0 ] rv32_imm_t;
-typedef logic [2                       : 0 ] fnct3_t;
-typedef logic [6                       : 0 ] fnct7_t;
-typedef logic [`OPCODE_LEN-1           : 0 ] rv32_opcode_t;
-typedef logic [12                      : 0 ] rv32_csr_t;
-typedef logic [4                       : 0 ] rv32_zimm_t;
-typedef logic [4                       : 0 ] rv32_shamt_t;
-typedef logic [`REG_ADDR_WIDTH-1       : 0 ] rv32_regfile_addr_t;
-typedef logic [`NUM_CSR-1:0][`XPR_LEN-1:0]   rv32_csrfile_t;
-typedef logic [`ALU_OPCODE_WIDTH-1     : 0 ] rv32_alu_op_t;
-typedef logic [`XPR_LEN-1              : 0 ] rv32_data_t;
-typedef logic [`PITO_INSTR_MEM_WIDTH-1 : 0 ] rv32_imem_addr_t;
-typedef logic [`PITO_DATA_MEM_WIDTH-1  : 0 ] rv32_dmem_addr_t;
-typedef logic [`NUM_REGS-1:0 ][`XPR_LEN-1:0] rv32_regfile_t;
-typedef rv32_data_t                          rv32_data_q[$];
-typedef logic [`PITO_HART_CNT_WIDTH-1  : 0 ] rv32_hart_cnt_t;
-typedef logic [`XPR_LEN-1              : 0 ] rv32_instr_t;
-typedef int                                  data_q_t[$];
+typedef logic [`XPR_LEN-1              : 0   ] rv32_pc_cnt_t;
+typedef logic [4                       : 0   ] rv32_register_field_t;
+typedef logic [`XPR_LEN-1              : 0   ] rv32_register_t;
+typedef logic [`ALU_OPCODE_WIDTH-1     : 0   ] alu_opcode_t;
+typedef logic [`XPR_LEN-1              : 0   ] rv32_imm_t;
+typedef logic [2                       : 0   ] fnct3_t;
+typedef logic [6                       : 0   ] fnct7_t;
+typedef logic [`OPCODE_LEN-1           : 0   ] rv32_opcode_t;
+typedef logic [12                      : 0   ] rv32_csr_t;
+typedef logic [4                       : 0   ] rv32_zimm_t;
+typedef logic [4                       : 0   ] rv32_shamt_t;
+typedef logic [`REG_ADDR_WIDTH-1       : 0   ] rv32_regfile_addr_t;
+typedef logic [`NUM_CSR-1:0][`XPR_LEN-1:0]     rv32_csrfile_t;
+typedef logic [`ALU_OPCODE_WIDTH-1     : 0   ] rv32_alu_op_t;
+typedef logic [`XPR_LEN-1              : 0   ] rv32_data_t;
+typedef logic [`PITO_INSTR_ADDR_WIDTH-1: 0   ] rv32_imem_addr_t;
+typedef logic [`PITO_INSTR_MEM_ADDR_WIDTH-1:0] pito_imem_addr_t;
+typedef logic [`PITO_DATA_MEM_ADDR_WIDTH-1:0 ] pito_dmem_addr_t;
+typedef logic [`PITO_DATA_ADDR_WIDTH-1 : 0   ] rv32_dmem_addr_t;
+typedef logic [`NUM_REGS-1:0 ][`XPR_LEN-1:0  ] rv32_regfile_t;
+typedef rv32_data_t                            rv32_data_q[$];
+typedef logic [`PITO_HART_CNT_WIDTH-1  : 0   ] rv32_hart_cnt_t;
+typedef logic [`XPR_LEN-1              : 0   ] rv32_instr_t;
+typedef int                                    data_q_t[$];
+typedef logic [`BYTE_WIDTH-1           : 0   ] rv32_byte_t;
 
 //-------------------------------------------------------------------
 //                          RV32 Insrtuction Types Decoding
@@ -91,6 +94,27 @@ typedef struct packed {
     rv32_opcode_t   opcode;
 } rv32_dec_op_t;
 
+
+typedef logic [`PITO_INSTR_MEM_BYTE_ENABLE_WIDTH-1:0]   imem_be_t;
+typedef logic [`PITO_DATA_MEM_BYTE_ENABLE_WIDTH-1:0]    dmem_be_t;
+
+typedef struct packed {
+    rv32_data_t [`PITO_INSTR_MEM_PORTS-1:0] wdata;
+    rv32_data_t [`PITO_INSTR_MEM_PORTS-1:0] rdata;
+    pito_imem_addr_t [`PITO_INSTR_MEM_PORTS-1:0] addr;
+    logic [`PITO_INSTR_MEM_PORTS-1:0] req;
+    logic [`PITO_INSTR_MEM_PORTS-1:0] we;
+    imem_be_t [`PITO_INSTR_MEM_PORTS-1:0] be;
+} rv32_imem_t;
+
+typedef struct packed {
+    rv32_data_t [`PITO_DATA_MEM_PORTS-1:0] wdata;
+    rv32_data_t [`PITO_DATA_MEM_PORTS-1:0] rdata;
+    pito_dmem_addr_t [`PITO_DATA_MEM_PORTS-1:0] addr;
+    logic [`PITO_DATA_MEM_PORTS-1:0] req;
+    logic [`PITO_DATA_MEM_PORTS-1:0] we;
+    dmem_be_t [`PITO_DATA_MEM_PORTS-1:0] be;
+} rv32_dmem_t;
 
 //typedef union packed {
 //    logic [`XPR_LEN-1:0] rv32_instr_t;

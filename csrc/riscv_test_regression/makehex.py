@@ -1,1 +1,1 @@
-../asm_test/common/makehex.py
+../common/makehex.py

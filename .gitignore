@@ -18,3 +18,11 @@ synthesis/
 *.obj
 .DS_Store
 build/
+csrc/asm_test/**/*.data
+csrc/asm_test/**/*.map
+csrc/asm_test/**/*.elf
+csrc/asm_test/**/*.text
+csrc/riscv_test_regression/**/*.data
+csrc/riscv_test_regression/**/*.map
+csrc/riscv_test_regression/**/*.elf
+csrc/riscv_test_regression/**/*.text

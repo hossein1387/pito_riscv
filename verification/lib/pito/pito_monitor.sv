@@ -1,5 +1,6 @@
 `include "rv32_defines.svh"
 `include "testbench_macros.svh"
+
 import rv32_utils::*;
 import utils::*;
 import pito_pkg::*;
@@ -7,18 +8,22 @@ import rv32_pkg::*;
 
 class pito_monitor extends BaseObj;
 
-    virtual pito_interface inf;
+    virtual pito_soc_ext_interface inf;
     rv32_utils::RV32IDecoder rv32i_dec;
     rv32_utils::RV32IPredictor rv32i_pred;
     rv32_pkg::rv32_data_q instr_q;
+    rv32_pkg::rv32_data_q rodata_q;
     int hart_ids_q[$]; // hart id to monitor
+    logic predictor_silent_mode;
 
-    function new (Logger logger, rv32_pkg::rv32_data_q instr_q, virtual pito_interface pito_inf, int hart_ids_q[$], test_stats_t test_stat);
+    function new (Logger logger, rv32_pkg::rv32_data_q instr_q, rv32_pkg::rv32_data_q rodata_q, virtual pito_soc_ext_interface pito_inf, int hart_ids_q[$], test_stats_t test_stat, logic predictor_silent_mode=0);
         super.new (logger);   // Calls 'new' method of parent class
         this.inf = pito_inf;
         this.instr_q = instr_q;
+        this.rodata_q = rodata_q;
         this.rv32i_dec = new(this.logger);
-        this.rv32i_pred = new(this.logger, this.instr_q, `PITO_NUM_HARTS, test_stat);
+        this.predictor_silent_mode = predictor_silent_mode;
+        this.rv32i_pred = new(this.logger, this.instr_q, this.rodata_q, `PITO_NUM_HARTS, test_stat, `PITO_DATA_MEM_SIZE, this.predictor_silent_mode);
         this.hart_ids_q = hart_ids_q;
     endfunction
 
@@ -144,7 +149,7 @@ class pito_monitor extends BaseObj;
         endcase
             // logger.print($sformatf("\t ->    addr[%8h] reg_val=%4d + imm=%4d - off=%d ", addr, reg_val, signed'(imm), `PITO_DATA_MEM_OFFSET));
             addr = addr >> 2;
-            read_val = `hdl_path_top.d_mem.bram_32Kb_inst.inst.native_mem_module.blk_mem_gen_v8_4_3_inst.memory[addr];
+            read_val = `hdl_path_dmem[addr];
             // logger.print($sformatf("\t -> %s is accessing mem[%8h]: %d", opcode.name, addr, read_val));
         // if (opcode==RV32_SB || opcode==RV32_SH || opcode==RV32_SW) begin
         //     logger.print($sformatf("\t -> reg_val[%2d]=%4h hart_id=%4d, addr=%4d, read_val=%4d", rs1, reg_val, hart_id, addr, read_val));
@@ -158,7 +163,7 @@ class pito_monitor extends BaseObj;
         addr_from = addr_from;
         addr_to   = addr_to  ;
         for (int addr=addr_from; addr<=addr_to; addr+=4) begin
-            mem_val = `hdl_path_top.d_mem.bram_32Kb_inst.inst.native_mem_module.blk_mem_gen_v8_4_3_inst.memory[addr];
+            mem_val = `hdl_path_dmem[addr];
             if (radix == "int") begin
                 logger.print($sformatf("0x%4h: %8h", addr, mem_val));
             end else begin
@@ -251,7 +256,7 @@ class pito_monitor extends BaseObj;
         for (int i=0; i<8; i++) begin
             for (int j=0; j<4; j++) begin
                 addr = start_addr - (j + i*4);
-                read_val = `hdl_path_top.d_mem.bram_32Kb_inst.inst.native_mem_module.blk_mem_gen_v8_4_3_inst.memory[addr];
+                read_val = `hdl_path_dmem[addr];
                 temp_str = $sformatf("%s  %4h: 0x%8h", temp_str, addr, read_val);
             end
             logger.print($sformatf("%s", temp_str));
@@ -259,31 +264,32 @@ class pito_monitor extends BaseObj;
         end
     endfunction
 
+    task automatic monitor_uart();
+        string str= $sformatf("");
+        int char;
+        logger.print("Monitoring UART ...");
+        while (1) begin
+            @(posedge `hdl_path_soc_top.uart_busy);
+            char = `hdl_path_soc_top.uart_data_in[7:0];
+            if (char==10) begin
+                logger.print($sformatf("%s", str));
+                str  = "";
+            end
+            str = $sformatf("%s%s", str, string'(char));
+        end
+    endtask
 
-    task automatic run();
+    task automatic monitor_instructions();
+        int hart_valid = 0;
         rv32_opcode_enum_t rv32_wf_opcode;
         rv32_inst_dec_t instr;
-        rv32_instr_t    exp_instr;
         rv32_instr_t    act_instr;
         rv32_pc_cnt_t   pc_cnt, pc_orig_cnt;
         int hart_id;
-        int hart_valid = 0;
-        data_q_t regs_to_monitor;
-        regs_to_monitor.push_back(rv32_abi_reg_i["ra"]);
-        regs_to_monitor.push_back(rv32_abi_reg_i["sp"]);
-        logger.print("Starting Monitor Task");
-        logger.print("Monitoring the following harts:");
-        foreach(this.hart_ids_q[i]) begin
-            if (this.hart_ids_q[i]==1) begin
-                logger.print($sformatf("\tHart[%0d]", i));
-            end
-        end
-        this.sync_with_dut();
         while(`hdl_path_top.is_end == 1'b0) begin
             // logger.print($sformatf("pc=%d       decode:%s", `hdl_path_top.rv32_dec_pc, `hdl_path_top.rv32_dec_opcode.name));
             // logger.print($sformatf("hart id=%1d  is_set=%1d", `hdl_path_top.rv32_hart_wf_cnt, hart_ids_q[`hdl_path_top.rv32_hart_wf_cnt]));
             if (hart_ids_q[`hdl_path_top.rv32_hart_wf_cnt] == 1) begin
-                // exp_instr      = instr_q.pop_front();
                 pc_cnt         = `hdl_path_top.rv32_wf_pc[`hdl_path_top.rv32_hart_wf_cnt];
                 pc_orig_cnt    = `hdl_path_top.rv32_org_wf_pc;
                 act_instr      = `hdl_path_top.rv32_wf_instr;
@@ -299,12 +305,30 @@ class pito_monitor extends BaseObj;
                 rv32i_pred.predict(act_instr, instr, pc_cnt, pc_orig_cnt, read_regs(hart_id), read_csrs(hart_id), read_dmem_word(instr, hart_id), hart_id);
                 // $display("\n");
                 // @(posedge clk);
-                this.show_regs(0, regs_to_monitor);
-                this.show_stack(1024);
+                // this.show_regs(0, regs_to_monitor);
+                // this.show_stack(1024);
                 hart_valid = 0;
             end
         end
         logger.print($sformatf("Exception signal was received from HART[%0d] code name: %s, %8h", hart_id, `hdl_path_top.rv32_wf_opcode.name, `hdl_path_top.rv32_wf_opcode));
+    endtask
+
+    task automatic run();
+        data_q_t regs_to_monitor;
+        regs_to_monitor.push_back(rv32_abi_reg_i["ra"]);
+        regs_to_monitor.push_back(rv32_abi_reg_i["sp"]);
+        logger.print("Starting Monitor Task");
+        logger.print("Monitoring the following harts:");
+        foreach(this.hart_ids_q[i]) begin
+            if (this.hart_ids_q[i]==1) begin
+                logger.print($sformatf("\tHart[%0d]", i));
+            end
+        end
+        this.sync_with_dut();
+        fork
+            monitor_instructions();
+            monitor_uart();
+        join_any
     endtask
 
 endclass
