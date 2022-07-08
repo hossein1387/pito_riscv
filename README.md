@@ -5,9 +5,9 @@ A pito version of rv32i
 
 
 # How to Run:
-First make sure the Vivado is sourced, example for Vivado 2019.1: 
+First make sure the Vivado is sourced, example for Vivado 2021.1: 
     
-    source /opt/Xilinx/Vivado/2019.1/settings64.sh
+    source /opt/Xilinx/Vivado/2021.1/settings64.sh
 
 Then make sure you have fusesoc installed:
 
@@ -17,6 +17,7 @@ Then add `pito` to your fusesoc libraries:
     
     git clone https://github.com/hossein1387/pito_riscv.git
     cd pito_riscv
+    git submodule update --init
     fusesoc library add pito .
 
 Then run simulation (No GUI):
