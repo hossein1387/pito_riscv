@@ -40,7 +40,6 @@ assign rv32_dmem.addr[`PITO_DATA_MEM_LOCAL_PORT]  = dmem_addr[`PITO_DATA_MEM_ADD
 rv32_core pito(
     .clk          (clk                                        ),
     .rst_n        (rst_n                                      ),
-    .pito_program (ext_intf.pito_program                      ),
     .imem_wdata   (rv32_imem.wdata[`PITO_INSTR_MEM_LOCAL_PORT]),
     .imem_rdata   (rv32_imem.rdata[`PITO_INSTR_MEM_LOCAL_PORT]),
     .imem_addr    (imem_addr                                  ),

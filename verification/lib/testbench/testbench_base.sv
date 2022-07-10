@@ -145,7 +145,6 @@ class pito_testbench_base extends BaseObj;
         inf.imem_req     = 1'b0;
         inf.imem_addr    = {`PITO_INSTR_ADDR_WIDTH{1'b0}};
         inf.imem_wdata   = 32'b0;
-        inf.pito_program = 0;
 
         @(posedge inf.clk);
         inf.rst_n = 1'b0;
@@ -169,22 +168,28 @@ class pito_testbench_base extends BaseObj;
 
     virtual task report();
         test_stats_t test_stat = this.monitor.get_results();
+        int total_num_instr=0;
         logger.print_banner("Testbench Report phase");
-        print_result(test_stat, VERB_LOW, logger);
-        for (int hart=0; hart<NUM_HARTS; hart++) begin
-            if (this.hart_ids_q[hart] == 1) begin
-                byte char_0 = `hdl_path_regf_0[rv32_abi_reg_i["a0"]];
-                byte char_1 = `hdl_path_regf_0[rv32_abi_reg_i["a1"]];
-                byte char_2 = `hdl_path_regf_0[rv32_abi_reg_i["a2"]];
-                byte char_3 = `hdl_path_regf_0[rv32_abi_reg_i["a3"]];
-                int  t_num  = `hdl_path_regf_0[rv32_abi_reg_i["t3"]];
-                logger.print($sformatf("RISC-V TEST Result:%s%s%s%s", char_0, char_1, char_2, char_3));
-                // check if the test has failed, if yes, print the test number
-                if (char_1==69 && char_2==82 && char_3==79) begin 
-                    logger.print($sformatf("Failed at test:%2d", t_num));
+        `ifdef RV32_TEST
+            print_result(test_stat, VERB_LOW, logger);
+            for (int hart=0; hart<NUM_HARTS; hart++) begin
+                if (this.hart_ids_q[hart] == 1) begin
+                    byte char_0 = `hdl_path_regf_0[rv32_abi_reg_i["a0"]];
+                    byte char_1 = `hdl_path_regf_0[rv32_abi_reg_i["a1"]];
+                    byte char_2 = `hdl_path_regf_0[rv32_abi_reg_i["a2"]];
+                    byte char_3 = `hdl_path_regf_0[rv32_abi_reg_i["a3"]];
+                    int  t_num  = `hdl_path_regf_0[rv32_abi_reg_i["t3"]];
+                    logger.print($sformatf("RISC-V TEST Result:%s%s%s%s", char_0, char_1, char_2, char_3));
+                    // check if the test has failed, if yes, print the test number
+                    if (char_1==69 && char_2==82 && char_3==79) begin 
+                        logger.print($sformatf("Failed at test:%2d", t_num));
+                    end
                 end
             end
-        end
+        `else
+            total_num_instr = test_stat.pass_cnt+test_stat.fail_cnt;
+            logger.print($sformatf("Total number of instructions: %d", total_num_instr));
+        `endif
     endtask
 
 endclass

@@ -1,7 +1,6 @@
 //-------------------------------------------------------------------
 //                          System Macros
 //-------------------------------------------------------------------
-`define DEBUG 1
 `define PITO_NULL  0
 `define NUM_REGS 32
 `define NUM_CSR 4096
@@ -60,7 +59,7 @@
 //                          ALU opcodes
 //-------------------------------------------------------------------
 // custom mapping alu opcodes
-
+// Xilinx does not support non-integral typedefs, using macros instead
 `define ALU_SLL   `ALU_OPCODE_WIDTH'd0
 `define ALU_SRL   `ALU_OPCODE_WIDTH'd1
 `define ALU_SRA   `ALU_OPCODE_WIDTH'd2

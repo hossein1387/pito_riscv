@@ -179,7 +179,6 @@ class pito_monitor extends BaseObj;
             logger.print($sformatf("EXECUTE:  %s", `hdl_path_top.rv32_ex_opcode.name  ));
             logger.print($sformatf("WRITEB :  %s", `hdl_path_top.rv32_wb_opcode.name  ));
             logger.print($sformatf("WRITEF :  %s", `hdl_path_top.rv32_wf_opcode.name  ));
-            logger.print($sformatf("CAP    :  %s", `hdl_path_top.rv32_cap_opcode.name  ));
             logger.print("\n");
     endfunction 
 
@@ -273,9 +272,10 @@ class pito_monitor extends BaseObj;
             char = `hdl_path_soc_top.uart_data_in[7:0];
             if (char==10) begin
                 logger.print($sformatf("%s", str));
-                str  = "";
+                str  = $sformatf("");
+            end else begin
+                str = $sformatf("%s%s", str, string'(char));
             end
-            str = $sformatf("%s%s", str, string'(char));
         end
     endtask
 
@@ -286,29 +286,22 @@ class pito_monitor extends BaseObj;
         rv32_instr_t    act_instr;
         rv32_pc_cnt_t   pc_cnt, pc_orig_cnt;
         int hart_id;
-        while(`hdl_path_top.is_end == 1'b0) begin
-            // logger.print($sformatf("pc=%d       decode:%s", `hdl_path_top.rv32_dec_pc, `hdl_path_top.rv32_dec_opcode.name));
-            // logger.print($sformatf("hart id=%1d  is_set=%1d", `hdl_path_top.rv32_hart_wf_cnt, hart_ids_q[`hdl_path_top.rv32_hart_wf_cnt]));
+        logic is_sim_end = 1'b0;
+        while(is_sim_end == 1'b0) begin
             if (hart_ids_q[`hdl_path_top.rv32_hart_wf_cnt] == 1) begin
                 pc_cnt         = `hdl_path_top.rv32_wf_pc[`hdl_path_top.rv32_hart_wf_cnt];
                 pc_orig_cnt    = `hdl_path_top.rv32_org_wf_pc;
                 act_instr      = `hdl_path_top.rv32_wf_instr;
-                rv32_wf_opcode = `hdl_path_top.rv32_wf_opcode;
-                // logger.print($sformatf("Decoding %h", `hdl_path_top.rv32_wf_instr));
                 instr          = this.rv32i_dec.decode_instr(act_instr);
                 hart_valid     = 1;
                 hart_id        = `hdl_path_top.rv32_hart_wf_cnt;
             end
             @(negedge inf.clk);
             if (hart_valid == 1) begin
-                // $display($sformatf("instr: %s",rv32_wf_opcode.name));
                 rv32i_pred.predict(act_instr, instr, pc_cnt, pc_orig_cnt, read_regs(hart_id), read_csrs(hart_id), read_dmem_word(instr, hart_id), hart_id);
-                // $display("\n");
-                // @(posedge clk);
-                // this.show_regs(0, regs_to_monitor);
-                // this.show_stack(1024);
                 hart_valid = 0;
             end
+            is_sim_end = ((`hdl_path_top.rv32_wf_opcode ==  rv32_pkg::RV32_ECALL) || (`hdl_path_top.rv32_wf_opcode ==  rv32_pkg::RV32_EBREAK)) ? 1'b1 : 1'b0;
         end
         logger.print($sformatf("Exception signal was received from HART[%0d] code name: %s, %8h", hart_id, `hdl_path_top.rv32_wf_opcode.name, `hdl_path_top.rv32_wf_opcode));
     endtask

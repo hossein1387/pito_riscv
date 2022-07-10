@@ -1,8 +1,6 @@
 `timescale 1ns/1ps
 `include "rv32_defines.svh"
 
-// This register file is taken from : https://github.com/ucb-bar/vscale project
-
 module rv32_regfile(
                       input                       clk,
                       input [`REG_ADDR_WIDTH-1:0] ra1,

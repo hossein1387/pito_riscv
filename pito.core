@@ -7,8 +7,6 @@ filesets:
         file_type : systemVerilogSource
         files:
             - deps/tech_cells_generic/src/rtl/tc_sram.sv
-            - vsrc/rv32_instr.svh:
-                is_include_file: true
             - vsrc/rv32_imm_gen.sv
             - vsrc/rv32_decoder.sv
             - vsrc/rv32_data_memory.sv

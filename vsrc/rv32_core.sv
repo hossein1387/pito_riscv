@@ -6,7 +6,6 @@ module rv32_core import rv32_pkg::*;import pito_pkg::*;
 (
     input  logic            clk,
     input  logic            rst_n,
-    input  logic            pito_program, 
     output rv32_data_t      imem_wdata,
     input  rv32_data_t      imem_rdata,
     output rv32_imem_addr_t imem_addr,
@@ -35,22 +34,6 @@ rv32_hart_cnt_t rv32_hart_wf_cnt;
 //====================================================================
 // General Wires and registers
 //====================================================================
-
-`ifdef DEBUG
-// Captureing original pc counter witout altering during pc related 
-// instructions
-rv32_pc_cnt_t        rv32_org_ex_pc;
-rv32_pc_cnt_t        rv32_org_wb_pc;
-rv32_pc_cnt_t        rv32_org_wf_pc;
-rv32_pc_cnt_t        rv32_org_cap_pc;
-
-rv32_register_t     rv32_wb_alu_rs1;
-rv32_register_t     rv32_wb_alu_rs2;
-rv32_register_t     rv32_wf_alu_rs1;
-rv32_register_t     rv32_wf_alu_rs2;
-rv32_register_t     rv32_cap_alu_rs1;
-rv32_register_t     rv32_cap_alu_rs2;
-`endif
 // General signals
 rv32_pc_cnt_t      rv32_pc [`PITO_NUM_HARTS-1 : 0];
 
@@ -134,6 +117,7 @@ rv32_dmem_addr_t   rv32_wb_dmem_addr;
 // WF stage wires
 //====================================================================
 // write regfile stage
+rv32_pc_cnt_t      rv32_org_wf_pc;
 rv32_opcode_enum_t rv32_wf_opcode;
 rv32_pc_cnt_t      rv32_wf_pc[`PITO_NUM_HARTS-1 : 0];
 logic              rv32_wf_skip;
@@ -166,9 +150,9 @@ rv32_barrel_regfiles regfile(
                         .rsa_hart(rv32_hart_dec_cnt),
                         .rsd_hart(rv32_hart_dec_cnt),
                         .rd_hart (rv32_hart_wf_cnt ),
-                        .ra1     (rv32_dec_rs1     ),
+                        .ra1     (rv32_dec_rs1[4:0]),
                         .rd1     (rv32_regf_rd1    ),
-                        .ra2     (rv32_dec_rs2     ),
+                        .ra2     (rv32_dec_rs2[4:0]),
                         .rd2     (rv32_regf_rd2    ),
                         .wen     (rv32_regf_wen    ),
                         .wa      (rv32_regf_wa     ),
@@ -183,9 +167,6 @@ rv32_decoder decoder (
                         .rv_shamt      (rv32_dec_shamt     ),
                         .rv_imm        (rv32_dec_imm       ),
                         .rv_alu_op     (rv32_dec_alu_op    ),
-                        // .rv_fence_succ (rv32_dec_fence_succ),
-                        // .rv_fence_pred (rv32_dec_fence_pred),
-                        // .rv_csr        (rv32_dec_csr       ),
                         .rv_opcode     (rv32_dec_opcode    ),
                         .instr_trap    (rv32_dec_instr_trap)
 );
@@ -458,9 +439,6 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
                 end
             end
         end
-        `ifdef DEBUG
-            rv32_org_ex_pc <= rv32_dec_pc;
-        `endif
     end
 
 //====================================================================
@@ -551,11 +529,6 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
         rv32_wb_is_load   <= is_load;
         rv32_wb_dmem_addr <= rv32_dmem_addr; // For loads, need to store it for next stage
         rv32_wb_out       <= rv32_ex_res_val;
-        `ifdef DEBUG
-            rv32_org_wb_pc <= rv32_org_ex_pc;
-            rv32_wb_alu_rs1<= rv32_alu_rs1;
-            rv32_wb_alu_rs2<= rv32_alu_rs2;
-        `endif
     end
 
 //====================================================================
@@ -655,41 +628,9 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
             pc_sel[rv32_hart_wb_cnt]     <= `PITO_PC_SEL_PLUS_4;
             rv32_wf_pc[rv32_hart_wb_cnt] <= rv32_wb_pc;
         end
-        `ifdef DEBUG
-            rv32_org_wf_pc <= rv32_org_wb_pc;
-            rv32_wf_alu_rs1<= rv32_wb_alu_rs1;
-            rv32_wf_alu_rs2<= rv32_wb_alu_rs2;
-        `endif
+        rv32_org_wf_pc <= rv32_wb_pc;
     end
 
     // assign rv32_regf_wen = 1'b1;
 
-
-//====================================================================
-// Capture Stage
-//====================================================================
-`ifdef DEBUG
-rv32_opcode_enum_t rv32_cap_opcode;
-rv32_pc_cnt_t      rv32_cap_pc;
-rv32_instr_t       rv32_cap_instr;
-rv32_hart_cnt_t    rv32_hart_cap_cnt;
-
-logic is_end;
-
-assign is_end = ((rv32_wf_opcode ==  rv32_pkg::RV32_ECALL) || (rv32_wf_opcode ==  rv32_pkg::RV32_EBREAK)) ? 1'b1 : 1'b0;
-
-    always @(posedge clk) begin
-        if(rst_n == 1'b0) begin
-            rv32_cap_pc     <= 0;
-        end else begin
-            rv32_cap_pc      <= rv32_wf_pc[rv32_hart_wf_cnt];
-            rv32_cap_opcode  <= rv32_wf_opcode;
-            rv32_cap_instr   <= rv32_wf_instr;
-            rv32_org_cap_pc  <= rv32_org_wf_pc;
-            rv32_cap_alu_rs1 <= rv32_wf_alu_rs1;
-            rv32_cap_alu_rs2 <= rv32_wf_alu_rs2;
-            rv32_hart_cap_cnt<= rv32_hart_wf_cnt;
-        end
-    end
-`endif
 endmodule

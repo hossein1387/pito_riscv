@@ -116,16 +116,6 @@ typedef struct packed {
     dmem_be_t [`PITO_DATA_MEM_PORTS-1:0] be;
 } rv32_dmem_t;
 
-//typedef union packed {
-//    logic [`XPR_LEN-1:0] rv32_instr_t;
-//    // rv32_dec_op_t        rv32_dec_op;
-//    // rv32_type_r_t        rv32_type_r;
-//    // rv32_type_i_t        rv32_type_i;
-//    // rv32_type_s_t        rv32_type_s;
-//    // rv32_type_b_t        rv32_type_b;
-//    // rv32_type_u_t        rv32_type_u;
-//    // rv32_type_j_t        rv32_type_j;
-//} rv32_instr_t;
 
 //-------------------------------------------------------------------
 //                     RV32 Insrtuction Format Mapping
