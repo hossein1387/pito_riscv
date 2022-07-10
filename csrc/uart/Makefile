@@ -17,7 +17,7 @@ OBJS = $$(find $(OUT_DIR) -name "*.o")
 # Making GCC Acronyms
 #=================================================================================
 
-LDFLAGS = -nostartfiles  -nostdlib  -Tlink.ld -Map=$(OUT_DIR)/$(PROJ).map
+LDFLAGS = -nostartfiles  -nostdlib  -T$(ROOT_DIR)/common/link.ld -Map=$(OUT_DIR)/$(PROJ).map
 CCFLAGS = -march=rv32i -std=gnu99 -ffast-math -fno-builtin-printf
 
 #=================================================================================
