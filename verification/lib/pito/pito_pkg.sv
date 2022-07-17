@@ -54,57 +54,10 @@ typedef enum logic [11:0] {
     CSR_MINSTRETH      = 12'hB82,
 
     CSR_MCALL          = 12'hB0C,  // Procedure call
-    CSR_MRET           = 12'hB0D,  // Procedure Return
-
-    // MVU CSRs            
-    CSR_MVUWBASEPTR    = 12'hF20, // Base address for weight memory
-    CSR_MVUIBASEPTR    = 12'hF21, // Base address for input memory
-    CSR_MVUSBASEPTR    = 12'hF22, // Base address for scaler memory (6 bits)
-    CSR_MVUBBASEPTR    = 12'hF23, // Base address for bias memory (6 bits)
-    CSR_MVUOBASEPTR    = 12'hF24, // Output base address
-    CSR_MVUWJUMP_0     = 12'hF25, // Weight address jumps in loops 0
-    CSR_MVUWJUMP_1     = 12'hF26, // Weight address jumps in loops 1
-    CSR_MVUWJUMP_2     = 12'hF27, // Weight address jumps in loops 2
-    CSR_MVUWJUMP_3     = 12'hF28, // Weight address jumps in loops 3
-    CSR_MVUWJUMP_4     = 12'hF29, // Weight address jumps in loops 4
-    CSR_MVUIJUMP_0     = 12'hF2A, // Input data address jumps in loops 0
-    CSR_MVUIJUMP_1     = 12'hF2B, // Input data address jumps in loops 1
-    CSR_MVUIJUMP_2     = 12'hF2C, // Input data address jumps in loops 2
-    CSR_MVUIJUMP_3     = 12'hF2D, // Input data address jumps in loops 3
-    CSR_MVUIJUMP_4     = 12'hF2E, // Input data address jumps in loops 4
-    CSR_MVUSJUMP_0     = 12'hF2F, // Scaler memory address jumps (6 bits)
-    CSR_MVUSJUMP_1     = 12'hF30, // Scaler memory address jumps (6 bits)
-    CSR_MVUBJUMP_0     = 12'hF31, // Bias memory address jumps (6 bits)
-    CSR_MVUBJUMP_1     = 12'hF32, // Bias memory address jumps (6 bits)
-    CSR_MVUOJUMP_0     = 12'hF33, // Output data address jumps in loops 0
-    CSR_MVUOJUMP_1     = 12'hF34, // Output data address jumps in loops 1
-    CSR_MVUOJUMP_2     = 12'hF35, // Output data address jumps in loops 2
-    CSR_MVUOJUMP_3     = 12'hF36, // Output data address jumps in loops 3
-    CSR_MVUOJUMP_4     = 12'hF37, // Output data address jumps in loops 4
-    CSR_MVUWLENGTH_1   = 12'hF38, // Weight length in loops 0
-    CSR_MVUWLENGTH_2   = 12'hF39, // Weight length in loops 1
-    CSR_MVUWLENGTH_3   = 12'hF3A, // Weight length in loops 2
-    CSR_MVUWLENGTH_4   = 12'hF3B, // Weight length in loops 3
-    CSR_MVUILENGTH_1   = 12'hF3C, // Input data length in loops 0
-    CSR_MVUILENGTH_2   = 12'hF3D, // Input data length in loops 1
-    CSR_MVUILENGTH_3   = 12'hF3E, // Input data length in loops 2
-    CSR_MVUILENGTH_4   = 12'hF3F, // Input data length in loops 3
-    CSR_MVUSLENGTH_1   = 12'hF40, // Scaler tensor length 15 bits
-    CSR_MVUBLENGTH_1   = 12'hF41, // Bias tensor length 15 bits
-    CSR_MVUOLENGTH_1   = 12'hF42, // Output data length in loops 0
-    CSR_MVUOLENGTH_2   = 12'hF43, // Output data length in loops 1
-    CSR_MVUOLENGTH_3   = 12'hF44, // Output data length in loops 2
-    CSR_MVUOLENGTH_4   = 12'hF45, // Output data length in loops 3
-    CSR_MVUPRECISION   = 12'hF46, // Precision in bits for all tensors
-    CSR_MVUSTATUS      = 12'hF47, // Status of MVU
-    CSR_MVUCOMMAND     = 12'hF48, // Kick to send command.
-    CSR_MVUQUANT       = 12'hF49, // MSB index position
-    CSR_MVUSCALER      = 12'hF4A, // fixed point operand for multiplicative scaling
-    CSR_MVUCONFIG1     = 12'hF4B  //Shift/accumulator load on jump select (only 0-4 valid) Pool/Activation clear on jump select (only 0-4 valid)
-
-
+    CSR_MRET           = 12'hB0D  // Procedure Return
 } csr_t;
 
+localparam logic [11:0] MVU_CSR_START_ADDR    = 12'hF20;
 
 typedef enum logic [2:0] {
     MRET           = 3'b000,
@@ -119,6 +72,18 @@ typedef struct packed {
      logic [31:0] data; // data to be passed with the irq
      logic        valid;
 } irq_evt_t;
+
+//-------------------------------------------------------------------
+//                     MVU Specific Parameters and Types
+//-------------------------------------------------------------------
+typedef logic[HART_CNT_WIDTH-1:0] hart_id_t;
+// APB simulation and synthesis parameter
+localparam APB_ADDR_WIDTH = 15;  // $clog2(4KB CSR x 8 MVUs)
+localparam APB_DATA_WIDTH = 32;  // Working with 32bit registers
+localparam APB_STRB_WIDTH = cf_math_pkg::ceil_div(APB_DATA_WIDTH, 8);
+typedef logic [APB_ADDR_WIDTH-1:0] apb_addr_t;
+typedef logic [APB_DATA_WIDTH-1:0] apb_data_t;
+typedef logic [APB_DATA_WIDTH-1:0] apb_strb_t;
 
 //-------------------------------------------------------------------
 //                     PITO Interrupt and Exception Codes

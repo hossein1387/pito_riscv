@@ -10,9 +10,14 @@ module testbench_top import utils::*; ();
 //==================================================================================================
     logic clk;
     pito_soc_ext_interface pito_inf(clk);
-    mvu_interface mvu_inf();
+    mvu_csr_interface mvu_inf();
+    APB #(
+        .ADDR_WIDTH(pito_pkg::APB_ADDR_WIDTH), 
+        .DATA_WIDTH(pito_pkg::APB_DATA_WIDTH)
+    ) apb_master();
     pito_soc soc(pito_inf.soc_ext,
-                 mvu_inf.mvu);
+                 mvu_inf,
+                 apb_master);
     // interface_tester tb;
     core_tester tb;
     initial begin

@@ -2,7 +2,8 @@
 `include "testbench_macros.svh"
 module pito_soc import rv32_pkg::*;import pito_pkg::*;(
     pito_soc_ext_interface.soc_ext ext_intf,
-    mvu_interface  mvu_intf
+    mvu_csr_interface  mvu_csr_intf,
+    APB                mvu_apb
 );
 
 logic clk;
@@ -38,21 +39,22 @@ assign rv32_imem.addr[`PITO_INSTR_MEM_LOCAL_PORT] = imem_addr[`PITO_INSTR_MEM_AD
 assign rv32_dmem.addr[`PITO_DATA_MEM_LOCAL_PORT]  = dmem_addr[`PITO_DATA_MEM_ADDR_WIDTH-1:0]>>2;
 
 rv32_core pito(
-    .clk          (clk                                        ),
-    .rst_n        (rst_n                                      ),
-    .imem_wdata   (rv32_imem.wdata[`PITO_INSTR_MEM_LOCAL_PORT]),
-    .imem_rdata   (rv32_imem.rdata[`PITO_INSTR_MEM_LOCAL_PORT]),
-    .imem_addr    (imem_addr                                  ),
-    .imem_req     (rv32_imem.req  [`PITO_INSTR_MEM_LOCAL_PORT]),
-    .imem_we      (rv32_imem.we   [`PITO_INSTR_MEM_LOCAL_PORT]),
-    .imem_be      (rv32_imem.be   [`PITO_INSTR_MEM_LOCAL_PORT]),
-    .dmem_wdata   (rv32_dmem.wdata[`PITO_DATA_MEM_LOCAL_PORT] ),
-    .dmem_rdata   (dmem_rdata                                 ),
-    .dmem_addr    (dmem_addr                                  ),
-    .dmem_req     (rv32_dmem.req  [`PITO_DATA_MEM_LOCAL_PORT] ),
-    .dmem_we      (dmem_wen                                   ),
-    .dmem_be      (rv32_dmem.be   [`PITO_DATA_MEM_LOCAL_PORT] ),
-    .mvu_if       (mvu_intf                                   )
+    .clk        (clk                                        ),
+    .rst_n      (rst_n                                      ),
+    .imem_wdata (rv32_imem.wdata[`PITO_INSTR_MEM_LOCAL_PORT]),
+    .imem_rdata (rv32_imem.rdata[`PITO_INSTR_MEM_LOCAL_PORT]),
+    .imem_addr  (imem_addr                                  ),
+    .imem_req   (rv32_imem.req  [`PITO_INSTR_MEM_LOCAL_PORT]),
+    .imem_we    (rv32_imem.we   [`PITO_INSTR_MEM_LOCAL_PORT]),
+    .imem_be    (rv32_imem.be   [`PITO_INSTR_MEM_LOCAL_PORT]),
+    .dmem_wdata (rv32_dmem.wdata[`PITO_DATA_MEM_LOCAL_PORT] ),
+    .dmem_rdata (dmem_rdata                                 ),
+    .dmem_addr  (dmem_addr                                  ),
+    .dmem_req   (rv32_dmem.req  [`PITO_DATA_MEM_LOCAL_PORT] ),
+    .dmem_we    (dmem_wen                                   ),
+    .dmem_be    (rv32_dmem.be   [`PITO_DATA_MEM_LOCAL_PORT] ),
+    .mvu_csr_if (mvu_csr_intf                               ),
+    .mvu_apb    (mvu_apb                                    )
 );
 
 `ifdef DEBUG

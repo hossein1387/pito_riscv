@@ -108,8 +108,6 @@ get_pito_hart_id:
     csrr a0, mhartid
     ret
 
-
-
 #
 # Compiler runtime support for no-M extension
 #

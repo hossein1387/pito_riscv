@@ -1,7 +1,8 @@
 `timescale 1ns/1ps
 module rv32_csr import pito_pkg::*;import rv32_pkg::*; #(
-    parameter PITO_HART_ID = 0
-    )(
+    parameter PITO_HART_ID = 0,
+    parameter MVU_CSR_START_ADDR = 12'hF20
+  )(
     input  logic                      clk,        // Clock
     input  logic                      rst_n,      // Asynchronous reset active low
     input  logic [11 : 0]             csr_addr_i, // CSR register address
@@ -17,51 +18,11 @@ module rv32_csr import pito_pkg::*;import rv32_pkg::*; #(
     input  logic [31 : 0]             boot_addr_i,// Address from which to start booting, mtvec is set to the same address
     // MVU interface
     input  logic                      mvu_irq_i,
-    output logic [31 : 0]             csr_mvuwbaseptr,
-    output logic [31 : 0]             csr_mvuibaseptr,
-    output logic [31 : 0]             csr_mvusbaseptr,
-    output logic [31 : 0]             csr_mvubbaseptr,
-    output logic [31 : 0]             csr_mvuobaseptr,
-    output logic [31 : 0]             csr_mvuwjump_0,
-    output logic [31 : 0]             csr_mvuwjump_1,
-    output logic [31 : 0]             csr_mvuwjump_2,
-    output logic [31 : 0]             csr_mvuwjump_3,
-    output logic [31 : 0]             csr_mvuwjump_4,
-    output logic [31 : 0]             csr_mvuijump_0,
-    output logic [31 : 0]             csr_mvuijump_1,
-    output logic [31 : 0]             csr_mvuijump_2,
-    output logic [31 : 0]             csr_mvuijump_3,
-    output logic [31 : 0]             csr_mvuijump_4,
-    output logic [31 : 0]             csr_mvusjump_0,
-    output logic [31 : 0]             csr_mvusjump_1,
-    output logic [31 : 0]             csr_mvubjump_0,
-    output logic [31 : 0]             csr_mvubjump_1,
-    output logic [31 : 0]             csr_mvuojump_0,
-    output logic [31 : 0]             csr_mvuojump_1,
-    output logic [31 : 0]             csr_mvuojump_2,
-    output logic [31 : 0]             csr_mvuojump_3,
-    output logic [31 : 0]             csr_mvuojump_4,
-    output logic [31 : 0]             csr_mvuwlength_1,
-    output logic [31 : 0]             csr_mvuwlength_2,
-    output logic [31 : 0]             csr_mvuwlength_3,
-    output logic [31 : 0]             csr_mvuwlength_4,
-    output logic [31 : 0]             csr_mvuilength_1,
-    output logic [31 : 0]             csr_mvuilength_2,
-    output logic [31 : 0]             csr_mvuilength_3,
-    output logic [31 : 0]             csr_mvuilength_4,
-    output logic [31 : 0]             csr_mvuslength_1,
-    output logic [31 : 0]             csr_mvublength_1,
-    output logic [31 : 0]             csr_mvuolength_1,
-    output logic [31 : 0]             csr_mvuolength_2,
-    output logic [31 : 0]             csr_mvuolength_3,
-    output logic [31 : 0]             csr_mvuolength_4,
-    output logic [31 : 0]             csr_mvuprecision,
-    output logic [31 : 0]             csr_mvustatus,
-    output logic [31 : 0]             csr_mvucommand,
-    output logic [31 : 0]             csr_mvuquant,
-    output logic [31 : 0]             csr_mvuscaler,
-    output logic [31 : 0]             csr_mvuconfig1,
-    output logic                      mvu_start,
+    output apb_addr_t                 apb_paddr,
+    output logic                      apb_psel,
+    output logic                      apb_penable,
+    output logic                      apb_pwrite,
+    output apb_data_t                 apb_pwdata,
 
     output exception_t                csr_exception_o,// Attempts to access a CSR without appropriate privilege
                                                       // level or to write  a read-only register also
@@ -105,50 +66,7 @@ module rv32_csr import pito_pkg::*;import rv32_pkg::*; #(
     logic mtvec_rst_load_q;// used to determine whether we came out of reset
 
     // MVU CSRs;
-    logic [31:0] csr_mvuwbaseptr_q,  csr_mvuwbaseptr_d;
-    logic [31:0] csr_mvuibaseptr_q,  csr_mvuibaseptr_d;
-    logic [31:0] csr_mvusbaseptr_q,  csr_mvusbaseptr_d;
-    logic [31:0] csr_mvubbaseptr_q,  csr_mvubbaseptr_d;
-    logic [31:0] csr_mvuobaseptr_q,  csr_mvuobaseptr_d;
-    logic [31:0] csr_mvuwjump_0_q,   csr_mvuwjump_0_d;
-    logic [31:0] csr_mvuwjump_1_q,   csr_mvuwjump_1_d;
-    logic [31:0] csr_mvuwjump_2_q,   csr_mvuwjump_2_d;
-    logic [31:0] csr_mvuwjump_3_q,   csr_mvuwjump_3_d;
-    logic [31:0] csr_mvuwjump_4_q,   csr_mvuwjump_4_d;
-    logic [31:0] csr_mvuijump_0_q,   csr_mvuijump_0_d;
-    logic [31:0] csr_mvuijump_1_q,   csr_mvuijump_1_d;
-    logic [31:0] csr_mvuijump_2_q,   csr_mvuijump_2_d;
-    logic [31:0] csr_mvuijump_3_q,   csr_mvuijump_3_d;
-    logic [31:0] csr_mvuijump_4_q,   csr_mvuijump_4_d;
-    logic [31:0] csr_mvusjump_0_q,   csr_mvusjump_0_d;
-    logic [31:0] csr_mvusjump_1_q,   csr_mvusjump_1_d;
-    logic [31:0] csr_mvubjump_0_q,   csr_mvubjump_0_d;
-    logic [31:0] csr_mvubjump_1_q,   csr_mvubjump_1_d;
-    logic [31:0] csr_mvuojump_0_q,   csr_mvuojump_0_d;
-    logic [31:0] csr_mvuojump_1_q,   csr_mvuojump_1_d;
-    logic [31:0] csr_mvuojump_2_q,   csr_mvuojump_2_d;
-    logic [31:0] csr_mvuojump_3_q,   csr_mvuojump_3_d;
-    logic [31:0] csr_mvuojump_4_q,   csr_mvuojump_4_d;
-    logic [31:0] csr_mvuwlength_1_q, csr_mvuwlength_1_d;
-    logic [31:0] csr_mvuwlength_2_q, csr_mvuwlength_2_d;
-    logic [31:0] csr_mvuwlength_3_q, csr_mvuwlength_3_d;
-    logic [31:0] csr_mvuwlength_4_q, csr_mvuwlength_4_d;
-    logic [31:0] csr_mvuilength_1_q, csr_mvuilength_1_d;
-    logic [31:0] csr_mvuilength_2_q, csr_mvuilength_2_d;
-    logic [31:0] csr_mvuilength_3_q, csr_mvuilength_3_d;
-    logic [31:0] csr_mvuilength_4_q, csr_mvuilength_4_d;
-    logic [31:0] csr_mvuslength_1_q, csr_mvuslength_1_d;
-    logic [31:0] csr_mvublength_1_q, csr_mvublength_1_d;
-    logic [31:0] csr_mvuolength_1_q, csr_mvuolength_1_d;
-    logic [31:0] csr_mvuolength_2_q, csr_mvuolength_2_d;
-    logic [31:0] csr_mvuolength_3_q, csr_mvuolength_3_d;
-    logic [31:0] csr_mvuolength_4_q, csr_mvuolength_4_d;
-    logic [31:0] csr_mvuprecision_q, csr_mvuprecision_d;
-    logic [31:0] csr_mvustatus_q,    csr_mvustatus_d;
-    logic [31:0] csr_mvucommand_q,   csr_mvucommand_d;
-    logic [31:0] csr_mvuquant_q,     csr_mvuquant_d;
-    logic [31:0] csr_mvuscaler_q,    csr_mvuscaler_d;
-    logic [31:0] csr_mvuconfig1_q,   csr_mvuconfig1_d;
+    logic [31:0] csr_mvucfg_q,  csr_mvucfg_d;
 
 //====================================================================
 //                    Assignments
@@ -160,52 +78,6 @@ module rv32_csr import pito_pkg::*;import rv32_pkg::*; #(
     assign misa     = ISA_CODE;
     assign csr_addr = pito_pkg::csr_t'(csr_addr_i);
     assign csr_op   = pito_pkg::csr_op_t'(csr_op_i);
-
-
-    assign csr_mvuwbaseptr    = csr_mvuwbaseptr_q;
-    assign csr_mvuibaseptr    = csr_mvuibaseptr_q;
-    assign csr_mvusbaseptr    = csr_mvusbaseptr_q;
-    assign csr_mvubbaseptr    = csr_mvubbaseptr_q;
-    assign csr_mvuobaseptr    = csr_mvuobaseptr_q;
-    assign csr_mvuwjump_0     = csr_mvuwjump_0_q;
-    assign csr_mvuwjump_1     = csr_mvuwjump_1_q;
-    assign csr_mvuwjump_2     = csr_mvuwjump_2_q;
-    assign csr_mvuwjump_3     = csr_mvuwjump_3_q;
-    assign csr_mvuwjump_4     = csr_mvuwjump_4_q;
-    assign csr_mvuijump_0     = csr_mvuijump_0_q;
-    assign csr_mvuijump_1     = csr_mvuijump_1_q;
-    assign csr_mvuijump_2     = csr_mvuijump_2_q;
-    assign csr_mvuijump_3     = csr_mvuijump_3_q;
-    assign csr_mvuijump_4     = csr_mvuijump_4_q;
-    assign csr_mvusjump_0     = csr_mvusjump_0_q;
-    assign csr_mvusjump_1     = csr_mvusjump_1_q;
-    assign csr_mvubjump_0     = csr_mvubjump_0_q;
-    assign csr_mvubjump_1     = csr_mvubjump_1_q;
-    assign csr_mvuojump_0     = csr_mvuojump_0_q;
-    assign csr_mvuojump_1     = csr_mvuojump_1_q;
-    assign csr_mvuojump_2     = csr_mvuojump_2_q;
-    assign csr_mvuojump_3     = csr_mvuojump_3_q;
-    assign csr_mvuojump_4     = csr_mvuojump_4_q;
-    assign csr_mvuwlength_1   = csr_mvuwlength_1_q;
-    assign csr_mvuwlength_2   = csr_mvuwlength_2_q;
-    assign csr_mvuwlength_3   = csr_mvuwlength_3_q;
-    assign csr_mvuwlength_4   = csr_mvuwlength_4_q;
-    assign csr_mvuilength_1   = csr_mvuilength_1_q;
-    assign csr_mvuilength_2   = csr_mvuilength_2_q;
-    assign csr_mvuilength_3   = csr_mvuilength_3_q;
-    assign csr_mvuilength_4   = csr_mvuilength_4_q;
-    assign csr_mvuslength_1   = csr_mvuslength_1_q;
-    assign csr_mvublength_1   = csr_mvublength_1_q;
-    assign csr_mvuolength_1   = csr_mvuolength_1_q;
-    assign csr_mvuolength_2   = csr_mvuolength_2_q;
-    assign csr_mvuolength_3   = csr_mvuolength_3_q;
-    assign csr_mvuolength_4   = csr_mvuolength_4_q;
-    assign csr_mvuprecision   = csr_mvuprecision_q;
-    assign csr_mvustatus_q    = { {31{1'b0}}, csr_mvustatus};
-    assign csr_mvucommand     = csr_mvucommand_q;
-    assign csr_mvuquant       = csr_mvuquant_q;
-    assign csr_mvuscaler      = csr_mvuscaler_q;
-    assign csr_mvuconfig1     = csr_mvuconfig1_q;
 
     assign timer_irq_valid    = 1'b0; // not supported for now
     assign ipi_irq_valid      = 1'b0; // not supported for now
@@ -247,51 +119,9 @@ module rv32_csr import pito_pkg::*;import rv32_pkg::*; #(
                 pito_pkg::CSR_MINSTRETH:         csr_rdata = minstret_q[63:32];
 
                 // MVU related csrs
-                pito_pkg::CSR_MVUWBASEPTR :      csr_rdata = csr_mvuwbaseptr_q;
-                pito_pkg::CSR_MVUIBASEPTR :      csr_rdata = csr_mvuibaseptr_q;
-                pito_pkg::CSR_MVUSBASEPTR :      csr_rdata = csr_mvusbaseptr_q;
-                pito_pkg::CSR_MVUBBASEPTR :      csr_rdata = csr_mvubbaseptr_q;
-                pito_pkg::CSR_MVUOBASEPTR :      csr_rdata = csr_mvuobaseptr_q;
-                pito_pkg::CSR_MVUWJUMP_0  :      csr_rdata = csr_mvuwjump_0_q;
-                pito_pkg::CSR_MVUWJUMP_1  :      csr_rdata = csr_mvuwjump_1_q;
-                pito_pkg::CSR_MVUWJUMP_2  :      csr_rdata = csr_mvuwjump_2_q;
-                pito_pkg::CSR_MVUWJUMP_3  :      csr_rdata = csr_mvuwjump_3_q;
-                pito_pkg::CSR_MVUWJUMP_4  :      csr_rdata = csr_mvuwjump_4_q;
-                pito_pkg::CSR_MVUIJUMP_0  :      csr_rdata = csr_mvuijump_0_q;
-                pito_pkg::CSR_MVUIJUMP_1  :      csr_rdata = csr_mvuijump_1_q;
-                pito_pkg::CSR_MVUIJUMP_2  :      csr_rdata = csr_mvuijump_2_q;
-                pito_pkg::CSR_MVUIJUMP_3  :      csr_rdata = csr_mvuijump_3_q;
-                pito_pkg::CSR_MVUIJUMP_4  :      csr_rdata = csr_mvuijump_4_q;
-                pito_pkg::CSR_MVUSJUMP_0  :      csr_rdata = csr_mvusjump_0_q;
-                pito_pkg::CSR_MVUSJUMP_1  :      csr_rdata = csr_mvusjump_1_q;
-                pito_pkg::CSR_MVUBJUMP_0  :      csr_rdata = csr_mvubjump_0_q;
-                pito_pkg::CSR_MVUBJUMP_1  :      csr_rdata = csr_mvubjump_1_q;
-                pito_pkg::CSR_MVUOJUMP_0  :      csr_rdata = csr_mvuojump_0_q;
-                pito_pkg::CSR_MVUOJUMP_1  :      csr_rdata = csr_mvuojump_1_q;
-                pito_pkg::CSR_MVUOJUMP_2  :      csr_rdata = csr_mvuojump_2_q;
-                pito_pkg::CSR_MVUOJUMP_3  :      csr_rdata = csr_mvuojump_3_q;
-                pito_pkg::CSR_MVUOJUMP_4  :      csr_rdata = csr_mvuojump_4_q;
-                pito_pkg::CSR_MVUWLENGTH_1:      csr_rdata = csr_mvuwlength_1_q;
-                pito_pkg::CSR_MVUWLENGTH_2:      csr_rdata = csr_mvuwlength_2_q;
-                pito_pkg::CSR_MVUWLENGTH_3:      csr_rdata = csr_mvuwlength_3_q;
-                pito_pkg::CSR_MVUWLENGTH_4:      csr_rdata = csr_mvuwlength_4_q;
-                pito_pkg::CSR_MVUILENGTH_1:      csr_rdata = csr_mvuilength_1_q;
-                pito_pkg::CSR_MVUILENGTH_2:      csr_rdata = csr_mvuilength_2_q;
-                pito_pkg::CSR_MVUILENGTH_3:      csr_rdata = csr_mvuilength_3_q;
-                pito_pkg::CSR_MVUILENGTH_4:      csr_rdata = csr_mvuilength_4_q;
-                pito_pkg::CSR_MVUSLENGTH_1:      csr_rdata = csr_mvuslength_1_q;
-                pito_pkg::CSR_MVUBLENGTH_1:      csr_rdata = csr_mvublength_1_q;
-                pito_pkg::CSR_MVUOLENGTH_1:      csr_rdata = csr_mvuolength_1_q;
-                pito_pkg::CSR_MVUOLENGTH_2:      csr_rdata = csr_mvuolength_2_q;
-                pito_pkg::CSR_MVUOLENGTH_3:      csr_rdata = csr_mvuolength_3_q;
-                pito_pkg::CSR_MVUOLENGTH_4:      csr_rdata = csr_mvuolength_4_q;
-                pito_pkg::CSR_MVUPRECISION:      csr_rdata = csr_mvuprecision_q;
-                pito_pkg::CSR_MVUSTATUS   :      csr_rdata = csr_mvustatus_q;
-                pito_pkg::CSR_MVUCOMMAND  :      csr_rdata = csr_mvucommand_q;
-                pito_pkg::CSR_MVUQUANT    :      csr_rdata = csr_mvuquant_q;
-                pito_pkg::CSR_MVUSCALER   :      csr_rdata = csr_mvuscaler_q;
-                pito_pkg::CSR_MVUCONFIG1  :      csr_rdata = csr_mvuconfig1_q;
-
+                12'b1111??1?????:  begin
+                    $display("MVU CSR Read is not supported. \n");
+                end
                 default: read_access_exception = 1'b1;
             endcase
         end
@@ -377,52 +207,9 @@ module rv32_csr import pito_pkg::*;import rv32_pkg::*; #(
                 //                         perf_data_o = csr_wdata;
                 //                         perf_we_o   = 1'b1;
                 // end
-                // MVU related csrs
-
-                pito_pkg::CSR_MVUWBASEPTR :      csr_mvuwbaseptr_d  = csr_wdata;
-                pito_pkg::CSR_MVUIBASEPTR :      csr_mvuibaseptr_d  = csr_wdata;
-                pito_pkg::CSR_MVUSBASEPTR :      csr_mvusbaseptr_d  = csr_wdata;
-                pito_pkg::CSR_MVUBBASEPTR :      csr_mvubbaseptr_d  = csr_wdata;
-                pito_pkg::CSR_MVUOBASEPTR :      csr_mvuobaseptr_d  = csr_wdata;
-                pito_pkg::CSR_MVUWJUMP_0  :      csr_mvuwjump_0_d   = csr_wdata;
-                pito_pkg::CSR_MVUWJUMP_1  :      csr_mvuwjump_1_d   = csr_wdata;
-                pito_pkg::CSR_MVUWJUMP_2  :      csr_mvuwjump_2_d   = csr_wdata;
-                pito_pkg::CSR_MVUWJUMP_3  :      csr_mvuwjump_3_d   = csr_wdata;
-                pito_pkg::CSR_MVUWJUMP_4  :      csr_mvuwjump_4_d   = csr_wdata;
-                pito_pkg::CSR_MVUIJUMP_0  :      csr_mvuijump_0_d   = csr_wdata;
-                pito_pkg::CSR_MVUIJUMP_1  :      csr_mvuijump_1_d   = csr_wdata;
-                pito_pkg::CSR_MVUIJUMP_2  :      csr_mvuijump_2_d   = csr_wdata;
-                pito_pkg::CSR_MVUIJUMP_3  :      csr_mvuijump_3_d   = csr_wdata;
-                pito_pkg::CSR_MVUIJUMP_4  :      csr_mvuijump_4_d   = csr_wdata;
-                pito_pkg::CSR_MVUSJUMP_0  :      csr_mvusjump_0_d   = csr_wdata;
-                pito_pkg::CSR_MVUSJUMP_1  :      csr_mvusjump_1_d   = csr_wdata;
-                pito_pkg::CSR_MVUBJUMP_0  :      csr_mvubjump_0_d   = csr_wdata;
-                pito_pkg::CSR_MVUBJUMP_1  :      csr_mvubjump_1_d   = csr_wdata;
-                pito_pkg::CSR_MVUOJUMP_0  :      csr_mvuojump_0_d   = csr_wdata;
-                pito_pkg::CSR_MVUOJUMP_1  :      csr_mvuojump_1_d   = csr_wdata;
-                pito_pkg::CSR_MVUOJUMP_2  :      csr_mvuojump_2_d   = csr_wdata;
-                pito_pkg::CSR_MVUOJUMP_3  :      csr_mvuojump_3_d   = csr_wdata;
-                pito_pkg::CSR_MVUOJUMP_4  :      csr_mvuojump_4_d   = csr_wdata;
-                pito_pkg::CSR_MVUWLENGTH_1:      csr_mvuwlength_1_d = csr_wdata;
-                pito_pkg::CSR_MVUWLENGTH_2:      csr_mvuwlength_2_d = csr_wdata;
-                pito_pkg::CSR_MVUWLENGTH_3:      csr_mvuwlength_3_d = csr_wdata;
-                pito_pkg::CSR_MVUWLENGTH_4:      csr_mvuwlength_4_d = csr_wdata;
-                pito_pkg::CSR_MVUILENGTH_1:      csr_mvuilength_1_d = csr_wdata;
-                pito_pkg::CSR_MVUILENGTH_2:      csr_mvuilength_2_d = csr_wdata;
-                pito_pkg::CSR_MVUILENGTH_3:      csr_mvuilength_3_d = csr_wdata;
-                pito_pkg::CSR_MVUILENGTH_4:      csr_mvuilength_4_d = csr_wdata;
-                pito_pkg::CSR_MVUSLENGTH_1:      csr_mvuslength_1_d = csr_wdata;
-                pito_pkg::CSR_MVUBLENGTH_1:      csr_mvublength_1_d = csr_wdata;
-                pito_pkg::CSR_MVUOLENGTH_1:      csr_mvuolength_1_d = csr_wdata;
-                pito_pkg::CSR_MVUOLENGTH_2:      csr_mvuolength_2_d = csr_wdata;
-                pito_pkg::CSR_MVUOLENGTH_3:      csr_mvuolength_3_d = csr_wdata;
-                pito_pkg::CSR_MVUOLENGTH_4:      csr_mvuolength_4_d = csr_wdata;
-                pito_pkg::CSR_MVUPRECISION:      csr_mvuprecision_d = csr_wdata;
-                pito_pkg::CSR_MVUCOMMAND  :      csr_mvucommand_d   = csr_wdata;
-                pito_pkg::CSR_MVUQUANT    :      csr_mvuquant_d     = csr_wdata;
-                pito_pkg::CSR_MVUSCALER   :      csr_mvuscaler_d    = csr_wdata;
-                pito_pkg::CSR_MVUCONFIG1  :      csr_mvuconfig1_d   = csr_wdata;
-
+                // MVU related csrs, MVU CSRS start at 0xF20
+                12'b1111??1?????: csr_mvucfg_d  = csr_wdata;
+                
                 default: update_access_exception = 1'b1;
             endcase
         end
@@ -546,7 +333,6 @@ module rv32_csr import pito_pkg::*;import rv32_pkg::*; #(
             // wait for interrupt
             wfi_q                  <= 1'b0;
             mtvec_rst_load_q       <= 1'b1;
-            mvu_start              <= 1'b0;
             // csr pc valid signal
         end else begin
             // machine mode registers
@@ -564,56 +350,20 @@ module rv32_csr import pito_pkg::*;import rv32_pkg::*; #(
             // wait for interrupt
             wfi_q                  <= wfi_d;
             // MVU related csrs
-            csr_mvuwbaseptr_q      <= csr_mvuwbaseptr_d ;
-            csr_mvuibaseptr_q      <= csr_mvuibaseptr_d ;
-            csr_mvusbaseptr_q      <= csr_mvusbaseptr_d ;
-            csr_mvubbaseptr_q      <= csr_mvubbaseptr_d ;
-            csr_mvuobaseptr_q      <= csr_mvuobaseptr_d ;
-            csr_mvuwjump_0_q       <= csr_mvuwjump_0_d ;
-            csr_mvuwjump_1_q       <= csr_mvuwjump_1_d ;
-            csr_mvuwjump_2_q       <= csr_mvuwjump_2_d ;
-            csr_mvuwjump_3_q       <= csr_mvuwjump_3_d ;
-            csr_mvuwjump_4_q       <= csr_mvuwjump_4_d ;
-            csr_mvuijump_0_q       <= csr_mvuijump_0_d ;
-            csr_mvuijump_1_q       <= csr_mvuijump_1_d ;
-            csr_mvuijump_2_q       <= csr_mvuijump_2_d ;
-            csr_mvuijump_3_q       <= csr_mvuijump_3_d ;
-            csr_mvuijump_4_q       <= csr_mvuijump_4_d ;
-            csr_mvusjump_0_q       <= csr_mvusjump_0_d ;
-            csr_mvusjump_1_q       <= csr_mvusjump_1_d ;
-            csr_mvubjump_0_q       <= csr_mvubjump_0_d ;
-            csr_mvubjump_1_q       <= csr_mvubjump_1_d ;
-            csr_mvuojump_0_q       <= csr_mvuojump_0_d ;
-            csr_mvuojump_1_q       <= csr_mvuojump_1_d ;
-            csr_mvuojump_2_q       <= csr_mvuojump_2_d ;
-            csr_mvuojump_3_q       <= csr_mvuojump_3_d ;
-            csr_mvuojump_4_q       <= csr_mvuojump_4_d ;
-            csr_mvuwlength_1_q     <= csr_mvuwlength_1_d ;
-            csr_mvuwlength_2_q     <= csr_mvuwlength_2_d ;
-            csr_mvuwlength_3_q     <= csr_mvuwlength_3_d ;
-            csr_mvuwlength_4_q     <= csr_mvuwlength_4_d ;
-            csr_mvuilength_1_q     <= csr_mvuilength_1_d ;
-            csr_mvuilength_2_q     <= csr_mvuilength_2_d ;
-            csr_mvuilength_3_q     <= csr_mvuilength_3_d ;
-            csr_mvuilength_4_q     <= csr_mvuilength_4_d ;
-            csr_mvuslength_1_q     <= csr_mvuslength_1_d ;
-            csr_mvublength_1_q     <= csr_mvublength_1_d ;
-            csr_mvuolength_1_q     <= csr_mvuolength_1_d ;
-            csr_mvuolength_2_q     <= csr_mvuolength_2_d ;
-            csr_mvuolength_3_q     <= csr_mvuolength_3_d ;
-            csr_mvuolength_4_q     <= csr_mvuolength_4_d ;
-            csr_mvuprecision_q     <= csr_mvuprecision_d ;
-            csr_mvucommand_q       <= csr_mvucommand_d ;
-            csr_mvuquant_q         <= csr_mvuquant_d ;
-            csr_mvuscaler_q        <= csr_mvuscaler_d ;
-            csr_mvuconfig1_q       <= csr_mvuconfig1_d ;
-            irq_serviced_q         <= irq_serviced_d;
-            if (csr_addr == pito_pkg::CSR_MVUCOMMAND) begin
-                mvu_start <= 1'b1;
+            csr_mvucfg_q           <= csr_mvucfg_d;
+            if (csr_addr>=pito_pkg::MVU_CSR_START_ADDR) begin
+                apb_paddr   <= csr_addr;
+                apb_pwdata  <= csr_mvucfg_d;
+                apb_pwrite  <= 1'b1;
+                apb_psel    <= 1'b1;
+                apb_penable <= 1'b1;
             end else begin
-                mvu_start <= 1'b0;
+                apb_paddr   <= 0;
+                apb_pwdata  <= 0;
+                apb_pwrite  <= 1'b0;
+                apb_psel    <= 1'b0;
+                apb_penable <= 1'b0;
             end
-
         end
     end
 
