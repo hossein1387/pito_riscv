@@ -8,7 +8,7 @@ import rv32_pkg::*;
 
 class pito_monitor extends BaseObj;
 
-    virtual pito_soc_ext_interface inf;
+    virtual pito_soc_ext_interface intf;
     rv32_utils::RV32IDecoder rv32i_dec;
     rv32_utils::RV32IPredictor rv32i_pred;
     rv32_pkg::rv32_data_q instr_q;
@@ -16,9 +16,9 @@ class pito_monitor extends BaseObj;
     int hart_ids_q[$]; // hart id to monitor
     logic predictor_silent_mode;
 
-    function new (Logger logger, rv32_pkg::rv32_data_q instr_q, rv32_pkg::rv32_data_q rodata_q, virtual pito_soc_ext_interface pito_inf, int hart_ids_q[$], test_stats_t test_stat, logic predictor_silent_mode=0);
+    function new (Logger logger, rv32_pkg::rv32_data_q instr_q, rv32_pkg::rv32_data_q rodata_q, virtual pito_soc_ext_interface pito_intf, int hart_ids_q[$], test_stats_t test_stat, logic predictor_silent_mode=0);
         super.new (logger);   // Calls 'new' method of parent class
-        this.inf = pito_inf;
+        this.intf = pito_intf;
         this.instr_q = instr_q;
         this.rodata_q = rodata_q;
         this.rv32i_dec = new(this.logger);
@@ -203,7 +203,7 @@ class pito_monitor extends BaseObj;
                     break;
                 end
             end
-            @(posedge inf.clk);
+            @(posedge intf.clk);
         end
         if (time_out) begin
             foreach(this.hart_ids_q[i]) begin
@@ -268,13 +268,15 @@ class pito_monitor extends BaseObj;
         int char;
         logger.print("Monitoring UART ...");
         while (1) begin
-            @(posedge `hdl_path_soc_top.uart_busy);
-            char = `hdl_path_soc_top.uart_data_in[7:0];
-            if (char==10) begin
-                logger.print($sformatf("%s", str));
-                str  = $sformatf("");
-            end else begin
-                str = $sformatf("%s%s", str, string'(char));
+            @(posedge intf.clk)
+            if (`hdl_path_soc_top.uart_busy ==  1'b1) begin
+                char = `hdl_path_soc_top.uart_data_in[7:0];
+                if (char==10) begin
+                    logger.print($sformatf("%s", str));
+                    str  = $sformatf("");
+                end else begin
+                    str = $sformatf("%s%s", str, string'(char));
+                end
             end
         end
     endtask
@@ -296,7 +298,7 @@ class pito_monitor extends BaseObj;
                 hart_valid     = 1;
                 hart_id        = `hdl_path_top.rv32_hart_wf_cnt;
             end
-            @(negedge inf.clk);
+            @(negedge intf.clk);
             if (hart_valid == 1) begin
                 rv32i_pred.predict(act_instr, instr, pc_cnt, pc_orig_cnt, read_regs(hart_id), read_csrs(hart_id), read_dmem_word(instr, hart_id), hart_id);
                 hart_valid = 0;

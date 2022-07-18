@@ -111,12 +111,12 @@ endgenerate
 hart_id_t apb_hart_id;
 logic apb_valid_transaction;
 
-onehot_to_bin  #(.ONEHOT_WIDTH(HART_CNT_WIDTH)) onehot_to_bin_inst (apb_penable, apb_hart_id);
+onehot_to_bin  #(.ONEHOT_WIDTH(NUM_HARTS)) onehot_to_bin_inst (apb_penable, apb_hart_id);
 assign apb_valid_transaction = |apb_penable;
 
 always_comb begin
     if (apb_valid_transaction) begin
-        apb.paddr   = apb_paddr[apb_hart_id];
+        apb.paddr   = apb_addr_t'({apb_hart_id,apb_paddr[apb_hart_id][11:0]});
         apb.pwdata  = apb_pwdata[apb_hart_id];
         apb.pstrb   = 4'hF;
         apb.pwrite  = apb_pwrite[apb_hart_id];

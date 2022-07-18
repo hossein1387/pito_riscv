@@ -169,49 +169,51 @@ module rv32_csr import pito_pkg::*;import rv32_pkg::*; #(
 
         if (csr_we) begin
             update_access_exception = 1'b0;
-            unique case (csr_addr)
-                pito_pkg::CSR_MSTATUS: begin
-                    mstatus_d      = csr_wdata;
-                    mstatus_d.xs   = 2'b0;
-                    mstatus_d.fs   = 2'b0;
-                    mstatus_d.upie = 1'b0;
-                    mstatus_d.uie  = 1'b0;
-                end
-                // MISA is WARL (Write Any Value, Reads Legal Value)
-                pito_pkg::CSR_MISA:;
-                // mask the register so that unsupported interrupts can never be set
-                pito_pkg::CSR_MIE: begin
-                    mask  = pito_pkg::MIP_MSIP | pito_pkg::MIP_MTIP | pito_pkg::MIP_MEIP | pito_pkg::MIP_MVIP;
-                    mie_d = (mie_q & ~mask) | (csr_wdata & mask); // we only support M-mode interrupts
-                end
+            if (csr_addr>=pito_pkg::MVU_CSR_START_ADDR) begin
+                    csr_mvucfg_d  = csr_wdata;
+            end else begin
+                unique case (csr_addr)
+                    pito_pkg::CSR_MSTATUS: begin
+                        mstatus_d      = csr_wdata;
+                        mstatus_d.xs   = 2'b0;
+                        mstatus_d.fs   = 2'b0;
+                        mstatus_d.upie = 1'b0;
+                        mstatus_d.uie  = 1'b0;
+                    end
+                    // MISA is WARL (Write Any Value, Reads Legal Value)
+                    pito_pkg::CSR_MISA:;
+                    // mask the register so that unsupported interrupts can never be set
+                    pito_pkg::CSR_MIE: begin
+                        mask  = pito_pkg::MIP_MSIP | pito_pkg::MIP_MTIP | pito_pkg::MIP_MEIP | pito_pkg::MIP_MVIP;
+                        mie_d = (mie_q & ~mask) | (csr_wdata & mask); // we only support M-mode interrupts
+                    end
 
-                pito_pkg::CSR_MTVEC: begin
-                    // mtvec_d = {csr_wdata[31:2], 1'b0, csr_wdata[0]};
-                    mtvec_d = csr_wdata;
-                    // we are in vector mode, this implementation requires the additional
-                    // alignment constraint of 64 * 4 bytes
-                    // if (csr_wdata[0]) mtvec_d = {csr_wdata[31:8], 7'b0, csr_wdata[0]};
-                end
-                pito_pkg::CSR_MEPC:               mepc_d      = {csr_wdata[31:1], 1'b0};
-                // pito_pkg::CSR_MCAUSE:             mcause_d    = csr_wdata;
-                pito_pkg::CSR_MTVAL:              mtval_d     = csr_wdata;
-                pito_pkg::CSR_MIP: begin
-                    mask  = pito_pkg::MIP_MSIP | pito_pkg::MIP_MTIP | pito_pkg::MIP_MEIP | pito_pkg::MIP_MVIP;
-                    mip_d = (mip_q & ~mask) | (csr_wdata & mask);
-                end
-                // performance counters
-                // pito_pkg::CSR_MCYCLE:             mcycle_d     = csr_wdata;
-                // pito_pkg::CSR_MINSTRET:           instret     = csr_wdata;
-                // pito_pkg::CSR_MCALL,
-                // pito_pkg::CSR_MRET: begin
-                //                         perf_data_o = csr_wdata;
-                //                         perf_we_o   = 1'b1;
-                // end
-                // MVU related csrs, MVU CSRS start at 0xF20
-                12'b1111??1?????: csr_mvucfg_d  = csr_wdata;
-                
-                default: update_access_exception = 1'b1;
-            endcase
+                    pito_pkg::CSR_MTVEC: begin
+                        // mtvec_d = {csr_wdata[31:2], 1'b0, csr_wdata[0]};
+                        mtvec_d = csr_wdata;
+                        // we are in vector mode, this implementation requires the additional
+                        // alignment constraint of 64 * 4 bytes
+                        // if (csr_wdata[0]) mtvec_d = {csr_wdata[31:8], 7'b0, csr_wdata[0]};
+                    end
+                    pito_pkg::CSR_MEPC:               mepc_d      = {csr_wdata[31:1], 1'b0};
+                    // pito_pkg::CSR_MCAUSE:             mcause_d    = csr_wdata;
+                    pito_pkg::CSR_MTVAL:              mtval_d     = csr_wdata;
+                    pito_pkg::CSR_MIP: begin
+                        mask  = pito_pkg::MIP_MSIP | pito_pkg::MIP_MTIP | pito_pkg::MIP_MEIP | pito_pkg::MIP_MVIP;
+                        mip_d = (mip_q & ~mask) | (csr_wdata & mask);
+                    end
+                    // performance counters
+                    // pito_pkg::CSR_MCYCLE:             mcycle_d     = csr_wdata;
+                    // pito_pkg::CSR_MINSTRET:           instret     = csr_wdata;
+                    // pito_pkg::CSR_MCALL,
+                    // pito_pkg::CSR_MRET: begin
+                    //                         perf_data_o = csr_wdata;
+                    //                         perf_we_o   = 1'b1;
+                    // end
+                    // MVU related csrs, MVU CSRS start at 0xF20                
+                    default: update_access_exception = 1'b1;
+                endcase
+            end
         end
 
         // hardwired extension registers
@@ -333,7 +335,13 @@ module rv32_csr import pito_pkg::*;import rv32_pkg::*; #(
             // wait for interrupt
             wfi_q                  <= 1'b0;
             mtvec_rst_load_q       <= 1'b1;
-            // csr pc valid signal
+            // apb signals
+            apb_paddr   <= 0;
+            apb_pwdata  <= 0;
+            apb_pwrite  <= 1'b0;
+            apb_psel    <= 1'b0;
+            apb_penable <= 1'b0;
+
         end else begin
             // machine mode registers
             mtvec_rst_load_q       <= 1'b0;
@@ -351,7 +359,7 @@ module rv32_csr import pito_pkg::*;import rv32_pkg::*; #(
             wfi_q                  <= wfi_d;
             // MVU related csrs
             csr_mvucfg_q           <= csr_mvucfg_d;
-            if (csr_addr>=pito_pkg::MVU_CSR_START_ADDR) begin
+            if (csr_addr>=pito_pkg::MVU_CSR_START_ADDR && csr_we) begin
                 apb_paddr   <= csr_addr;
                 apb_pwdata  <= csr_mvucfg_d;
                 apb_pwrite  <= 1'b1;

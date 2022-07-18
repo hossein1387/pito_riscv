@@ -93,10 +93,10 @@ targets:
 parameters:
     firmware:
         datatype  : file
-        default   : /users/hemmat/MyRepos/pito_riscv/csrc/uart/build/uart_text.hex
+        default   : /users/hemmat/MyRepos/pito_riscv/csrc/mvu_csr/build/mvu_csr_text.hex
         paramtype : plusarg
     rodata:
         datatype  : file
-        default   : /users/hemmat/MyRepos/pito_riscv/csrc/uart/build/uart_data.hex
+        default   : /users/hemmat/MyRepos/pito_riscv/csrc/mvu_csr/build/mvu_csr_data.hex
         paramtype : plusarg
 

@@ -2,7 +2,6 @@ add_wave_group soc
     add_wave_group -into soc soc_ext_intf
         add_wave -into soc_ext_intf {{/testbench_top/pito_inf/soc_ext/clk}}
         add_wave -into soc_ext_intf {{/testbench_top/pito_inf/soc_ext/rst_n}}
-        add_wave -into soc_ext_intf {{/testbench_top/pito_inf/soc_ext/pito_program}}
         add_wave -into soc_ext_intf {{/testbench_top/pito_inf/soc_ext/dmem_wdata}}
         add_wave -into soc_ext_intf {{/testbench_top/pito_inf/soc_ext/dmem_rdata}}
         add_wave -into soc_ext_intf {{/testbench_top/pito_inf/soc_ext/dmem_addr}}
@@ -19,7 +18,6 @@ add_wave_group soc
         add_wave -into soc_ext_intf {{/testbench_top/pito_inf/soc_ext/uart_tx}}
     add_wave_group -into soc pito
         add_wave -into pito {{/testbench_top/soc/mem_out_bound}}
-        add_wave -into pito {{/testbench_top/soc/pito/pito_program}}
         add_wave -into pito {{/testbench_top/soc/pito/imem_wdata}}
         add_wave -into pito {{/testbench_top/soc/pito/imem_rdata}}
         add_wave -into pito {{/testbench_top/soc/pito/imem_addr}}
@@ -62,7 +60,6 @@ add_wave_group core
         add_wave -into FetchStage {{/testbench_top/soc/pito/dmem_req}}
         add_wave -into FetchStage {{/testbench_top/soc/pito/dmem_we}}
         add_wave -into FetchStage {{/testbench_top/soc/pito/dmem_be}}
-        add_wave -into FetchStage {{/testbench_top/soc/pito/pito_program}}
         add_wave -into FetchStage {{/testbench_top/soc/pito/rv32_instr}}
         add_wave -into FetchStage {{/testbench_top/soc/pito/pc_sel}}
     add_wave_group -into core DecStage
@@ -177,9 +174,6 @@ add_wave_group pipeline
         add_wave -into pc_counters {{/testbench_top/soc/pito/rv32_ex_pc}}
         add_wave -into pc_counters {{/testbench_top/soc/pito/rv32_wb_pc}}
         add_wave -into pc_counters {{/testbench_top/soc/pito/rv32_wf_pc}}
-        add_wave -into pc_counters {{/testbench_top/soc/pito/rv32_org_ex_pc}}
-        add_wave -into pc_counters {{/testbench_top/soc/pito/rv32_org_wb_pc}}
-        add_wave -into pc_counters {{/testbench_top/soc/pito/rv32_org_wf_pc}}
     add_wave_group -into pipeline instructions
         add_wave -into instructions {{/testbench_top/soc/pito/rv32_instr}}
         add_wave -into instructions {{/testbench_top/soc/pito/rv32_dec_instr}}
@@ -195,12 +189,6 @@ add_wave_group pipeline
     add_wave_group -into pipeline rs1_2
         add_wave -into rs1_2 {{/testbench_top/soc/pito/rv32_alu_rs1}}
         add_wave -into rs1_2 {{/testbench_top/soc/pito/rv32_alu_rs2}}
-        add_wave -into rs1_2 {{/testbench_top/soc/pito/rv32_wb_alu_rs1}}
-        add_wave -into rs1_2 {{/testbench_top/soc/pito/rv32_wb_alu_rs2}}
-        add_wave -into rs1_2 {{/testbench_top/soc/pito/rv32_wf_alu_rs1}}
-        add_wave -into rs1_2 {{/testbench_top/soc/pito/rv32_wf_alu_rs2}}
-        add_wave -into rs1_2 {{/testbench_top/soc/pito/rv32_cap_alu_rs1}}
-        add_wave -into rs1_2 {{/testbench_top/soc/pito/rv32_cap_alu_rs2}}
     add_wave_group -into pipeline harts
         add_wave_group -into harts hart_ids
             add_wave -into hart_ids {{/testbench_top/soc/pito/rv32_hart_cnt}}
