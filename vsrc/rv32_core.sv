@@ -1,25 +1,24 @@
 `timescale 1ns/1ps
 `include "rv32_defines.svh"
-`include "pito_inf.svh"
 
 module rv32_core import rv32_pkg::*;import pito_pkg::*; 
 (
-    input  logic            clk,
-    input  logic            rst_n,
-    output rv32_data_t      imem_wdata,
-    input  rv32_data_t      imem_rdata,
-    output rv32_imem_addr_t imem_addr,
-    output logic            imem_req,
-    output logic            imem_we,
-    output imem_be_t        imem_be,
-    output rv32_data_t      dmem_wdata,
-    input  rv32_data_t      dmem_rdata,
-    output rv32_dmem_addr_t dmem_addr,
-    output logic            dmem_req,
-    output logic            dmem_we,
-    output dmem_be_t        dmem_be,
-    mvu_csr_interface       mvu_csr_if,
-    APB                     mvu_apb
+    input  logic                  clk,
+    input  logic                  rst_n,
+    output rv32_data_t            imem_wdata,
+    input  rv32_data_t            imem_rdata,
+    output rv32_imem_addr_t       imem_addr,
+    output logic                  imem_req,
+    output logic                  imem_we,
+    output imem_be_t              imem_be,
+    output rv32_data_t            dmem_wdata,
+    input  rv32_data_t            dmem_rdata,
+    output rv32_dmem_addr_t       dmem_addr,
+    output logic                  dmem_req,
+    output logic                  dmem_we,
+    output dmem_be_t              dmem_be,
+    input logic [NUM_HARTS-1 : 0] mvu_irq,
+    APB                           mvu_apb
 );
 
 //====================================================================

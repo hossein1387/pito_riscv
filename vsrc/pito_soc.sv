@@ -2,12 +2,12 @@
 `include "testbench_macros.svh"
 module pito_soc import rv32_pkg::*;import pito_pkg::*;(
     pito_soc_ext_interface.soc_ext ext_intf,
-    mvu_csr_interface  mvu_csr_intf,
     APB                mvu_apb
 );
 
 logic clk;
 logic rst_n;
+logic [`PITO_NUM_HARTS-1    : 0] mvu_irq_i;
 
 assign clk = ext_intf.clk;
 assign rst_n = ext_intf.rst_n;
@@ -37,6 +37,7 @@ rv32_dmem_addr_t uart_addr;
 
 assign rv32_imem.addr[`PITO_INSTR_MEM_LOCAL_PORT] = imem_addr[`PITO_INSTR_MEM_ADDR_WIDTH-1:0];
 assign rv32_dmem.addr[`PITO_DATA_MEM_LOCAL_PORT]  = dmem_addr[`PITO_DATA_MEM_ADDR_WIDTH-1:0]>>2;
+assign mvu_irq_i = ext_intf.mvu_irq;
 
 rv32_core pito(
     .clk        (clk                                        ),
@@ -53,7 +54,7 @@ rv32_core pito(
     .dmem_req   (rv32_dmem.req  [`PITO_DATA_MEM_LOCAL_PORT] ),
     .dmem_we    (dmem_wen                                   ),
     .dmem_be    (rv32_dmem.be   [`PITO_DATA_MEM_LOCAL_PORT] ),
-    .mvu_csr_if (mvu_csr_intf                               ),
+    .mvu_irq    (mvu_irq_i                                  ),
     .mvu_apb    (mvu_apb                                    )
 );
 

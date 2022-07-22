@@ -50,20 +50,6 @@ modport  io (
 endinterface
 
 //=================================================
-// MVU Interface
-//=================================================
-
-interface mvu_csr_interface();
-import rv32_pkg::*;
-import pito_pkg::*;
-
-// Interface with Accelerator (MVU)
-logic [`PITO_NUM_HARTS-1    : 0] mvu_irq_i;
-
-endinterface
-
-
-//=================================================
 // External Interface: 
 //     - uart
 //     - ram programming interafce
@@ -74,8 +60,14 @@ interface pito_soc_ext_interface(input logic clk);
 import rv32_pkg::*;
 import pito_pkg::*;
 logic            rst_n;
+// I/O Signals:
 logic            uart_rx;
 logic            uart_tx;
+
+// MVU related signals:
+logic [`PITO_NUM_HARTS-1    : 0] mvu_irq;
+
+// Data and Instruction Ram:
 rv32_data_t      imem_wdata;
 rv32_data_t      imem_rdata;
 rv32_imem_addr_t imem_addr;
@@ -89,6 +81,7 @@ rv32_dmem_addr_t dmem_addr;
 logic            dmem_req;
 logic            dmem_we;
 dmem_be_t        dmem_be;
+
 
 modport  soc_ext (
     input  clk,
@@ -105,13 +98,14 @@ modport  soc_ext (
     input  imem_req  ,
     input  imem_we   ,
     input  imem_be   ,
+    input  mvu_irq   ,
     input  uart_rx   ,
     output uart_tx
 );
 
 modport  tb (
     input  clk,
-    output rst_n,
+    input  rst_n,
     output dmem_wdata,
     input  dmem_rdata,
     output dmem_addr ,
@@ -124,6 +118,7 @@ modport  tb (
     output imem_req  ,
     output imem_we   ,
     output imem_be   ,
+    input  mvu_irq   ,
     output uart_rx   ,
     input  uart_tx
 );

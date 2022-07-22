@@ -1,5 +1,4 @@
 `timescale 1ns/1ps
-`include "pito_inf.svh"
 `include "core_tester.sv"
 `include "rv32_defines.svh"
 module testbench_top import utils::*; ();
