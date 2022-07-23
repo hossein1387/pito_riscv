@@ -216,7 +216,7 @@ rv32_barrel_csrfiles csr(
                     .time_irq           (csr_timer_irq              ),
                     .ipi                (csr_ipi_irq                ),
                     .boot_addr          (csr_boot_addr              ),
-                    .mvu_irq            (mvu_csr_if.mvu_irq_i       ),
+                    .mvu_irq            (mvu_irq                    ),
                     .csr_exception      (csr_exception              ),
                     .apb                (mvu_apb                    ),
                     .pc                 (rv32_pc                    ),

@@ -61,7 +61,7 @@ assign enable_cycle_count_sigs = 1'b1;
 
 genvar hart_id;
     for(hart_id=0; hart_id<NUM_HARTS; hart_id++) begin
-        rv32_csr #(hart_id,12'hF20,NUM_HARTS) csrfile(
+        rv32_csr #(hart_id,12'hF20) csrfile(
                             .clk                   (clk                             ),
                             .rst_n                 (rst_n                           ),
                             .csr_addr_i            (csr_addr_sigs[hart_id]          ),
