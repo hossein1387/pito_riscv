@@ -281,6 +281,24 @@ class pito_monitor extends BaseObj;
         end
     endtask
 
+    task automatic monitor_irq();
+        logger.print("Monitoring IRQ ...");
+        while (1) begin
+            @(intf.mvu_irq)
+            // Check which HART received an IRQ
+            for (int i=0; i<pito_pkg::NUM_HARTS; i++) begin
+                if (intf.mvu_irq[i] ==  1) begin
+                    logger.print($sformatf("IRQ received for HART: %0d", i));
+                end
+            end
+
+        end
+    endtask
+
+    // always @(posedge mvu_ext_intf.irq) begin
+    //     $display($sformatf("IRQ is sent!, S0=%0d, SP=%0d", `hdl_path_top.regfile.genblk1[0].regfile.data[8], `hdl_path_top.regfile.genblk1[0].regfile.data[2]));
+    // end
+
     task automatic monitor_instructions();
         int hart_valid = 0;
         rv32_opcode_enum_t rv32_wf_opcode;
@@ -323,6 +341,7 @@ class pito_monitor extends BaseObj;
         fork
             monitor_instructions();
             monitor_uart();
+            monitor_irq();
         join_any
     endtask
 
