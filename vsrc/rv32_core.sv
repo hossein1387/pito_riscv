@@ -228,16 +228,19 @@ rv32_barrel_csrfiles csr(
 
 
 rv32_next_pc rv32_next_pc_cal(
-                        .csr_irq_evt      (csr_irq_evt[rv32_hart_wb_cnt]    ),
-                        .rv32_alu_res     (rv32_wb_out                      ),
-                        .rv32_rs1         (rv32_wb_rs1                      ),
-                        .rv32_imm         (rv32_wb_imm                      ),
-                        .rv32_instr_opcode(rv32_wb_opcode                   ),
-                        .rv32_cur_pc      (rv32_wb_pc                       ),
-                        .rv32_save_pc     (rv32_wb_save_pc                  ),
-                        .rv32_has_new_pc  (rv32_wb_has_new_pc               ),
-                        .rv32_reg_pc      (rv32_wb_reg_pc                   ),
-                        .rv32_next_pc_val (rv32_wb_next_pc_val              )
+                        .clk              (clk                  ),
+                        .rst_n            (rst_n                ),
+                        .csr_irq_evt      (csr_irq_evt          ),
+                        .hart_id_i        (rv32_hart_wb_cnt     ),
+                        .rv32_alu_res     (rv32_wb_out          ),
+                        .rv32_rs1         (rv32_wb_rs1          ),
+                        .rv32_imm         (rv32_wb_imm          ),
+                        .rv32_instr_opcode(rv32_wb_opcode       ),
+                        .rv32_cur_pc      (rv32_wb_pc           ),
+                        .rv32_save_pc     (rv32_wb_save_pc      ),
+                        .rv32_has_new_pc  (rv32_wb_has_new_pc   ),
+                        .rv32_reg_pc      (rv32_wb_reg_pc       ),
+                        .rv32_next_pc_val (rv32_wb_next_pc_val  )
 );
 
 // pito uses seperate memory for instructions and data.

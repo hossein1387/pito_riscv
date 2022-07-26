@@ -73,6 +73,7 @@ typedef struct packed {
      logic        valid;
 } irq_evt_t;
 
+
 //-------------------------------------------------------------------
 //                     MVU Specific Parameters and Types
 //-------------------------------------------------------------------
@@ -88,6 +89,8 @@ typedef logic [APB_DATA_WIDTH-1:0] apb_strb_t;
 //-------------------------------------------------------------------
 //                     PITO Interrupt and Exception Codes
 //-------------------------------------------------------------------
+localparam int unsigned IRQ_Q_DEPTH   = 4;
+
 localparam int unsigned IRQ_M_SOFT   = 3;
 localparam int unsigned IRQ_M_TIMER  = 7;
 localparam int unsigned IRQ_M_EXT    = 11;

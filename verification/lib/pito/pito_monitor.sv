@@ -272,7 +272,7 @@ class pito_monitor extends BaseObj;
             if (`hdl_path_soc_top.uart_busy ==  1'b1) begin
                 char = `hdl_path_soc_top.uart_data_in[7:0];
                 if (char==10) begin
-                    logger.print($sformatf("%s", str));
+                    logger.print($sformatf("UART: %s", str));
                     str  = $sformatf("");
                 end else begin
                     str = $sformatf("%s%s", str, string'(char));
@@ -288,7 +288,7 @@ class pito_monitor extends BaseObj;
             // Check which HART received an IRQ
             for (int i=0; i<pito_pkg::NUM_HARTS; i++) begin
                 if (intf.mvu_irq[i] ==  1) begin
-                    logger.print($sformatf("IRQ received for HART: %0d", i));
+                    logger.print($sformatf("monitor::monitor_irq: IRQ received for HART: %0d", i));
                 end
             end
 

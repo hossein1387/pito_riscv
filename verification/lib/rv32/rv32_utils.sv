@@ -445,7 +445,7 @@ class RV32IPredictor extends BaseObj;
 
     function void report_result (bit is_riscv_test, rv32_data_q hart_ids_q);
         string res_str;
-        print_result(this.test_stat, VERB_LOW, this.logger);
+        print_result(this.test_stat, VERB_MEDIUM, this.logger);
         for (int id=0; id<hart_ids_q.size(); id++) begin
             if (is_riscv_test && hart_ids_q[id]==1) begin
                 res_str = $sformatf("[HARTID: %1d] RISC-V Test Result: %c%c%c%c", id, this.regf_model[id][11], this.regf_model[id][12], this.regf_model[id][13], this.regf_model[id][14]);

@@ -147,6 +147,10 @@ class pito_testbench_base extends BaseObj;
         inf.imem_addr    = {`PITO_INSTR_ADDR_WIDTH{1'b0}};
         inf.imem_wdata   = 32'b0;
 
+        for (int hart_id=0; hart_id<pito_pkg::NUM_HARTS; hart_id++) begin
+            inf.mvu_irq[hart_id] = 0;
+        end
+
         @(posedge inf.clk);
         inf.rst_n = 1'b0;
         @(posedge inf.clk);
@@ -172,7 +176,7 @@ class pito_testbench_base extends BaseObj;
         int total_num_instr=0;
         logger.print_banner("Testbench Report phase");
         `ifdef RV32_TEST
-            print_result(test_stat, VERB_LOW, logger);
+            print_result(test_stat, VERB_MEDIUM, logger);
             for (int hart=0; hart<NUM_HARTS; hart++) begin
                 if (this.hart_ids_q[hart] == 1) begin
                     byte char_0 = `hdl_path_regf_0[rv32_abi_reg_i["a0"]];

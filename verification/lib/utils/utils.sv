@@ -32,14 +32,14 @@ class Logger;
           this.log_to_std_out = log_to_std_out;
     endfunction
 
-    function void print (string msg, string id="INFO", print_verbosity_t verbosity=VERB_LOW);
+    function void print (string msg, string id="INFO", print_verbosity_t verbosity=VERB_MEDIUM);
         string time_stamp = this.log_time ? $sformatf("%t",$time()) : "";
         string log;
         if ($time()==0) begin
             time_stamp = "0 ns";
         end
         log = $sformatf("[%5s] %12s %s ", id, time_stamp, msg);
-        if (verbosity<VERB_MEDIUM) begin
+        if (verbosity>=VERB_MEDIUM) begin
             if (log_to_std_out == 1) begin
                 $display("%s", log);
             end
@@ -50,7 +50,7 @@ class Logger;
         $fwrite(this.fd, log);
     endfunction
 
-    function void print_banner (string msg, string id="INFO", print_verbosity_t verbosity=VERB_LOW);
+    function void print_banner (string msg, string id="INFO", print_verbosity_t verbosity=VERB_MEDIUM);
         string sep = "=======================================================================";
         // string log = $sformatf("%s\n[%5s]  %s \n%s", sep, id, msg, sep);
         this.print(sep, id, verbosity);
@@ -120,7 +120,7 @@ typedef struct packed
 
 //==================================================================================================
 // A function to report results
-function void print_result(test_stats_t test_stat, print_verbosity_t verbosity=VERB_LOW, Logger logger=null, string id="INFO");
+function void print_result(test_stats_t test_stat, print_verbosity_t verbosity=VERB_MEDIUM, Logger logger=null, string id="INFO");
     if (logger == null) begin
         `print_banner("INFO", "Test results", verbosity)
         `test_print("INFO", $sformatf("Total Number of tests  = %0d", test_stat.pass_cnt+test_stat.fail_cnt), verbosity)
@@ -144,7 +144,7 @@ function void print_matrix_from_array(inout integer array, integer row_len, inte
             array_shape_str = {array_shape_str, $sformatf("%2h ",array[elcnt])};
             elcnt++;
         end
-        `test_print("INFO", $sformatf("%s", array_shape_str), VERB_LOW)
+        `test_print("INFO", $sformatf("%s", array_shape_str), VERB_MEDIUM)
         array_shape_str = "";
     end
 endfunction : print_matrix_from_array

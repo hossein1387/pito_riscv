@@ -83,8 +83,6 @@ module rv32_csr import pito_pkg::*;import rv32_pkg::*; #(
     assign ipi_irq_valid      = 1'b0; // not supported for now
     assign mvu_irq_valid      = mstatus_q.mie & mip_q[pito_pkg::IRQ_MVU_INTR] & mie_q[pito_pkg::IRQ_MVU_INTR];
     assign is_irq             = timer_irq_valid | ipi_irq_valid | mvu_irq_valid;
-    assign csr_irq_evt.hart_id= PITO_HART_ID;
-    assign csr_irq_evt.valid  = |mip_q & mstatus_q.mie;
 
 //====================================================================
 //                   CSR Read logic
@@ -210,7 +208,6 @@ module rv32_csr import pito_pkg::*;import rv32_pkg::*; #(
                     //                         perf_data_o = csr_wdata;
                     //                         perf_we_o   = 1'b1;
                     // end
-                    // MVU related csrs, MVU CSRS start at 0xF20                
                     default: update_access_exception = 1'b1;
                 endcase
             end
@@ -222,6 +219,9 @@ module rv32_csr import pito_pkg::*;import rv32_pkg::*; #(
         // ---------------------
         // External Interrupts
         // ---------------------
+        csr_irq_evt.hart_id= PITO_HART_ID;
+        csr_irq_evt.valid  = |mip_q & mstatus_q.mie;
+
         // Machine Mode External Interrupt Pending
         mip_d[pito_pkg::IRQ_M_EXT] = irq_i;
         // Machine software interrupt
@@ -235,7 +235,16 @@ module rv32_csr import pito_pkg::*;import rv32_pkg::*; #(
         // update mstatus
         if (is_irq) begin
             // disable intterupts
-            // mstatus_d.mie  = 1'b0;
+            // if (irq_i) begin
+            //     mie_d[pito_pkg::IRQ_M_EXT] = 1'b0;
+            // end else if (ipi_i) begin
+            //     mie_d[pito_pkg::IRQ_M_SOFT] = 1'b0;
+            // end else if (time_irq_i) begin
+            //     mie_d[pito_pkg::IRQ_M_TIMER] = 1'b0;
+            // end else if (mvu_irq_i) begin
+            //     mie_d[pito_pkg::IRQ_MVU_INTR] = 1'b0;
+            // end
+            mstatus_d.mie = 1'b0;
             // set irq cause
             mcause_d       = {1'b1, {26{1'b0}}, cause_i[4:0]};
             // set mtval
@@ -243,7 +252,7 @@ module rv32_csr import pito_pkg::*;import rv32_pkg::*; #(
             // set mpie to mie 
             mstatus_d.mpie = mstatus_q.mie;
         end
-        if (~irq_serviced_q & is_irq) begin
+        if (~irq_serviced_d & is_irq) begin
             // set mepc
             mepc_d         = pc_i;
             irq_serviced_d = 1'b1;
@@ -264,6 +273,7 @@ module rv32_csr import pito_pkg::*;import rv32_pkg::*; #(
             // return to where we got the interrupt
             csr_irq_evt.data   = mepc_q;
             irq_serviced_d     = 1'b0;
+            csr_irq_evt.valid  = 1'b1;
         end
     end
 
@@ -318,7 +328,7 @@ module rv32_csr import pito_pkg::*;import rv32_pkg::*; #(
 //====================================================================
 //                  Sequential Process
 //====================================================================
-    always_ff @(posedge clk or negedge rst_n) begin
+    always_ff @(posedge clk) begin
         if (~rst_n) begin
             irq_serviced_q         <= 1'b0;
             // machine mode registers

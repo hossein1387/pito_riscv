@@ -68,10 +68,12 @@ filesets:
             - verification/lib/testbench/testbench_base.sv
             - verification/tests/core/core_tester.sv:
                 is_include_file: true
+            - verification/tests/irq/irq_tester.sv:
+                is_include_file: true
             - verification/lib/testbench/testbench_top.sv
         file_type : systemVerilogSource
 targets:
-    sim:
+    sim: &sim
         default_tool: xsim 
         filesets:
             - rtl
@@ -82,6 +84,9 @@ targets:
                 xelab_options: [--debug, typical, -L, secureip, -L, unisims_ver, -L, unimacro_ver, -L, work.glbl, --timescale, 1ns/1ps, --define, SIMULATION_MODE]
         parameters: [firmware,rodata]
         toplevel: testbench_top
+    sim-irq:
+        <<: *sim
+        parameters: [firmware,rodata, TB_IRQ]
     synth:
         description: Synthesize the design for an FPGA board
         filesets:
@@ -94,10 +99,13 @@ targets:
 parameters:
     firmware:
         datatype  : file
-        default   : /users/hemmat/MyRepos/pito_riscv/csrc/mvu_csr/build/mvu_csr_text.hex
+        default   : /users/hemmat/MyRepos/pito_riscv/csrc/irq/build/irq_text.hex
         paramtype : plusarg
     rodata:
         datatype  : file
-        default   : /users/hemmat/MyRepos/pito_riscv/csrc/mvu_csr/build/mvu_csr_data.hex
+        default   : /users/hemmat/MyRepos/pito_riscv/csrc/irq/build/irq_data.hex
         paramtype : plusarg
-
+    TB_IRQ:
+        datatype  : int
+        default   : 1
+        paramtype : vlogdefine
