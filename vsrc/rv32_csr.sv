@@ -251,10 +251,10 @@ module rv32_csr import pito_pkg::*;import rv32_pkg::*; #(
             csr_irq_evt.data = mtvec_d;
             // set mpie to mie 
             mstatus_d.mpie = mstatus_q.mie;
+            mepc_d         = pc_i;
         end
         if (~irq_serviced_d & is_irq) begin
             // set mepc
-            mepc_d         = pc_i;
             irq_serviced_d = 1'b1;
         end else begin
             irq_serviced_d = is_irq;
