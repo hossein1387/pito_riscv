@@ -194,7 +194,7 @@ module rv32_csr import pito_pkg::*;import rv32_pkg::*; #(
                         // if (csr_wdata[0]) mtvec_d = {csr_wdata[31:8], 7'b0, csr_wdata[0]};
                     end
                     pito_pkg::CSR_MEPC:               mepc_d      = {csr_wdata[31:1], 1'b0};
-                    // pito_pkg::CSR_MCAUSE:             mcause_d    = csr_wdata;
+                    pito_pkg::CSR_MCAUSE:             mcause_d    = csr_wdata;
                     pito_pkg::CSR_MTVAL:              mtval_d     = csr_wdata;
                     pito_pkg::CSR_MIP: begin
                         mask  = pito_pkg::MIP_MSIP | pito_pkg::MIP_MTIP | pito_pkg::MIP_MEIP | pito_pkg::MIP_MVIP;
@@ -267,7 +267,7 @@ module rv32_csr import pito_pkg::*;import rv32_pkg::*; #(
         if (mret) begin
             // return to the previous privilege level and restore all enable flags
             // get the previous machine interrupt enable flag
-            mstatus_d.mie  = mstatus_q.mpie;
+            // mstatus_d.mie  = mstatus_q.mpie;
             // set mpie to 1
             mstatus_d.mpie = 1'b1;
             // return to where we got the interrupt
