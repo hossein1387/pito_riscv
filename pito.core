@@ -38,10 +38,21 @@ filesets:
     synth:
         file_type : systemVerilogSource
         files:
-            - verification/lib/pito/pito_inf.svh:
-                is_include_file: true
+            - deps/common_cells/src/cf_math_pkg.sv
+            - deps/apb/include/apb/assign.svh:
+                is_include_file: True
+            - deps/apb/include/apb/typedef.svh:
+                is_include_file: True
+            - deps/apb/src/apb_test.sv
+            - deps/apb/src/apb_pkg.sv
+            - deps/apb/src/apb_intf.sv
+            - deps/tech_cells_generic/src/rtl/tc_sram.sv
+            - deps/common_cells/src/onehot_to_bin.sv
             - verification/lib/rv32/rv32_defines.svh: 
                 is_include_file: true
+            - verification/lib/rv32/rv32_pkg.sv
+            - verification/lib/pito/pito_pkg.sv
+            - verification/lib/pito/pito_intf.sv
             - vsrc/rv32_imm_gen.sv
             - vsrc/rv32_decoder.sv
             - vsrc/rv32_data_memory.sv
@@ -53,6 +64,8 @@ filesets:
             - vsrc/rv32_next_pc.sv
             - vsrc/rv32_csr.sv
             - vsrc/rv32_barrel_csrfiles.sv
+            - vsrc/pito_uart.sv
+            - vsrc/pito_soc.sv
             - synthesis/constraint_files/pito_core.xdc:
                 file_type: xdc
     tb:
@@ -94,7 +107,7 @@ targets:
         default_tool: vivado
         tools:
           vivado:
-            part: xcku115-flva1517-2-e
+            part: xcvu9p-flgb2104-2-e
         toplevel: [pito_soc]
 parameters:
     firmware:
