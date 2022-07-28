@@ -1,5 +1,9 @@
 `include "rv32_defines.svh"
-`include "testbench_macros.svh"
+
+`ifdef DEBUG
+    `include "testbench_macros.svh"
+`endif
+
 module pito_soc import rv32_pkg::*;import pito_pkg::*;(
     pito_soc_ext_interface.soc_ext ext_intf,
     APB                mvu_apb

@@ -1,5 +1,3 @@
-`include "testbench_macros.svh"
-
 module pito_uart #(
     parameter FREQ_MHZ = 100,
     parameter BAUDS    = 115200
