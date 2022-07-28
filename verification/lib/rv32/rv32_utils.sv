@@ -1135,11 +1135,11 @@ function automatic string get_instr_str(rv32_inst_dec_t instr);
     string   inst_type = instr.inst_type.name     ;
     case (instr.inst_type)
         RV32_TYPE_R       : instr_str = $sformatf("%12s: rd=%4s rs1=%4s rs2=%4s         ", opcode, rd, rs1, rs2);
-        RV32_TYPE_I       : instr_str = $sformatf("%12s: rd=%4s rs1=%4s          imm=%4d", opcode, rd, rs1,  signed'(imm));
-        RV32_TYPE_S       : instr_str = $sformatf("%12s:         rs1=%4s rs2=%4s imm=%4d", opcode, rs1, rs2, signed'(imm));
-        RV32_TYPE_B       : instr_str = $sformatf("%12s:         rs1=%4s rs2=%4s imm=%4d", opcode, rs1, rs2, signed'(imm));
-        RV32_TYPE_U       : instr_str = $sformatf("%12s: rd=%4s rs1=%4s          imm=%4d", opcode, rd, rs1,  signed'(imm));
-        RV32_TYPE_J       : instr_str = $sformatf("%12s: rd=%4s                   imm=%4d", opcode, rd, signed'(imm));
+        RV32_TYPE_I       : instr_str = $sformatf("%12s: rd=%4s rs1=%4s          imm=%8d", opcode, rd, rs1,  signed'(imm));
+        RV32_TYPE_S       : instr_str = $sformatf("%12s:         rs1=%4s rs2=%4s imm=%8d", opcode, rs1, rs2, signed'(imm));
+        RV32_TYPE_B       : instr_str = $sformatf("%12s:         rs1=%4s rs2=%4s imm=%8d", opcode, rs1, rs2, signed'(imm));
+        RV32_TYPE_U       : instr_str = $sformatf("%12s: rd=%4s rs1=%4s          imm=%8d", opcode, rd, rs1,  signed'(imm));
+        RV32_TYPE_J       : instr_str = $sformatf("%12s: rd=%4s                   imm=%8d", opcode, rd, signed'(imm));
         RV32_TYPE_NOP     : instr_str = $sformatf("  %12s:                             ", opcode);
         RV32_TYPE_UNKNOWN : instr_str = "!unknown instruction!";
     endcase

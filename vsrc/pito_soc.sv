@@ -126,7 +126,7 @@ assign rv32_dmem.be   [`PITO_DATA_MEM_EXT_PORT] = ext_intf.dmem_be   ;
 
 assign ext_intf.dmem_rdata = rv32_dmem.rdata[`PITO_DATA_MEM_EXT_PORT];
 
-rv32_data_memory #(    
+rv32_data_memory #(
     .NumWords   (`PITO_DATA_MEM_SIZE ),
     .DataWidth  (`DATA_WIDTH         ),
     .ByteWidth  (`BYTE_WIDTH         ),

@@ -304,24 +304,30 @@ class pito_monitor extends BaseObj;
         rv32_opcode_enum_t rv32_wf_opcode;
         rv32_inst_dec_t instr;
         rv32_instr_t    act_instr;
-        rv32_pc_cnt_t   pc_cnt, pc_orig_cnt;
+        rv32_pc_cnt_t   pc_cnt, pc_orig_cnt, trace_pcnt;
+        Logger          trace;
         int hart_id;
-        logic is_sim_end = 1'b0;
-        while(is_sim_end == 1'b0) begin
+        logic has_sim_end = 1'b0;
+        string instr_str;
+        trace = new("trace.log");
+        while(has_sim_end == 1'b0) begin
+            hart_id = `hdl_path_top.rv32_hart_wf_cnt;
+            pc_cnt         = `hdl_path_top.rv32_wf_pc[`hdl_path_top.rv32_hart_wf_cnt];
+            trace_pcnt     = `hdl_path_top.rv32_wf_pc[`hdl_path_top.rv32_hart_wb_cnt];
+            pc_orig_cnt    = `hdl_path_top.rv32_org_wf_pc;
+            act_instr      = `hdl_path_top.rv32_wf_instr;
+            instr          = this.rv32i_dec.decode_instr(act_instr);
+            instr_str      = rv32_utils::get_instr_str(instr);
             if (hart_ids_q[`hdl_path_top.rv32_hart_wf_cnt] == 1) begin
-                pc_cnt         = `hdl_path_top.rv32_wf_pc[`hdl_path_top.rv32_hart_wf_cnt];
-                pc_orig_cnt    = `hdl_path_top.rv32_org_wf_pc;
-                act_instr      = `hdl_path_top.rv32_wf_instr;
-                instr          = this.rv32i_dec.decode_instr(act_instr);
                 hart_valid     = 1;
-                hart_id        = `hdl_path_top.rv32_hart_wf_cnt;
             end
             @(negedge intf.clk);
             if (hart_valid == 1) begin
                 rv32i_pred.predict(act_instr, instr, pc_cnt, pc_orig_cnt, read_regs(hart_id), read_csrs(hart_id), read_dmem_word(instr, hart_id), hart_id);
                 hart_valid = 0;
             end
-            is_sim_end = ((`hdl_path_top.rv32_wf_opcode ==  rv32_pkg::RV32_ECALL) || (`hdl_path_top.rv32_wf_opcode ==  rv32_pkg::RV32_EBREAK)) ? 1'b1 : 1'b0;
+            trace.print($sformatf("%s pc=0x%h", instr_str,trace_pcnt), $sformatf("HART[%1d]", hart_id), utils::VERB_NONE);
+            has_sim_end = ((`hdl_path_top.rv32_wf_opcode ==  rv32_pkg::RV32_ECALL) || (`hdl_path_top.rv32_wf_opcode ==  rv32_pkg::RV32_EBREAK)) ? 1'b1 : 1'b0;
         end
         logger.print($sformatf("Exception signal was received from HART[%0d] code name: %s, %8h", hart_id, `hdl_path_top.rv32_wf_opcode.name, `hdl_path_top.rv32_wf_opcode));
     endtask

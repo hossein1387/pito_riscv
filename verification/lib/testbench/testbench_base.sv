@@ -77,7 +77,13 @@ class pito_testbench_base extends BaseObj;
     // endtask
 
     task write_instr_to_ram(int backdoor, int log_to_console);
-        logger.print($sformatf("Writing %6d instruction words to the Instruction RAM", this.instr_q.size()));
+        real percentile=0;
+        percentile = real(this.instr_q.size())/real(`PITO_INSTR_MEM_SIZE) * 100.0;
+        logger.print($sformatf("Writing %6d (%2.2f) instruction words to the Instruction RAM", this.instr_q.size(), percentile));
+        if (this.instr_q.size()>=`PITO_INSTR_MEM_SIZE) begin
+            logger.print("Memory instruction is FULL. Aborting simulation");
+            $finish();
+        end
         if(log_to_console) begin
             logger.print($sformatf(" ADDR  INSTRUCTION          INSTR TYPE       OPCODE          DECODING"));
         end
