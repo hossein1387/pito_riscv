@@ -14,7 +14,6 @@ filesets:
             - deps/apb/src/apb_test.sv
             - deps/apb/src/apb_pkg.sv
             - deps/apb/src/apb_intf.sv
-            - deps/tech_cells_generic/src/rtl/tc_sram.sv
             - deps/common_cells/src/onehot_to_bin.sv
             - verification/lib/rv32/rv32_defines.svh: 
                 is_include_file: true
@@ -85,10 +84,21 @@ filesets:
                 is_include_file: true
             - verification/lib/testbench/testbench_top.sv
         file_type : systemVerilogSource
+    
+    simulation_sram:
+        files:
+            - deps/tech_cells_generic/src/rtl/tc_sram.sv: {file_type : systemVerilogSource}
+
+    synthesis_sram:
+        files:
+            - synthesis/scripts/xpm_rams.tcl: {file_type: tclSource}
+            - deps/tech_cells_generic/src/fpga/tc_sram_xilinx.sv: {file_type : systemVerilogSource}
+
 targets:
     sim: &sim
         default_tool: xsim 
         filesets:
+            - simulation_sram
             - rtl
             - tb
         description: Simulate the design
@@ -103,6 +113,7 @@ targets:
     synth:
         description: Synthesize the design for an FPGA board
         filesets:
+            - synthesis_sram
             - rtl
         default_tool: vivado
         tools:
