@@ -101,14 +101,57 @@ _start:
     jal    exit
     ebreak
 
+# Utility functions:
+# wait_for_mvu_irq: Loops infinitely until an IRQ is received. 
+# enable_mvu_irq:   First, enables the global interrupt by setting mstatus.mie. 
+#                   It will then enables mvu IRQ by setting mie[16].
+# get_pito_hart_id: A utility funciton to get the process hart id.
+
+.weak  wait_for_mvu_irq
+.globl wait_for_mvu_irq
+wait_for_mvu_irq:
+    addi sp, sp, -24
+    sw ra, 4(sp)
+    sw s0, 8(sp)
+    sw s1, 12(sp)
+    sw s2, 16(sp)
+    sw s3, 20(sp)
+    sw s4, 24(sp)
+irq_wait_loop:  
+    csrr t0, mcause
+    srli t0, t0, 31
+    addi t1, x0, 1
+    bne t0, t1, irq_wait_loop # wait for mcause[31] interrupt to go high
+    csrw mcause, x0 # Clear interrup cause
+    lw ra, 4(sp)
+    lw s0, 8(sp)
+    lw s1, 12(sp)
+    lw s2, 16(sp)
+    lw s3, 20(sp)
+    lw s4, 24(sp)
+    addi sp, sp, 24
+    ret
+
+
+.weak  enable_mvu_irq
+.globl enable_mvu_irq
+enable_mvu_irq:
+    addi sp, sp, -4
+    sw ra, 4(sp)
+    csrwi mstatus, 0x8 # make sure global interrupt is enabled
+    addi t0, x0, 1 # set MVU specific MIE bit aka mie[16]
+    slli t0, t0, 16
+    csrw mie, t0
+    addi ra, sp, 0
+    lw ra, 4(sp)
+    addi sp, sp, 4
+    ret
 
 .weak  get_pito_hart_id
 .globl get_pito_hart_id
 get_pito_hart_id:
     csrr a0, mhartid
     ret
-
-
 
 #
 # Compiler runtime support for no-M extension

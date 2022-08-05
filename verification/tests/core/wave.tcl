@@ -2,7 +2,6 @@ add_wave_group soc
     add_wave_group -into soc soc_ext_intf
         add_wave -into soc_ext_intf {{/testbench_top/pito_inf/soc_ext/clk}}
         add_wave -into soc_ext_intf {{/testbench_top/pito_inf/soc_ext/rst_n}}
-        add_wave -into soc_ext_intf {{/testbench_top/pito_inf/soc_ext/pito_program}}
         add_wave -into soc_ext_intf {{/testbench_top/pito_inf/soc_ext/dmem_wdata}}
         add_wave -into soc_ext_intf {{/testbench_top/pito_inf/soc_ext/dmem_rdata}}
         add_wave -into soc_ext_intf {{/testbench_top/pito_inf/soc_ext/dmem_addr}}
@@ -19,7 +18,6 @@ add_wave_group soc
         add_wave -into soc_ext_intf {{/testbench_top/pito_inf/soc_ext/uart_tx}}
     add_wave_group -into soc pito
         add_wave -into pito {{/testbench_top/soc/mem_out_bound}}
-        add_wave -into pito {{/testbench_top/soc/pito/pito_program}}
         add_wave -into pito {{/testbench_top/soc/pito/imem_wdata}}
         add_wave -into pito {{/testbench_top/soc/pito/imem_rdata}}
         add_wave -into pito {{/testbench_top/soc/pito/imem_addr}}
@@ -62,7 +60,6 @@ add_wave_group core
         add_wave -into FetchStage {{/testbench_top/soc/pito/dmem_req}}
         add_wave -into FetchStage {{/testbench_top/soc/pito/dmem_we}}
         add_wave -into FetchStage {{/testbench_top/soc/pito/dmem_be}}
-        add_wave -into FetchStage {{/testbench_top/soc/pito/pito_program}}
         add_wave -into FetchStage {{/testbench_top/soc/pito/rv32_instr}}
         add_wave -into FetchStage {{/testbench_top/soc/pito/pc_sel}}
     add_wave_group -into core DecStage
@@ -154,15 +151,20 @@ add_wave_group core
         add_wave -into WFStage {{/testbench_top/soc/pito/rv32_regf_wa}}
         add_wave -into WFStage {{/testbench_top/soc/pito/rv32_wf_is_load}}
     add_wave_group -into WFStage Next_PC
-            add_wave -into Next_PC {{/testbench_top/soc/pito/rv32_next_pc_cal/rv32_alu_res}}
-            add_wave -into Next_PC {{/testbench_top/soc/pito/rv32_next_pc_cal/rv32_rs1}}
-            add_wave -into Next_PC {{/testbench_top/soc/pito/rv32_next_pc_cal/rv32_imm}}
-            add_wave -into Next_PC {{/testbench_top/soc/pito/rv32_next_pc_cal/rv32_instr_opcode}}
-            add_wave -into Next_PC {{/testbench_top/soc/pito/rv32_next_pc_cal/rv32_cur_pc}}
-            add_wave -into Next_PC {{/testbench_top/soc/pito/rv32_next_pc_cal/rv32_save_pc}}
-            add_wave -into Next_PC {{/testbench_top/soc/pito/rv32_next_pc_cal/rv32_has_new_pc}}
-            add_wave -into Next_PC {{/testbench_top/soc/pito/rv32_next_pc_cal/rv32_reg_pc}}
-            add_wave -into Next_PC {{/testbench_top/soc/pito/rv32_next_pc_cal/rv32_next_pc_val}}
+        add_wave -into Next_PC {{/testbench_top/soc/pito/rv32_next_pc_cal/csr_irq_evt}}
+        add_wave -into Next_PC {{/testbench_top/soc/pito/rv32_next_pc_cal/rv32_alu_res}}
+        add_wave -into Next_PC {{/testbench_top/soc/pito/rv32_next_pc_cal/rv32_rs1}}
+        add_wave -into Next_PC {{/testbench_top/soc/pito/rv32_next_pc_cal/rv32_imm}}
+        add_wave -into Next_PC {{/testbench_top/soc/pito/rv32_next_pc_cal/rv32_instr_opcode}}
+        add_wave -into Next_PC {{/testbench_top/soc/pito/rv32_next_pc_cal/rv32_cur_pc}}
+        add_wave -into Next_PC {{/testbench_top/soc/pito/rv32_next_pc_cal/rv32_save_pc}}
+        add_wave -into Next_PC {{/testbench_top/soc/pito/rv32_next_pc_cal/rv32_has_new_pc}}
+        add_wave -into Next_PC {{/testbench_top/soc/pito/rv32_next_pc_cal/rv32_reg_pc}}
+        add_wave -into Next_PC {{/testbench_top/soc/pito/rv32_next_pc_cal/rv32_next_pc_val}}
+        add_wave -into Next_PC {{/testbench_top/soc/pito/rv32_next_pc_cal/rv32_next_pc}}
+        add_wave -into Next_PC {{/testbench_top/soc/pito/rv32_next_pc_cal/rv32_new_pc}}
+
+
 add_wave_group decoder
     add_wave -into decoder {{/testbench_top/soc/pito/decoder}} 
 add_wave_group regfile
@@ -177,9 +179,6 @@ add_wave_group pipeline
         add_wave -into pc_counters {{/testbench_top/soc/pito/rv32_ex_pc}}
         add_wave -into pc_counters {{/testbench_top/soc/pito/rv32_wb_pc}}
         add_wave -into pc_counters {{/testbench_top/soc/pito/rv32_wf_pc}}
-        add_wave -into pc_counters {{/testbench_top/soc/pito/rv32_org_ex_pc}}
-        add_wave -into pc_counters {{/testbench_top/soc/pito/rv32_org_wb_pc}}
-        add_wave -into pc_counters {{/testbench_top/soc/pito/rv32_org_wf_pc}}
     add_wave_group -into pipeline instructions
         add_wave -into instructions {{/testbench_top/soc/pito/rv32_instr}}
         add_wave -into instructions {{/testbench_top/soc/pito/rv32_dec_instr}}
@@ -195,12 +194,6 @@ add_wave_group pipeline
     add_wave_group -into pipeline rs1_2
         add_wave -into rs1_2 {{/testbench_top/soc/pito/rv32_alu_rs1}}
         add_wave -into rs1_2 {{/testbench_top/soc/pito/rv32_alu_rs2}}
-        add_wave -into rs1_2 {{/testbench_top/soc/pito/rv32_wb_alu_rs1}}
-        add_wave -into rs1_2 {{/testbench_top/soc/pito/rv32_wb_alu_rs2}}
-        add_wave -into rs1_2 {{/testbench_top/soc/pito/rv32_wf_alu_rs1}}
-        add_wave -into rs1_2 {{/testbench_top/soc/pito/rv32_wf_alu_rs2}}
-        add_wave -into rs1_2 {{/testbench_top/soc/pito/rv32_cap_alu_rs1}}
-        add_wave -into rs1_2 {{/testbench_top/soc/pito/rv32_cap_alu_rs2}}
     add_wave_group -into pipeline harts
         add_wave_group -into harts hart_ids
             add_wave -into hart_ids {{/testbench_top/soc/pito/rv32_hart_cnt}}
@@ -209,9 +202,25 @@ add_wave_group pipeline
             add_wave -into hart_ids {{/testbench_top/soc/pito/rv32_hart_ex_cnt}}
             add_wave -into hart_ids {{/testbench_top/soc/pito/rv32_hart_wb_cnt}}
             add_wave -into hart_ids {{/testbench_top/soc/pito/rv32_hart_wf_cnt}}
+
 add_wave_group csr
     add_wave_group -into csr csr0
             add_wave -into csr0 {{/testbench_top/soc/pito/csr/\genblk1[0].csrfile }}
+    add_wave_group -into csr csr1
+            add_wave -into csr1 {{/testbench_top/soc/pito/csr/\genblk1[1].csrfile }}
+    add_wave_group -into csr csr2
+            add_wave -into csr2 {{/testbench_top/soc/pito/csr/\genblk1[2].csrfile }}
+    add_wave_group -into csr csr3
+            add_wave -into csr3 {{/testbench_top/soc/pito/csr/\genblk1[3].csrfile }}
+    add_wave_group -into csr csr4
+            add_wave -into csr4 {{/testbench_top/soc/pito/csr/\genblk1[4].csrfile }}
+    add_wave_group -into csr csr5
+            add_wave -into csr5 {{/testbench_top/soc/pito/csr/\genblk1[5].csrfile }}
+    add_wave_group -into csr csr6
+            add_wave -into csr6 {{/testbench_top/soc/pito/csr/\genblk1[6].csrfile }}
+    add_wave_group -into csr csr7
+            add_wave -into csr7 {{/testbench_top/soc/pito/csr/\genblk1[7].csrfile }}
+
 add_wave_group mems
     set_property display_limit 3000000 [current_wave_config]
     add_wave_group -into mems i_mem

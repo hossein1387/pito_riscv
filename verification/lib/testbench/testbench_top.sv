@@ -1,7 +1,14 @@
 `timescale 1ns/1ps
-`include "pito_inf.svh"
-`include "core_tester.sv"
 `include "rv32_defines.svh"
+
+`ifdef TB_CORE
+    `include "core_tester.sv"
+`elsif TB_IRQ
+    `include "irq_tester.sv"
+`else
+    `include "core_tester.sv"
+`endif
+
 module testbench_top import utils::*; ();
 //==================================================================================================
 // Test variables
@@ -10,11 +17,20 @@ module testbench_top import utils::*; ();
 //==================================================================================================
     logic clk;
     pito_soc_ext_interface pito_inf(clk);
-    mvu_interface mvu_inf();
+    APB #(
+        .ADDR_WIDTH(pito_pkg::APB_ADDR_WIDTH), 
+        .DATA_WIDTH(pito_pkg::APB_DATA_WIDTH)
+    ) apb_master();
     pito_soc soc(pito_inf.soc_ext,
-                 mvu_inf.mvu);
+                 apb_master);
     // interface_tester tb;
-    core_tester tb;
+    `ifdef TB_CORE
+        core_tester tb;
+    `elsif TB_IRQ
+        irq_tester tb;
+    `else
+        core_tester tb;
+    `endif
     initial begin
         logger = new(sim_log_file);
         tb = new(logger, pito_inf.tb);

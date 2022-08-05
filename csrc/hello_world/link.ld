@@ -48,10 +48,9 @@ MEMORY{
    *     is first, to avoid having read-only data match into it first.
    */
   
-  PITO_DATA  (RWA!X) : ORIGIN = 2M+8K,   LENGTH = 8K
-  PITO_INSTR   (RAX) : ORIGIN = 2M,      LENGTH = 8K
-  MVU         (RW!X) : ORIGIN = 2047M,   LENGTH = 512K
-  IO          (RW!X) : ORIGIN = 2048M,   LENGTH = 0x10
+  PITO_DATA  (RWA!X) : ORIGIN = 2M+8K, LENGTH = 8K
+  PITO_INSTR   (RAX) : ORIGIN = 2M,    LENGTH = 8K
+  IO          (RW!X) : ORIGIN = 2048M, LENGTH = 0x10
 }
 
 
@@ -249,11 +248,6 @@ SECTIONS{
     __stack_base = ALIGN(. - 4K, 16);
   } > PITO_DATA
   
-  /**************** MVU Segment ****************/
-  .mvu                 : {
-    mvu = ABSOLUTE(ORIGIN(MVU));
-    *(.mvu)
-  } > MVU
   
   /**************** I/O Segment ****************/
   .io                 : {

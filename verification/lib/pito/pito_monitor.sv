@@ -8,7 +8,7 @@ import rv32_pkg::*;
 
 class pito_monitor extends BaseObj;
 
-    virtual pito_soc_ext_interface inf;
+    virtual pito_soc_ext_interface intf;
     rv32_utils::RV32IDecoder rv32i_dec;
     rv32_utils::RV32IPredictor rv32i_pred;
     rv32_pkg::rv32_data_q instr_q;
@@ -16,9 +16,9 @@ class pito_monitor extends BaseObj;
     int hart_ids_q[$]; // hart id to monitor
     logic predictor_silent_mode;
 
-    function new (Logger logger, rv32_pkg::rv32_data_q instr_q, rv32_pkg::rv32_data_q rodata_q, virtual pito_soc_ext_interface pito_inf, int hart_ids_q[$], test_stats_t test_stat, logic predictor_silent_mode=0);
+    function new (Logger logger, rv32_pkg::rv32_data_q instr_q, rv32_pkg::rv32_data_q rodata_q, virtual pito_soc_ext_interface pito_intf, int hart_ids_q[$], test_stats_t test_stat, logic predictor_silent_mode=0);
         super.new (logger);   // Calls 'new' method of parent class
-        this.inf = pito_inf;
+        this.intf = pito_intf;
         this.instr_q = instr_q;
         this.rodata_q = rodata_q;
         this.rv32i_dec = new(this.logger);
@@ -78,50 +78,50 @@ class pito_monitor extends BaseObj;
                 pito_pkg::CSR_MINSTRET       : csrs[csr] = `hdl_path_csrf_0.minstret_q[31:0];
                 // pito_pkg::CSR_MCYCLEH        : csrs[csr] = `hdl_path_csrf_0.mcycle_q[63:32];
                 pito_pkg::CSR_MINSTRETH      : csrs[csr] = `hdl_path_csrf_0.minstret_q[63:32];
-                pito_pkg::CSR_MVUWBASEPTR    : csrs[csr] = `hdl_path_csrf_0.csr_mvuwbaseptr_q;
-                pito_pkg::CSR_MVUIBASEPTR    : csrs[csr] = `hdl_path_csrf_0.csr_mvuibaseptr_q;
-                pito_pkg::CSR_MVUSBASEPTR    : csrs[csr] = `hdl_path_csrf_0.csr_mvusbaseptr_q;
-                pito_pkg::CSR_MVUBBASEPTR    : csrs[csr] = `hdl_path_csrf_0.csr_mvubbaseptr_q;
-                pito_pkg::CSR_MVUOBASEPTR    : csrs[csr] = `hdl_path_csrf_0.csr_mvuobaseptr_q;
-                pito_pkg::CSR_MVUWJUMP_0     : csrs[csr] = `hdl_path_csrf_0.csr_mvuwjump_0_q;
-                pito_pkg::CSR_MVUWJUMP_1     : csrs[csr] = `hdl_path_csrf_0.csr_mvuwjump_1_q;
-                pito_pkg::CSR_MVUWJUMP_2     : csrs[csr] = `hdl_path_csrf_0.csr_mvuwjump_2_q;
-                pito_pkg::CSR_MVUWJUMP_3     : csrs[csr] = `hdl_path_csrf_0.csr_mvuwjump_3_q;
-                pito_pkg::CSR_MVUWJUMP_4     : csrs[csr] = `hdl_path_csrf_0.csr_mvuwjump_4_q;
-                pito_pkg::CSR_MVUIJUMP_0     : csrs[csr] = `hdl_path_csrf_0.csr_mvuijump_0_q;
-                pito_pkg::CSR_MVUIJUMP_1     : csrs[csr] = `hdl_path_csrf_0.csr_mvuijump_1_q;
-                pito_pkg::CSR_MVUIJUMP_2     : csrs[csr] = `hdl_path_csrf_0.csr_mvuijump_2_q;
-                pito_pkg::CSR_MVUIJUMP_3     : csrs[csr] = `hdl_path_csrf_0.csr_mvuijump_3_q;
-                pito_pkg::CSR_MVUIJUMP_4     : csrs[csr] = `hdl_path_csrf_0.csr_mvuijump_4_q;
-                pito_pkg::CSR_MVUSJUMP_0     : csrs[csr] = `hdl_path_csrf_0.csr_mvusjump_0_q;
-                pito_pkg::CSR_MVUSJUMP_1     : csrs[csr] = `hdl_path_csrf_0.csr_mvusjump_1_q;
-                pito_pkg::CSR_MVUBJUMP_0     : csrs[csr] = `hdl_path_csrf_0.csr_mvubjump_0_q;
-                pito_pkg::CSR_MVUBJUMP_1     : csrs[csr] = `hdl_path_csrf_0.csr_mvubjump_1_q;
-                pito_pkg::CSR_MVUOJUMP_0     : csrs[csr] = `hdl_path_csrf_0.csr_mvuojump_0_q;
-                pito_pkg::CSR_MVUOJUMP_1     : csrs[csr] = `hdl_path_csrf_0.csr_mvuojump_1_q;
-                pito_pkg::CSR_MVUOJUMP_2     : csrs[csr] = `hdl_path_csrf_0.csr_mvuojump_2_q;
-                pito_pkg::CSR_MVUOJUMP_3     : csrs[csr] = `hdl_path_csrf_0.csr_mvuojump_3_q;
-                pito_pkg::CSR_MVUOJUMP_4     : csrs[csr] = `hdl_path_csrf_0.csr_mvuojump_4_q;
-                pito_pkg::CSR_MVUWLENGTH_1   : csrs[csr] = `hdl_path_csrf_0.csr_mvuwlength_1_q;
-                pito_pkg::CSR_MVUWLENGTH_2   : csrs[csr] = `hdl_path_csrf_0.csr_mvuwlength_2_q;
-                pito_pkg::CSR_MVUWLENGTH_3   : csrs[csr] = `hdl_path_csrf_0.csr_mvuwlength_3_q;
-                pito_pkg::CSR_MVUWLENGTH_4   : csrs[csr] = `hdl_path_csrf_0.csr_mvuwlength_4_q;
-                pito_pkg::CSR_MVUILENGTH_1   : csrs[csr] = `hdl_path_csrf_0.csr_mvuilength_1_q;
-                pito_pkg::CSR_MVUILENGTH_2   : csrs[csr] = `hdl_path_csrf_0.csr_mvuilength_2_q;
-                pito_pkg::CSR_MVUILENGTH_3   : csrs[csr] = `hdl_path_csrf_0.csr_mvuilength_3_q;
-                pito_pkg::CSR_MVUILENGTH_4   : csrs[csr] = `hdl_path_csrf_0.csr_mvuilength_4_q;
-                pito_pkg::CSR_MVUSLENGTH_1   : csrs[csr] = `hdl_path_csrf_0.csr_mvuslength_1_q;
-                pito_pkg::CSR_MVUBLENGTH_1   : csrs[csr] = `hdl_path_csrf_0.csr_mvublength_1_q;
-                pito_pkg::CSR_MVUOLENGTH_1   : csrs[csr] = `hdl_path_csrf_0.csr_mvuolength_1_q;
-                pito_pkg::CSR_MVUOLENGTH_2   : csrs[csr] = `hdl_path_csrf_0.csr_mvuolength_2_q;
-                pito_pkg::CSR_MVUOLENGTH_3   : csrs[csr] = `hdl_path_csrf_0.csr_mvuolength_3_q;
-                pito_pkg::CSR_MVUOLENGTH_4   : csrs[csr] = `hdl_path_csrf_0.csr_mvuolength_4_q;
-                pito_pkg::CSR_MVUPRECISION   : csrs[csr] = `hdl_path_csrf_0.csr_mvuprecision_q;
-                pito_pkg::CSR_MVUSTATUS      : csrs[csr] = `hdl_path_csrf_0.csr_mvustatus_q;
-                pito_pkg::CSR_MVUCOMMAND     : csrs[csr] = `hdl_path_csrf_0.csr_mvucommand_q;
-                pito_pkg::CSR_MVUQUANT       : csrs[csr] = `hdl_path_csrf_0.csr_mvuquant_q;
-                pito_pkg::CSR_MVUSCALER      : csrs[csr] = `hdl_path_csrf_0.csr_mvuscaler_q;
-                pito_pkg::CSR_MVUCONFIG1     : csrs[csr] = `hdl_path_csrf_0.csr_mvuconfig1_q;
+                // pito_pkg::CSR_MVUWBASEPTR    : csrs[csr] = `hdl_path_csrf_0.csr_mvuwbaseptr_q;
+                // pito_pkg::CSR_MVUIBASEPTR    : csrs[csr] = `hdl_path_csrf_0.csr_mvuibaseptr_q;
+                // pito_pkg::CSR_MVUSBASEPTR    : csrs[csr] = `hdl_path_csrf_0.csr_mvusbaseptr_q;
+                // pito_pkg::CSR_MVUBBASEPTR    : csrs[csr] = `hdl_path_csrf_0.csr_mvubbaseptr_q;
+                // pito_pkg::CSR_MVUOBASEPTR    : csrs[csr] = `hdl_path_csrf_0.csr_mvuobaseptr_q;
+                // pito_pkg::CSR_MVUWJUMP_0     : csrs[csr] = `hdl_path_csrf_0.csr_mvuwjump_0_q;
+                // pito_pkg::CSR_MVUWJUMP_1     : csrs[csr] = `hdl_path_csrf_0.csr_mvuwjump_1_q;
+                // pito_pkg::CSR_MVUWJUMP_2     : csrs[csr] = `hdl_path_csrf_0.csr_mvuwjump_2_q;
+                // pito_pkg::CSR_MVUWJUMP_3     : csrs[csr] = `hdl_path_csrf_0.csr_mvuwjump_3_q;
+                // pito_pkg::CSR_MVUWJUMP_4     : csrs[csr] = `hdl_path_csrf_0.csr_mvuwjump_4_q;
+                // pito_pkg::CSR_MVUIJUMP_0     : csrs[csr] = `hdl_path_csrf_0.csr_mvuijump_0_q;
+                // pito_pkg::CSR_MVUIJUMP_1     : csrs[csr] = `hdl_path_csrf_0.csr_mvuijump_1_q;
+                // pito_pkg::CSR_MVUIJUMP_2     : csrs[csr] = `hdl_path_csrf_0.csr_mvuijump_2_q;
+                // pito_pkg::CSR_MVUIJUMP_3     : csrs[csr] = `hdl_path_csrf_0.csr_mvuijump_3_q;
+                // pito_pkg::CSR_MVUIJUMP_4     : csrs[csr] = `hdl_path_csrf_0.csr_mvuijump_4_q;
+                // pito_pkg::CSR_MVUSJUMP_0     : csrs[csr] = `hdl_path_csrf_0.csr_mvusjump_0_q;
+                // pito_pkg::CSR_MVUSJUMP_1     : csrs[csr] = `hdl_path_csrf_0.csr_mvusjump_1_q;
+                // pito_pkg::CSR_MVUBJUMP_0     : csrs[csr] = `hdl_path_csrf_0.csr_mvubjump_0_q;
+                // pito_pkg::CSR_MVUBJUMP_1     : csrs[csr] = `hdl_path_csrf_0.csr_mvubjump_1_q;
+                // pito_pkg::CSR_MVUOJUMP_0     : csrs[csr] = `hdl_path_csrf_0.csr_mvuojump_0_q;
+                // pito_pkg::CSR_MVUOJUMP_1     : csrs[csr] = `hdl_path_csrf_0.csr_mvuojump_1_q;
+                // pito_pkg::CSR_MVUOJUMP_2     : csrs[csr] = `hdl_path_csrf_0.csr_mvuojump_2_q;
+                // pito_pkg::CSR_MVUOJUMP_3     : csrs[csr] = `hdl_path_csrf_0.csr_mvuojump_3_q;
+                // pito_pkg::CSR_MVUOJUMP_4     : csrs[csr] = `hdl_path_csrf_0.csr_mvuojump_4_q;
+                // pito_pkg::CSR_MVUWLENGTH_1   : csrs[csr] = `hdl_path_csrf_0.csr_mvuwlength_1_q;
+                // pito_pkg::CSR_MVUWLENGTH_2   : csrs[csr] = `hdl_path_csrf_0.csr_mvuwlength_2_q;
+                // pito_pkg::CSR_MVUWLENGTH_3   : csrs[csr] = `hdl_path_csrf_0.csr_mvuwlength_3_q;
+                // pito_pkg::CSR_MVUWLENGTH_4   : csrs[csr] = `hdl_path_csrf_0.csr_mvuwlength_4_q;
+                // pito_pkg::CSR_MVUILENGTH_1   : csrs[csr] = `hdl_path_csrf_0.csr_mvuilength_1_q;
+                // pito_pkg::CSR_MVUILENGTH_2   : csrs[csr] = `hdl_path_csrf_0.csr_mvuilength_2_q;
+                // pito_pkg::CSR_MVUILENGTH_3   : csrs[csr] = `hdl_path_csrf_0.csr_mvuilength_3_q;
+                // pito_pkg::CSR_MVUILENGTH_4   : csrs[csr] = `hdl_path_csrf_0.csr_mvuilength_4_q;
+                // pito_pkg::CSR_MVUSLENGTH_1   : csrs[csr] = `hdl_path_csrf_0.csr_mvuslength_1_q;
+                // pito_pkg::CSR_MVUBLENGTH_1   : csrs[csr] = `hdl_path_csrf_0.csr_mvublength_1_q;
+                // pito_pkg::CSR_MVUOLENGTH_1   : csrs[csr] = `hdl_path_csrf_0.csr_mvuolength_1_q;
+                // pito_pkg::CSR_MVUOLENGTH_2   : csrs[csr] = `hdl_path_csrf_0.csr_mvuolength_2_q;
+                // pito_pkg::CSR_MVUOLENGTH_3   : csrs[csr] = `hdl_path_csrf_0.csr_mvuolength_3_q;
+                // pito_pkg::CSR_MVUOLENGTH_4   : csrs[csr] = `hdl_path_csrf_0.csr_mvuolength_4_q;
+                // pito_pkg::CSR_MVUPRECISION   : csrs[csr] = `hdl_path_csrf_0.csr_mvuprecision_q;
+                // pito_pkg::CSR_MVUSTATUS      : csrs[csr] = `hdl_path_csrf_0.csr_mvustatus_q;
+                // pito_pkg::CSR_MVUCOMMAND     : csrs[csr] = `hdl_path_csrf_0.csr_mvucommand_q;
+                // pito_pkg::CSR_MVUQUANT       : csrs[csr] = `hdl_path_csrf_0.csr_mvuquant_q;
+                // pito_pkg::CSR_MVUSCALER      : csrs[csr] = `hdl_path_csrf_0.csr_mvuscaler_q;
+                // pito_pkg::CSR_MVUCONFIG1     : csrs[csr] = `hdl_path_csrf_0.csr_mvuconfig1_q;
                 default : csrs[csr] = 0;
             endcase
         end
@@ -203,7 +203,7 @@ class pito_monitor extends BaseObj;
                     break;
                 end
             end
-            @(posedge inf.clk);
+            @(posedge intf.clk);
         end
         if (time_out) begin
             foreach(this.hart_ids_q[i]) begin
@@ -268,40 +268,66 @@ class pito_monitor extends BaseObj;
         int char;
         logger.print("Monitoring UART ...");
         while (1) begin
-            @(posedge `hdl_path_soc_top.uart_busy);
-            char = `hdl_path_soc_top.uart_data_in[7:0];
-            if (char==10) begin
-                logger.print($sformatf("%s", str));
-                str  = $sformatf("");
-            end else begin
-                str = $sformatf("%s%s", str, string'(char));
+            @(posedge intf.clk)
+            if (`hdl_path_soc_top.uart_busy ==  1'b1) begin
+                char = `hdl_path_soc_top.uart_data_in[7:0];
+                if (char==10) begin
+                    logger.print($sformatf("UART: %s", str));
+                    str  = $sformatf("");
+                end else begin
+                    str = $sformatf("%s%s", str, string'(char));
+                end
             end
         end
     endtask
+
+    task automatic monitor_irq();
+        logger.print("Monitoring IRQ ...");
+        while (1) begin
+            @(intf.mvu_irq)
+            // Check which HART received an IRQ
+            for (int i=0; i<pito_pkg::NUM_HARTS; i++) begin
+                if (intf.mvu_irq[i] ==  1) begin
+                    logger.print($sformatf("monitor::monitor_irq: IRQ received for HART: %0d", i));
+                end
+            end
+
+        end
+    endtask
+
+    // always @(posedge mvu_ext_intf.irq) begin
+    //     $display($sformatf("IRQ is sent!, S0=%0d, SP=%0d", `hdl_path_top.regfile.genblk1[0].regfile.data[8], `hdl_path_top.regfile.genblk1[0].regfile.data[2]));
+    // end
 
     task automatic monitor_instructions();
         int hart_valid = 0;
         rv32_opcode_enum_t rv32_wf_opcode;
         rv32_inst_dec_t instr;
         rv32_instr_t    act_instr;
-        rv32_pc_cnt_t   pc_cnt, pc_orig_cnt;
+        rv32_pc_cnt_t   pc_cnt, pc_orig_cnt, trace_pcnt;
+        Logger          trace;
         int hart_id;
-        logic is_sim_end = 1'b0;
-        while(is_sim_end == 1'b0) begin
+        logic has_sim_end = 1'b0;
+        string instr_str;
+        trace = new("trace.log");
+        while(has_sim_end == 1'b0) begin
+            hart_id = `hdl_path_top.rv32_hart_wf_cnt;
+            pc_cnt         = `hdl_path_top.rv32_wf_pc[`hdl_path_top.rv32_hart_wf_cnt];
+            trace_pcnt     = `hdl_path_top.rv32_wf_pc[`hdl_path_top.rv32_hart_wb_cnt];
+            pc_orig_cnt    = `hdl_path_top.rv32_org_wf_pc;
+            act_instr      = `hdl_path_top.rv32_wf_instr;
+            instr          = this.rv32i_dec.decode_instr(act_instr);
+            instr_str      = rv32_utils::get_instr_str(instr);
             if (hart_ids_q[`hdl_path_top.rv32_hart_wf_cnt] == 1) begin
-                pc_cnt         = `hdl_path_top.rv32_wf_pc[`hdl_path_top.rv32_hart_wf_cnt];
-                pc_orig_cnt    = `hdl_path_top.rv32_org_wf_pc;
-                act_instr      = `hdl_path_top.rv32_wf_instr;
-                instr          = this.rv32i_dec.decode_instr(act_instr);
                 hart_valid     = 1;
-                hart_id        = `hdl_path_top.rv32_hart_wf_cnt;
             end
-            @(negedge inf.clk);
+            @(negedge intf.clk);
             if (hart_valid == 1) begin
                 rv32i_pred.predict(act_instr, instr, pc_cnt, pc_orig_cnt, read_regs(hart_id), read_csrs(hart_id), read_dmem_word(instr, hart_id), hart_id);
                 hart_valid = 0;
             end
-            is_sim_end = ((`hdl_path_top.rv32_wf_opcode ==  rv32_pkg::RV32_ECALL) || (`hdl_path_top.rv32_wf_opcode ==  rv32_pkg::RV32_EBREAK)) ? 1'b1 : 1'b0;
+            trace.print($sformatf("%s pc=0x%h", instr_str,trace_pcnt), $sformatf("HART[%1d]", hart_id), utils::VERB_NONE);
+            has_sim_end = ((`hdl_path_top.rv32_wf_opcode ==  rv32_pkg::RV32_ECALL) || (`hdl_path_top.rv32_wf_opcode ==  rv32_pkg::RV32_EBREAK)) ? 1'b1 : 1'b0;
         end
         logger.print($sformatf("Exception signal was received from HART[%0d] code name: %s, %8h", hart_id, `hdl_path_top.rv32_wf_opcode.name, `hdl_path_top.rv32_wf_opcode));
     endtask
@@ -321,6 +347,7 @@ class pito_monitor extends BaseObj;
         fork
             monitor_instructions();
             monitor_uart();
+            monitor_irq();
         join_any
     endtask
 
