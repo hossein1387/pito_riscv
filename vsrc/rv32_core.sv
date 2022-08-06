@@ -70,6 +70,10 @@ rv32_alu_op_t       rv32_dec_alu_op;
 rv32_opcode_enum_t  rv32_dec_opcode;
 rv32_register_t     rv32_dec_rd1;
 rv32_register_t     rv32_dec_rd2;
+csr_t               rv32_dec_csr_addr;
+csr_op_t            rv32_dec_csr_op;
+rv32_register_t     rv32_dec_csr_data;
+rv32_register_t     rv32_dec_res_val;
 
 //====================================================================
 // EX stage wires
@@ -341,20 +345,20 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
 // CSR:
 //==================
 
-    assign rv32_ex_csr_addr     = pito_pkg::csr_t'(rv32_dec_instr[31:20]);
-    assign rv32_ex_csr_data     = ((rv32_dec_opcode == rv32_pkg::RV32_CSRRWI) || (rv32_dec_opcode==rv32_pkg::RV32_CSRRSI) || (rv32_dec_opcode==rv32_pkg::RV32_CSRRCI)) ?
+    assign rv32_dec_csr_addr     = pito_pkg::csr_t'(rv32_dec_instr[31:20]);
+    assign rv32_dec_csr_data     = ((rv32_dec_opcode == rv32_pkg::RV32_CSRRWI) || (rv32_dec_opcode==rv32_pkg::RV32_CSRRSI) || (rv32_dec_opcode==rv32_pkg::RV32_CSRRCI)) ?
                                     rv32_dec_imm : rv32_regf_rd1;
 
     always_comb begin
         case (rv32_dec_opcode)
-             rv32_pkg::RV32_CSRRW  : rv32_ex_csr_op = pito_pkg::CSR_READ_WRITE;
-             rv32_pkg::RV32_CSRRS  : rv32_ex_csr_op = pito_pkg::CSR_SET;
-             rv32_pkg::RV32_CSRRC  : rv32_ex_csr_op = pito_pkg::CSR_CLEAR;
-             rv32_pkg::RV32_CSRRWI : rv32_ex_csr_op = pito_pkg::CSR_READ_WRITE;
-             rv32_pkg::RV32_CSRRSI : rv32_ex_csr_op = pito_pkg::CSR_SET;
-             rv32_pkg::RV32_CSRRCI : rv32_ex_csr_op = pito_pkg::CSR_CLEAR;
-             rv32_pkg::RV32_MRET   : rv32_ex_csr_op = pito_pkg::MRET;
-             default : rv32_ex_csr_op = pito_pkg::CSR_UNKNOWN;
+             rv32_pkg::RV32_CSRRW  : rv32_dec_csr_op = pito_pkg::CSR_READ_WRITE;
+             rv32_pkg::RV32_CSRRS  : rv32_dec_csr_op = pito_pkg::CSR_SET;
+             rv32_pkg::RV32_CSRRC  : rv32_dec_csr_op = pito_pkg::CSR_CLEAR;
+             rv32_pkg::RV32_CSRRWI : rv32_dec_csr_op = pito_pkg::CSR_READ_WRITE;
+             rv32_pkg::RV32_CSRRSI : rv32_dec_csr_op = pito_pkg::CSR_SET;
+             rv32_pkg::RV32_CSRRCI : rv32_dec_csr_op = pito_pkg::CSR_CLEAR;
+             rv32_pkg::RV32_MRET   : rv32_dec_csr_op = pito_pkg::MRET;
+             default : rv32_dec_csr_op = pito_pkg::CSR_UNKNOWN;
         endcase
     end
 
@@ -379,7 +383,6 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
         rv32_alu_rs1     <= rv32_regf_rd1;
         rv32_ex_rs2_skip <= rv32_regf_rd2;
         rv32_ex_rd       <= rv32_dec_rd;
-        csr_ex_rdata     <= csr_rdata;
         if ((rv32_dec_opcode == rv32_pkg::RV32_LB ) ||
             (rv32_dec_opcode == rv32_pkg::RV32_LH ) ||
             (rv32_dec_opcode == rv32_pkg::RV32_LW ) ||
@@ -397,6 +400,9 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
                     rv32_alu_rs2 <= rv32_dec_imm;
                 end
             end
+            rv32_ex_csr_addr <= rv32_dec_csr_addr;
+            rv32_ex_csr_data <= rv32_dec_csr_data;
+            rv32_ex_csr_op   <= rv32_dec_csr_op;
         end
     end
 
@@ -406,7 +412,7 @@ assign rv32_i_addr = rv32_pc[rv32_hart_fet_cnt] >> 2; // for now, we access 32 b
     assign is_exception = ((rv32_ex_opcode == rv32_pkg::RV32_ECALL) || (rv32_ex_opcode == rv32_pkg::RV32_EBREAK)) ? 1'b1 : 1'b0;
     assign is_csrrw     = ((rv32_ex_opcode == rv32_pkg::RV32_CSRRW ) || (rv32_ex_opcode==rv32_pkg::RV32_CSRRS ) || (rv32_ex_opcode==rv32_pkg::RV32_CSRRC ) ||
                            (rv32_ex_opcode == rv32_pkg::RV32_CSRRWI) || (rv32_ex_opcode==rv32_pkg::RV32_CSRRSI) || (rv32_ex_opcode==rv32_pkg::RV32_CSRRCI)) ? 1'b1 : 1'b0;
-    assign rv32_ex_res_val = (is_csrrw == 1'b1) ? csr_ex_rdata : rv32_alu_res;
+    assign rv32_ex_res_val = (is_csrrw == 1'b1) ? csr_rdata : rv32_alu_res;
 // The following circuit decides whether the write back to memory should
 // be skipped or not. The write back stage should be skipped only when the 
 // instruction is of type: NOT store

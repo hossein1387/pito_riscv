@@ -21,8 +21,25 @@ module testbench_top import utils::*; ();
         .ADDR_WIDTH(pito_pkg::APB_ADDR_WIDTH), 
         .DATA_WIDTH(pito_pkg::APB_DATA_WIDTH)
     ) apb_master();
-    pito_soc soc(pito_inf.soc_ext,
-                 apb_master);
+    pito_soc soc(
+        .sys_clk_i   (pito_inf.clk         ),
+        .rst_n_i     (pito_inf.rst_n       ),
+        .mvu_irq_i   (pito_inf.mvu_irq     ),
+        .dmem_wdata_i(pito_inf.dmem_wdata  ),
+        .dmem_rdata_o(pito_inf.dmem_rdata  ),
+        .dmem_addr_i (pito_inf.dmem_addr   ),
+        .dmem_req_i  (pito_inf.dmem_req    ),
+        .dmem_we_i   (pito_inf.dmem_we     ),
+        .dmem_be_i   (pito_inf.dmem_be     ),
+        .imem_wdata_i(pito_inf.imem_wdata  ),
+        .imem_rdata_o(pito_inf.imem_rdata  ),
+        .imem_addr_i (pito_inf.imem_addr   ),
+        .imem_req_i  (pito_inf.imem_req    ),
+        .imem_we_i   (pito_inf.imem_we     ),
+        .imem_be_i   (pito_inf.imem_be     ),
+        .uart_rx_i   (pito_inf.uart_rx     ),
+        .uart_tx_o   (pito_inf.uart_tx     ),
+        .mvu_apb     (apb_master           ));
     // interface_tester tb;
     `ifdef TB_CORE
         core_tester tb;
