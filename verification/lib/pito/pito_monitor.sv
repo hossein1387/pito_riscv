@@ -299,25 +299,20 @@ class pito_monitor extends BaseObj;
     //     $display($sformatf("IRQ is sent!, S0=%0d, SP=%0d", `hdl_path_top.regfile.genblk1[0].regfile.data[8], `hdl_path_top.regfile.genblk1[0].regfile.data[2]));
     // end
 
-    task automatic monitor_instructions();
+    task automatic predict_task();
         int hart_valid = 0;
         rv32_opcode_enum_t rv32_wf_opcode;
         rv32_inst_dec_t instr;
         rv32_instr_t    act_instr;
-        rv32_pc_cnt_t   pc_cnt, pc_orig_cnt, trace_pcnt;
-        Logger          trace;
+        rv32_pc_cnt_t   pc_cnt, pc_orig_cnt;
         int hart_id;
         logic has_sim_end = 1'b0;
-        string instr_str;
-        trace = new("trace.log");
         while(has_sim_end == 1'b0) begin
             hart_id = `hdl_path_top.rv32_hart_wf_cnt;
             pc_cnt         = `hdl_path_top.rv32_wf_pc[`hdl_path_top.rv32_hart_wf_cnt];
-            trace_pcnt     = `hdl_path_top.rv32_wf_pc[`hdl_path_top.rv32_hart_wb_cnt];
             pc_orig_cnt    = `hdl_path_top.rv32_org_wf_pc;
             act_instr      = `hdl_path_top.rv32_wf_instr;
             instr          = this.rv32i_dec.decode_instr(act_instr);
-            instr_str      = rv32_utils::get_instr_str(instr);
             if (hart_ids_q[`hdl_path_top.rv32_hart_wf_cnt] == 1) begin
                 hart_valid     = 1;
             end
@@ -326,10 +321,37 @@ class pito_monitor extends BaseObj;
                 rv32i_pred.predict(act_instr, instr, pc_cnt, pc_orig_cnt, read_regs(hart_id), read_csrs(hart_id), read_dmem_word(instr, hart_id), hart_id);
                 hart_valid = 0;
             end
-            trace.print($sformatf("%s pc=0x%h", instr_str,trace_pcnt), $sformatf("HART[%1d]", hart_id), utils::VERB_NONE);
             has_sim_end = ((`hdl_path_top.rv32_wf_opcode ==  rv32_pkg::RV32_ECALL) || (`hdl_path_top.rv32_wf_opcode ==  rv32_pkg::RV32_EBREAK)) ? 1'b1 : 1'b0;
         end
         logger.print($sformatf("Exception signal was received from HART[%0d] code name: %s, %8h", hart_id, `hdl_path_top.rv32_wf_opcode.name, `hdl_path_top.rv32_wf_opcode));
+    endtask
+
+    task tracer();
+        Logger instr_trace, mem_trace;
+        string instr_str;
+        rv32_inst_dec_t instr_decoded;
+        rv32_instr_t act_instr;
+        rv32_pc_cnt_t trace_pcnt;
+        int hart_id;
+        instr_trace = new("instruction_trace.log");
+        mem_trace = new("mem_trace.log");
+        while (1) begin
+            @(posedge intf.clk);
+            hart_id = `hdl_path_top.rv32_hart_wf_cnt;
+            trace_pcnt = `hdl_path_top.rv32_wf_pc[hart_id];
+            act_instr = `hdl_path_top.rv32_wf_instr;
+            instr_decoded = this.rv32i_dec.decode_instr(act_instr);
+            instr_str = rv32_utils::get_instr_str(instr_decoded);
+            instr_trace.print($sformatf("%s pc=0x%h", instr_str, trace_pcnt), $sformatf("HART[%1d]", hart_id), utils::VERB_NONE);
+            if (`hdl_path_soc_top.rv32_dmem.req  [`PITO_DATA_MEM_LOCAL_PORT]==1) begin
+                if (`hdl_path_soc_top.dmem_wen==1) begin
+                    mem_trace.print($sformatf ("%t HART[%1d] is writing %8h to %8h",$time(), `hdl_path_top.rv32_hart_ex_cnt, `hdl_path_soc_top.rv32_dmem.wdata[`PITO_DATA_MEM_LOCAL_PORT], `hdl_path_soc_top.dmem_addr), "MEMW", utils::VERB_NONE);
+                end else begin
+                    mem_trace.print($sformatf("%t HART[%1d] is reading from %8h",$time(), `hdl_path_top.rv32_hart_ex_cnt, `hdl_path_soc_top.dmem_addr), "MEMR", utils::VERB_NONE);
+                end
+            end
+    
+        end
     endtask
 
     task automatic run();
@@ -345,7 +367,8 @@ class pito_monitor extends BaseObj;
         end
         this.sync_with_dut();
         fork
-            monitor_instructions();
+            predict_task();
+            tracer();
             monitor_uart();
             monitor_irq();
         join_any

@@ -94,6 +94,10 @@ filesets:
             - synthesis/scripts/xpm_rams.tcl: {file_type: tclSource}
             - deps/tech_cells_generic/src/fpga/tc_sram_xilinx.sv: {file_type : systemVerilogSource}
 
+    xcvu9-xdc:
+        files:
+            - synthesis/constraint_files/pito_core.xdc: {file_type: xdc}
+
 targets:
     sim: &sim
         default_tool: xsim 
@@ -115,6 +119,7 @@ targets:
         filesets:
             - synthesis_sram
             - rtl
+            - xcvu9-xdc
         default_tool: vivado
         tools:
           vivado:
