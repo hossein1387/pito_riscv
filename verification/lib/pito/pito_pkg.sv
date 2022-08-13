@@ -87,6 +87,18 @@ typedef logic [APB_DATA_WIDTH-1:0] apb_data_t;
 typedef logic [APB_DATA_WIDTH-1:0] apb_strb_t;
 
 //-------------------------------------------------------------------
+//                     Memory Sub System
+//-------------------------------------------------------------------
+localparam int unsigned INSTR_RAM_BEGIN_ADDR = 32'h00200000;
+localparam int unsigned DATA_RAM_BEGIN_ADDR  = 32'h00202000;
+localparam int unsigned AXI_ID_WIDTH         = 10;
+localparam int unsigned AXI_ADDR_WIDTH       = 64;
+localparam int unsigned AXI_DATA_WIDTH       = 64;
+localparam int unsigned AXI_USER_WIDTH       = 10;
+localparam int unsigned AXI_BE_WIDTH         = AXI_DATA_WIDTH/8;
+localparam int unsigned AXI_ApplTime         = 0ns;
+localparam int unsigned AXI_TestTime         = 0ns;
+//-------------------------------------------------------------------
 //                     PITO Interrupt and Exception Codes
 //-------------------------------------------------------------------
 localparam int unsigned IRQ_Q_DEPTH   = 4;

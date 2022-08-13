@@ -8,14 +8,16 @@ extern void enable_mvu_irq();
 int hart_id_cnt=7;
 
 static void irq_handler(void) __attribute__ ((interrupt ("machine")));
+int global_pointer = 0;
 
 void irq_handler(){
     // First things first, disable mvu interrupt ...
     __asm__ volatile("addi t1, x0, 1 \n\t\
                       slli t1, t1, 16 \n\t\
                       csrc mip, t1");
-    printf("That is interesing...\n");
+    // printf("That is interesing...\n");
     // Enable global interrupt now that we are all done
+    global_pointer += 1;
     enable_mvu_irq();
 }
 
@@ -23,15 +25,20 @@ void main_thread(const int hart_id){
     int cnt_val = 500;
     SET_CSR(mtvec, &irq_handler);
     enable_mvu_irq();
-    while(hart_id_cnt!=-1){
-        if (hart_id==hart_id_cnt){
-            printf("Hello World from HART:%d\n", hart_id);
-            // cnt_val = cnt_val + hart_id;
-            // SET_CSR(CSR_MVUCOMMAND, cnt_val);
-            wait_for_mvu_irq();
-            hart_id_cnt = hart_id_cnt -1;
-        }
+    wait_for_mvu_irq();
+    // while(hart_id_cnt!=-1){
+    //     if (hart_id==hart_id_cnt){
+    //         printf("Hello World from HART:%d\n", hart_id);
+    //         // cnt_val = cnt_val + hart_id;
+    //         // SET_CSR(CSR_MVUCOMMAND, cnt_val);
+    //         wait_for_mvu_irq();
+    //         hart_id_cnt = hart_id_cnt -1;
+    //     }
+    // }
+    if (hart_id==7){
+        printf("global_pointer=%d\n", global_pointer);
     }
+    while (1){};
 }
 
 int main(){

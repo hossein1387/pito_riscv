@@ -22,11 +22,29 @@ class pito_testbench_base extends BaseObj;
     tb_config cfg;
     logic predictor_silent_mode;
 
-    function new (Logger logger, virtual pito_soc_ext_interface inf, int hart_mon_en[$]={}, logic predictor_silent_mode=0, logic rv_reg_tests=0);
+    virtual AXI_BUS_DV #(
+        .AXI_ADDR_WIDTH(pito_pkg::AXI_ADDR_WIDTH),
+        .AXI_DATA_WIDTH(pito_pkg::AXI_DATA_WIDTH),
+        .AXI_ID_WIDTH  (pito_pkg::AXI_ID_WIDTH  ),
+        .AXI_USER_WIDTH(pito_pkg::AXI_USER_WIDTH)
+    ) axi_slave_dv;
+    
+    axi_test::axi_driver #(
+        .AW(pito_pkg::AXI_ADDR_WIDTH),
+        .DW(pito_pkg::AXI_DATA_WIDTH),
+        .IW(pito_pkg::AXI_ID_WIDTH  ),
+        .UW(pito_pkg::AXI_USER_WIDTH),
+        .TA(pito_pkg::AXI_ApplTime  ),
+        .TT(pito_pkg::AXI_TestTime  )
+    ) axi_master_drv;
+
+    function new (Logger logger, virtual pito_soc_ext_interface inf, virtual AXI_BUS_DV axi_slave_dv, int hart_mon_en[$]={}, logic predictor_silent_mode=0, logic rv_reg_tests=0);
         super.new(logger);
         cfg = new(logger);
         void'(cfg.parse_args());
         this.inf = inf;
+        this.axi_slave_dv = axi_slave_dv;
+        this.axi_master_drv = new(this.axi_slave_dv);
         this.predictor_silent_mode = predictor_silent_mode;
         // For RISC-V regression tests, we initialize ram at run stage
         if (rv_reg_tests==0) begin
@@ -141,6 +159,8 @@ class pito_testbench_base extends BaseObj;
         logger.print_banner("Testbench Setup Phase");
         // Put DUT to reset and relax memory interface
         logger.print("Putting DUT to reset mode");
+        axi_master_drv.reset_slave();
+
         inf.rst_n        = 1'b1;
         inf.dmem_we      = 1'b0;
         inf.dmem_be      = 4'b1111;

@@ -8,21 +8,9 @@ module pito_soc import rv32_pkg::*;import pito_pkg::*;(
     input  logic            sys_clk_i,
     input  logic            rst_n_i,
     input  logic [`PITO_NUM_HARTS-1 : 0] mvu_irq_i,
-    input  rv32_data_t      dmem_wdata_i,
-    output rv32_data_t      dmem_rdata_o,
-    input  rv32_dmem_addr_t dmem_addr_i,
-    input  logic            dmem_req_i,
-    input  logic            dmem_we_i,
-    input  dmem_be_t        dmem_be_i,
-    input  rv32_data_t      imem_wdata_i,
-    output rv32_data_t      imem_rdata_o,
-    input  rv32_imem_addr_t imem_addr_i,
-    input  logic            imem_req_i,
-    input  logic            imem_we_i,
-    input  imem_be_t        imem_be_i,
     input  logic            uart_rx_i,
     output logic            uart_tx_o,
-
+    AXI_BUS                 m_axi,
     APB                     mvu_apb
 );
 
@@ -50,6 +38,21 @@ rv32_data_t uart_data_in;
 logic uart_busy;
 logic uart_valid;
 rv32_dmem_addr_t uart_addr;
+
+// Memory External Interface
+rv32_data_t      imem_wdata_i;
+rv32_data_t      imem_rdata_o;
+rv32_imem_addr_t imem_addr_i;
+logic            imem_req_i;
+logic            imem_we_i;
+imem_be_t        imem_be_i;
+
+rv32_data_t      dmem_wdata_i;
+rv32_data_t      dmem_rdata_o;
+rv32_dmem_addr_t dmem_addr_i;
+logic            dmem_req_i;
+logic            dmem_we_i;
+dmem_be_t        dmem_be_i;
 
 //====================================================================
 //                   Pito Core 
@@ -163,6 +166,25 @@ d_mem(
     .wdata_i(rv32_dmem.wdata),
     .be_i   (rv32_dmem.be   ),
     .rdata_o(rv32_dmem.rdata)
+);
+
+pito_mem_subsystem pito_mem_subsystem_inst(
+    .clk_i            (clk          ),
+    .rst_ni           (rst_n        ),
+    .pito_dmem_wdata_i(dmem_wdata_i ),
+    .pito_dmem_rdata_o(dmem_rdata_o ),
+    .pito_dmem_addr_i (dmem_addr_i  ),
+    .pito_dmem_req_i  (dmem_req_i   ),
+    .pito_dmem_we_i   (dmem_we_i    ),
+    .pito_dmem_be_i   (dmem_be_i    ),
+    .pito_imem_wdata_i(imem_wdata_i ),
+    .pito_imem_rdata_o(imem_rdata_o ),
+    .pito_imem_addr_i (imem_addr_i  ),
+    .pito_imem_req_i  (imem_req_i   ),
+    .pito_imem_we_i   (imem_we_i    ),
+    .pito_imem_be_i   (imem_be_i    ),
+    .m_axi            (m_axi        ),
+    .user_id          (user_id      )
 );
 
 //====================================================================

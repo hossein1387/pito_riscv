@@ -9,6 +9,8 @@
     `include "core_tester.sv"
 `endif
 
+`include "axi/assign.svh"
+
 module testbench_top import utils::*; ();
 //==================================================================================================
 // Test variables
@@ -21,24 +23,31 @@ module testbench_top import utils::*; ();
         .ADDR_WIDTH(pito_pkg::APB_ADDR_WIDTH), 
         .DATA_WIDTH(pito_pkg::APB_DATA_WIDTH)
     ) apb_master();
+
+
+    AXI_BUS_DV #(
+        .AXI_ADDR_WIDTH(pito_pkg::AXI_ADDR_WIDTH),
+        .AXI_DATA_WIDTH(pito_pkg::AXI_DATA_WIDTH),
+        .AXI_ID_WIDTH  (pito_pkg::AXI_ID_WIDTH  ),
+        .AXI_USER_WIDTH(pito_pkg::AXI_USER_WIDTH)
+    ) axi_slave_dv(clk);
+    
+    AXI_BUS #(
+        .AXI_ADDR_WIDTH(pito_pkg::AXI_ADDR_WIDTH),
+        .AXI_DATA_WIDTH(pito_pkg::AXI_DATA_WIDTH),
+        .AXI_ID_WIDTH  (pito_pkg::AXI_ID_WIDTH  ),
+        .AXI_USER_WIDTH(pito_pkg::AXI_USER_WIDTH)
+    ) axi_slave();
+
+    `AXI_ASSIGN(axi_slave_dv, axi_slave)
+      
     pito_soc soc(
         .sys_clk_i   (pito_inf.clk         ),
         .rst_n_i     (pito_inf.rst_n       ),
         .mvu_irq_i   (pito_inf.mvu_irq     ),
-        .dmem_wdata_i(pito_inf.dmem_wdata  ),
-        .dmem_rdata_o(pito_inf.dmem_rdata  ),
-        .dmem_addr_i (pito_inf.dmem_addr   ),
-        .dmem_req_i  (pito_inf.dmem_req    ),
-        .dmem_we_i   (pito_inf.dmem_we     ),
-        .dmem_be_i   (pito_inf.dmem_be     ),
-        .imem_wdata_i(pito_inf.imem_wdata  ),
-        .imem_rdata_o(pito_inf.imem_rdata  ),
-        .imem_addr_i (pito_inf.imem_addr   ),
-        .imem_req_i  (pito_inf.imem_req    ),
-        .imem_we_i   (pito_inf.imem_we     ),
-        .imem_be_i   (pito_inf.imem_be     ),
         .uart_rx_i   (pito_inf.uart_rx     ),
         .uart_tx_o   (pito_inf.uart_tx     ),
+        .m_axi       (axi_slave            ),
         .mvu_apb     (apb_master           ));
     // interface_tester tb;
     `ifdef TB_CORE
@@ -50,7 +59,7 @@ module testbench_top import utils::*; ();
     `endif
     initial begin
         logger = new(sim_log_file);
-        tb = new(logger, pito_inf.tb);
+        tb = new(logger, pito_inf.tb, axi_slave_dv);
         tb.tb_setup();
         tb.run();
         tb.report();

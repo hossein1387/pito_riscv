@@ -50,7 +50,8 @@ MEMORY{
   
   PITO_DATA  (RWA!X) : ORIGIN = 2M+8K,   LENGTH = 8K
   PITO_INSTR   (RAX) : ORIGIN = 2M,      LENGTH = 8K
-  MVU         (RW!X) : ORIGIN = 2047M,   LENGTH = 512K
+  DMA         (RW!X) : ORIGIN = 1024M,   LENGTH = 512M
+  MVU         (RW!X) : ORIGIN = 2046M,   LENGTH = 2M
   IO          (RW!X) : ORIGIN = 2048M,   LENGTH = 0x10
 }
 
@@ -249,6 +250,11 @@ SECTIONS{
     __stack_base = ALIGN(. - 4K, 16);
   } > PITO_DATA
   
+  /**************** DMA Segment ****************/
+  .dma                 : {
+    dma = ABSOLUTE(ORIGIN(DMA));
+    *(.dma)
+  } > DMA
   /**************** MVU Segment ****************/
   .mvu                 : {
     mvu = ABSOLUTE(ORIGIN(MVU));

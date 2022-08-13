@@ -13,7 +13,6 @@ __pycache__
 *.gch
 .Xil/
 *.pyc
-synthesis/
 *.hex
 *.obj
 .DS_Store

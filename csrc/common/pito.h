@@ -1,6 +1,10 @@
 #ifndef _PITO_DEFS_
 #define _PITO_DEFS_
 
+// pito DMA macros
+#define CSR_DMADSTADDR 0xf00// DMA destination address
+#define CSR_DMABLKSIZE 0xf01// DMA block size to copy
+
 // pito mvu macros
 #define CSR_MVUWBASEPTR 0xf20//Base address for weight memory
 #define CSR_MVUIBASEPTR 0xf21//Base address for input memory
@@ -84,5 +88,10 @@
 // pito mtvec configurations
 #define pito_mtvec_mem_addr 0x00000000 // mtvec location in data memory
 #define pito_mtvec          A000h // mtvec value
+
+// Memory Regions
+
+#define DMA_START_ADDR  0x40000000
+#define MVU_START_ADDR  0x7FE00000
 
 #endif
