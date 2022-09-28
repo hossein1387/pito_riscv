@@ -9,8 +9,6 @@
     `include "core_tester.sv"
 `endif
 
-`include "axi/assign.svh"
-
 module testbench_top import utils::*; ();
 //==================================================================================================
 // Test variables
@@ -25,29 +23,32 @@ module testbench_top import utils::*; ();
     ) apb_master();
 
 
-    AXI_BUS_DV #(
-        .AXI_ADDR_WIDTH(pito_pkg::AXI_ADDR_WIDTH),
-        .AXI_DATA_WIDTH(pito_pkg::AXI_DATA_WIDTH),
-        .AXI_ID_WIDTH  (pito_pkg::AXI_ID_WIDTH  ),
-        .AXI_USER_WIDTH(pito_pkg::AXI_USER_WIDTH)
-    ) axi_slave_dv(clk);
-    
     AXI_BUS #(
         .AXI_ADDR_WIDTH(pito_pkg::AXI_ADDR_WIDTH),
         .AXI_DATA_WIDTH(pito_pkg::AXI_DATA_WIDTH),
         .AXI_ID_WIDTH  (pito_pkg::AXI_ID_WIDTH  ),
         .AXI_USER_WIDTH(pito_pkg::AXI_USER_WIDTH)
-    ) axi_slave();
+    ) axi_master();
 
-    `AXI_ASSIGN(axi_slave_dv, axi_slave)
-      
+    AXI_BUS_DV #(
+        .AXI_ADDR_WIDTH(pito_pkg::AXI_ADDR_WIDTH),
+        .AXI_DATA_WIDTH(pito_pkg::AXI_DATA_WIDTH),
+        .AXI_ID_WIDTH  (pito_pkg::AXI_ID_WIDTH  ),
+        .AXI_USER_WIDTH(pito_pkg::AXI_USER_WIDTH)
+    ) axi_master_dv(clk);
+    
+
+    axi_master_drv_t axi_master_drv = new(axi_master_dv);
+
+    `AXI_ASSIGN(axi_master, axi_master_dv)
+    
     pito_soc soc(
         .sys_clk_i   (pito_inf.clk         ),
         .rst_n_i     (pito_inf.rst_n       ),
         .mvu_irq_i   (pito_inf.mvu_irq     ),
         .uart_rx_i   (pito_inf.uart_rx     ),
         .uart_tx_o   (pito_inf.uart_tx     ),
-        .m_axi       (axi_slave            ),
+        .m_axi       (axi_master           ),
         .mvu_apb     (apb_master           ));
     // interface_tester tb;
     `ifdef TB_CORE
@@ -59,7 +60,7 @@ module testbench_top import utils::*; ();
     `endif
     initial begin
         logger = new(sim_log_file);
-        tb = new(logger, pito_inf.tb, axi_slave_dv);
+        tb = new(logger, pito_inf.tb, axi_master_drv);
         tb.tb_setup();
         tb.run();
         tb.report();
@@ -73,6 +74,7 @@ module testbench_top import utils::*; ();
     initial begin 
         $timeformat(-9, 2, " ns", 12);
         clk   = 0;
+
         forever begin
             #((`CLOCK_SPEED_NS)*1ns) clk = !clk;
         end

@@ -2,6 +2,7 @@
 `include "testbench_macros.svh"
 `include "testbench_config.sv"
 `include "pito_monitor.sv"
+`include "axi/assign.svh"
 
 import utils::*;
 import rv32_pkg::*;
@@ -13,6 +14,7 @@ class pito_testbench_base extends BaseObj;
     string firmware;
     string rodata;
     virtual pito_soc_ext_interface inf;
+    pito_pkg::axi_master_drv_t axi_master_drv;
     rv32_pkg::rv32_data_q instr_q;
     rv32_pkg::rv32_data_q rodata_q;
     pito_monitor monitor;
@@ -21,30 +23,19 @@ class pito_testbench_base extends BaseObj;
     test_stats_t test_stat;
     tb_config cfg;
     logic predictor_silent_mode;
-
-    virtual AXI_BUS_DV #(
-        .AXI_ADDR_WIDTH(pito_pkg::AXI_ADDR_WIDTH),
-        .AXI_DATA_WIDTH(pito_pkg::AXI_DATA_WIDTH),
-        .AXI_ID_WIDTH  (pito_pkg::AXI_ID_WIDTH  ),
-        .AXI_USER_WIDTH(pito_pkg::AXI_USER_WIDTH)
-    ) axi_slave_dv;
     
-    axi_test::axi_driver #(
-        .AW(pito_pkg::AXI_ADDR_WIDTH),
-        .DW(pito_pkg::AXI_DATA_WIDTH),
-        .IW(pito_pkg::AXI_ID_WIDTH  ),
-        .UW(pito_pkg::AXI_USER_WIDTH),
-        .TA(pito_pkg::AXI_ApplTime  ),
-        .TT(pito_pkg::AXI_TestTime  )
-    ) axi_master_drv;
 
-    function new (Logger logger, virtual pito_soc_ext_interface inf, virtual AXI_BUS_DV axi_slave_dv, int hart_mon_en[$]={}, logic predictor_silent_mode=0, logic rv_reg_tests=0);
+    axi_test::axi_ax_beat #(.AW(pito_pkg::AXI_ADDR_WIDTH), .IW(pito_pkg::AXI_ID_WIDTH  ), .UW(pito_pkg::AXI_USER_WIDTH)) aw_beat = new;
+    axi_test::axi_w_beat #(.DW(pito_pkg::AXI_DATA_WIDTH), .UW(pito_pkg::AXI_USER_WIDTH)) w_beat = new;
+    axi_test::axi_b_beat  #(.IW(pito_pkg::AXI_ID_WIDTH), .UW(pito_pkg::AXI_USER_WIDTH)) b_beat;
+
+    function new (Logger logger, virtual pito_soc_ext_interface inf, pito_pkg::axi_master_drv_t axi_master_dv, int hart_mon_en[$]={}, logic predictor_silent_mode=0, logic rv_reg_tests=0);
         super.new(logger);
         cfg = new(logger);
         void'(cfg.parse_args());
         this.inf = inf;
-        this.axi_slave_dv = axi_slave_dv;
-        this.axi_master_drv = new(this.axi_slave_dv);
+        this.axi_master_drv = axi_master_dv;
+
         this.predictor_silent_mode = predictor_silent_mode;
         // For RISC-V regression tests, we initialize ram at run stage
         if (rv_reg_tests==0) begin
@@ -114,18 +105,58 @@ class pito_testbench_base extends BaseObj;
             end
         end else begin
             @(posedge inf.clk);
-            inf.imem_we = 1'b1;
-            @(posedge inf.clk);
+            aw_beat.ax_id  = 0;
+            aw_beat.ax_addr = 32'h0020_0000;
+            aw_beat.ax_len = instr_q.size();
+            aw_beat.ax_size = $clog2(4);
+            aw_beat.ax_burst = axi_pkg::BURST_INCR;
+
+            axi_master_drv.send_aw(
+            .ax_id    (aw_beat.ax_id    ),
+            .ax_addr  (aw_beat.ax_addr  ),
+            .ax_len   (aw_beat.ax_len   ),
+            .ax_size  (aw_beat.ax_size  ),
+            .ax_burst (aw_beat.ax_burst ),
+            .ax_lock  (aw_beat.ax_lock  ),
+            .ax_cache (aw_beat.ax_cache ),
+            .ax_prot  (aw_beat.ax_prot  ),
+            .ax_qos   (aw_beat.ax_qos   ),
+            .ax_region(aw_beat.ax_region),
+            .ax_atop  (aw_beat.ax_atop  ),
+            .ax_user  (aw_beat.ax_user  ));
+
             for (int addr=0; addr<instr_q.size(); addr++) begin
                 @(posedge inf.clk);
-                inf.imem_wdata = instr_q[addr];
-                inf.imem_addr = addr;
+                w_beat.w_data = instr_q[addr];
+                w_beat.w_strb = '1;
+                if (addr == aw_beat.ax_len) begin
+                  w_beat.w_last = 1'b1;
+                end
+                logger.print($sformatf("preparing for writing at %0d ...", addr));
+                axi_master_drv.send_w(
+                    .w_data(w_beat.w_data),
+                    .w_strb(w_beat.w_strb),
+                    .w_last(w_beat.w_last),
+                    .w_user(w_beat.w_user)
+                );
+                logger.print($sformatf("Done writing at %0d ...", addr));
                 if(log_to_console) begin
                     logger.print($sformatf("[%4d]: 0x%8h     %s", addr, instr_q[addr], rv32_utils::get_instr_str(rv32i_dec.decode_instr(instr_q[addr]))));
                 end
             end
-            @(posedge inf.clk);
-            inf.imem_we = 1'b0;
+
+            // inf.imem_we = 1'b1;
+            // @(posedge inf.clk);
+            // for (int addr=0; addr<instr_q.size(); addr++) begin
+            //     @(posedge inf.clk);
+            //     inf.imem_wdata = instr_q[addr];
+            //     inf.imem_addr = addr;
+            //     if(log_to_console) begin
+            //         logger.print($sformatf("[%4d]: 0x%8h     %s", addr, instr_q[addr], rv32_utils::get_instr_str(rv32i_dec.decode_instr(instr_q[addr]))));
+            //     end
+            // end
+            // @(posedge inf.clk);
+            // inf.imem_we = 1'b0;
         end
     endtask
 
@@ -159,7 +190,7 @@ class pito_testbench_base extends BaseObj;
         logger.print_banner("Testbench Setup Phase");
         // Put DUT to reset and relax memory interface
         logger.print("Putting DUT to reset mode");
-        axi_master_drv.reset_slave();
+        axi_master_drv.reset_master();
 
         inf.rst_n        = 1'b1;
         inf.dmem_we      = 1'b0;
@@ -181,7 +212,7 @@ class pito_testbench_base extends BaseObj;
         inf.rst_n = 1'b0;
         @(posedge inf.clk);
 
-        this.write_instr_to_ram(1, 0);
+        this.write_instr_to_ram(0, 0);
         this.write_data_to_ram(1, 0);
 
         @(posedge inf.clk);

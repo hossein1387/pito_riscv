@@ -92,12 +92,22 @@ typedef logic [APB_DATA_WIDTH-1:0] apb_strb_t;
 localparam int unsigned INSTR_RAM_BEGIN_ADDR = 32'h00200000;
 localparam int unsigned DATA_RAM_BEGIN_ADDR  = 32'h00202000;
 localparam int unsigned AXI_ID_WIDTH         = 10;
-localparam int unsigned AXI_ADDR_WIDTH       = 64;
-localparam int unsigned AXI_DATA_WIDTH       = 64;
+localparam int unsigned AXI_ADDR_WIDTH       = 32;
+localparam int unsigned AXI_DATA_WIDTH       = 32;
 localparam int unsigned AXI_USER_WIDTH       = 10;
 localparam int unsigned AXI_BE_WIDTH         = AXI_DATA_WIDTH/8;
 localparam int unsigned AXI_ApplTime         = 0ns;
 localparam int unsigned AXI_TestTime         = 0ns;
+
+typedef axi_test::axi_driver #(
+    .AW(pito_pkg::AXI_ADDR_WIDTH),
+    .DW(pito_pkg::AXI_DATA_WIDTH),
+    .IW(pito_pkg::AXI_ID_WIDTH  ),
+    .UW(pito_pkg::AXI_USER_WIDTH),
+    .TA(pito_pkg::AXI_ApplTime  ),
+    .TT(pito_pkg::AXI_TestTime  )
+) axi_master_drv_t;
+
 //-------------------------------------------------------------------
 //                     PITO Interrupt and Exception Codes
 //-------------------------------------------------------------------
