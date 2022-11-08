@@ -96,7 +96,7 @@ filesets:
 
 targets:
     sim: &sim
-        default_tool: xsim 
+        default_tool: modelsim 
         filesets:
             - simulation_sram
             - rtl
@@ -105,6 +105,9 @@ targets:
         tools: 
             xsim:
                 xelab_options: [--debug, typical, -L, secureip, -L, unisims_ver, -L, unimacro_ver, -L, work.glbl, --timescale, 1ns/1ps, --define, SIMULATION_MODE]
+            modelsim:
+                vlog_options : [-timescale=1ns/1ps]
+                vsim_options : [-t, 1ps, -suppress, vsim-3009 , -suppress, vopt-7033]
         parameters: [firmware,rodata]
         toplevel: testbench_top
     sim-irq:
