@@ -397,7 +397,7 @@ class RV32IPredictor extends BaseObj;
         void'(init_data_mem_model(instr_q));
     endfunction
 
-    function init_regfile_model();
+    function void init_regfile_model();
         int file_faults = $fopen (`REG_FILE_INIT, "r");
         integer scan_faults;
         int reg_cnt = 0;
@@ -411,7 +411,7 @@ class RV32IPredictor extends BaseObj;
         end
     endfunction
 
-    function print_regfile_content(int hart_id);
+    function void print_regfile_content(int hart_id);
         int reg_val;
         this.logger.print_banner($sformatf("REG_FILE[%0d]", hart_id));
         for (int reg_num=0; reg_num < 32; reg_num++) begin
@@ -420,7 +420,7 @@ class RV32IPredictor extends BaseObj;
         end
     endfunction 
 
-    function init_csrfile_model();
+    function void init_csrfile_model();
         int file_faults = $fopen (`CSR_FILE_INIT, "r");
         integer scan_faults;
         int reg_cnt = 0;
@@ -434,7 +434,7 @@ class RV32IPredictor extends BaseObj;
         end
     endfunction
 
-    function init_data_mem_model (rv32_data_q data_q);
+    function void init_data_mem_model (rv32_data_q data_q);
         for (int addr=0; addr<data_q.size(); addr++) begin
             if (data_q[addr] != 0) begin
                 riscv_data_mem[addr] = data_q[addr];
@@ -458,7 +458,7 @@ class RV32IPredictor extends BaseObj;
         return test_stat;
     endfunction
 
-    function print_regf (int hart_id, rv32_regfile_t regf, int use_model_rf);
+    function void print_regf (int hart_id, rv32_regfile_t regf, int use_model_rf);
         int reg_cnt = 0;
         string report = "";
         int val;
@@ -480,7 +480,7 @@ class RV32IPredictor extends BaseObj;
         end
     endfunction
 
-    function update_regf(bit has_update, rv32_register_field_t rd, int val, int hart_id);
+    function void update_regf(bit has_update, rv32_register_field_t rd, int val, int hart_id);
         if (has_update) begin
             if (rd != 0) begin
                 this.regf_model[hart_id][rd] = val;
@@ -560,7 +560,7 @@ class RV32IPredictor extends BaseObj;
         return access;
     endfunction 
 
-    function update_csrf(bit has_update, rv32_csr_t csr_i, int val, int hart_id, pito_pkg::csr_op_t csr_op);
+    function void update_csrf(bit has_update, rv32_csr_t csr_i, int val, int hart_id, pito_pkg::csr_op_t csr_op);
         pito_pkg::csr_t csr = pito_pkg::csr_t'(csr_i);
         if (has_update) begin
             rv32_csr_access_enum_t access_type = cse_access_type(csr);

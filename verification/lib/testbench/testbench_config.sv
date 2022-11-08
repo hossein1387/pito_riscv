@@ -10,7 +10,7 @@ class tb_config extends BaseObj;
         super.new(logger);
     endfunction
 
-    function parse_args();
+    function void parse_args();
 
         if ($value$plusargs("firmware=%s", this.firmware)) begin
             logger.print($sformatf("Using %s as firmware", firmware));
