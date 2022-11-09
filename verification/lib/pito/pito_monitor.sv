@@ -157,7 +157,7 @@ class pito_monitor extends BaseObj;
         return read_val;
     endfunction : read_dmem_word
 
-    function automatic print_imem_region(int addr_from, int addr_to, string radix);
+    function automatic void print_imem_region(int addr_from, int addr_to, string radix);
         string mem_val_str="";
         int mem_val;
         addr_from = addr_from;
@@ -174,7 +174,7 @@ class pito_monitor extends BaseObj;
         end
     endfunction : print_imem_region
 
-    function show_pipeline ();
+    function void show_pipeline ();
             logger.print($sformatf("DECODE :  %s", `hdl_path_top.rv32_dec_opcode.name ));
             logger.print($sformatf("EXECUTE:  %s", `hdl_path_top.rv32_ex_opcode.name  ));
             logger.print($sformatf("WRITEB :  %s", `hdl_path_top.rv32_wb_opcode.name  ));
