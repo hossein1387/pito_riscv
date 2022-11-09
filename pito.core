@@ -104,7 +104,7 @@ targets:
         description: Simulate the design
         tools: 
             xsim:
-                xelab_options: [--debug, typical, -L, secureip, -L, unisims_ver, -L, unimacro_ver, -L, work.glbl, --timescale, 1ns/1ps, --define, SIMULATION_MODE]
+                xelab_options: [--debug, typical, -L, secureip, -L, unisims_ver, -L, unimacro_ver, -L, work.glbl, --timescale, 1ns/1ps]
             modelsim:
                 vlog_options : [-timescale=1ns/1ps]
                 vsim_options : [-t, 1ps, -suppress, vsim-3009 , -suppress, vopt-7033]
@@ -133,6 +133,10 @@ parameters:
         default   : /users/hemmat/MyRepos/pito_riscv/csrc/irq/build/irq_data.hex
         paramtype : plusarg
     TB_IRQ:
+        datatype  : int
+        default   : 1
+        paramtype : vlogdefine
+    SIMULATION_MODE:
         datatype  : int
         default   : 1
         paramtype : vlogdefine
