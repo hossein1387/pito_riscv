@@ -5,6 +5,8 @@
     `include "core_tester.sv"
 `elsif TB_IRQ
     `include "irq_tester.sv"
+`elsif TB_REGRESSION
+    `include "rv32_tests.sv"
 `else
     `include "core_tester.sv"
 `endif
@@ -13,7 +15,7 @@ module testbench_top import utils::*; ();
 //==================================================================================================
 // Test variables
     Logger logger;
-    string sim_log_file = "core_tester.log";
+    string sim_log_file = "simulation.log";
 //==================================================================================================
     logic clk;
     pito_soc_ext_interface pito_inf(clk);
@@ -28,6 +30,8 @@ module testbench_top import utils::*; ();
         core_tester tb;
     `elsif TB_IRQ
         irq_tester tb;
+    `elsif TB_REGRESSION
+        rv32_tests tb;
     `else
         core_tester tb;
     `endif

@@ -82,6 +82,8 @@ filesets:
                 is_include_file: true
             - verification/tests/irq/irq_tester.sv:
                 is_include_file: true
+            - verification/tests/rv32_test/rv32_tests.sv:
+                is_include_file: true
             - verification/lib/testbench/testbench_top.sv
         file_type : systemVerilogSource
     
@@ -113,6 +115,9 @@ targets:
     sim-irq:
         <<: *sim
         parameters: [firmware,rodata, TB_IRQ]
+    sim-regression:
+        <<: *sim
+        parameters: [firmware,rodata, TB_REGRESSION]
     synth:
         description: Synthesize the design for an FPGA board
         filesets:
@@ -133,6 +138,10 @@ parameters:
         default   : /users/hemmat/MyRepos/pito_riscv/csrc/irq/build/irq_data.hex
         paramtype : plusarg
     TB_IRQ:
+        datatype  : int
+        default   : 1
+        paramtype : vlogdefine
+    TB_REGRESSION:
         datatype  : int
         default   : 1
         paramtype : vlogdefine
