@@ -72,5 +72,5 @@ def parse_logs():
 
 # link_binaries()
 compile_tests()
-run_sim()
-parse_logs()
+#run_sim()
+#parse_logs()
