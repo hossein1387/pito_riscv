@@ -265,17 +265,17 @@ class pito_monitor extends BaseObj;
 
     task automatic monitor_uart();
         string str= $sformatf("");
-        int char;
+        byte char;
         logger.print("Monitoring UART ...");
         while (1) begin
             @(posedge intf.clk)
             if (`hdl_path_soc_top.uart_busy ==  1'b1) begin
-                char = `hdl_path_soc_top.uart_data_in[7:0];
+                char = byte'(`hdl_path_soc_top.uart_data_in[7:0]);
                 if (char==10) begin
                     logger.print($sformatf("UART: %s", str));
                     str  = $sformatf("");
                 end else begin
-                    str = $sformatf("%s%s", str, string'(char));
+                    str = $sformatf("%s%c", str, char);
                 end
             end
         end

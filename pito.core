@@ -131,11 +131,11 @@ targets:
 parameters:
     firmware:
         datatype  : file
-        default   : /users/hemmat/MyRepos/pito_riscv/csrc/irq/build/irq_text.hex
+        default   : /users/hemmat/MyRepos/pito_riscv/csrc/uart/build/uart_text.hex
         paramtype : plusarg
     rodata:
         datatype  : file
-        default   : /users/hemmat/MyRepos/pito_riscv/csrc/irq/build/irq_data.hex
+        default   : /users/hemmat/MyRepos/pito_riscv/csrc/uart/build/uart_data.hex
         paramtype : plusarg
     TB_IRQ:
         datatype  : int
