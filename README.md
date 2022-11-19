@@ -5,7 +5,8 @@ A pito version of rv32i
 
 
 # How to Run:
-First make sure the Vivado is sourced, example for Vivado 2021.1: 
+First make sure the simulator is available in your dev environemtn. 
+Currently we support ModelSim, QuestaSim and Vivad. Example for Vivado 2021.1: 
     
     source /opt/Xilinx/Vivado/2021.1/settings64.sh
 
@@ -38,10 +39,20 @@ And for synthesis:
     cd build/pito_0/synth-vivado/ 
     make build-gui
 
-
 This should open the project for you. Make sure you have run simulation or synthesis atleast once, otherwise fusesoc would not create a 
 project file for you.
 
+# Running RISC-V Regression Tests:
+
+You can verify functionaloty of pito by running RISC-V's RV32I regression tests. To do so, you need to have a RISC-V compiler. Once
+that is installed, follow these steps:
+
+    cd csrc/riscv_test_regression
+    python riscv_test_regression.py
+    cd ../..
+    fusesoc run --target=sim-regression --tool modelsim pito
+
+This will run all the RV32I tests back to back. At the end, you should see the result of the regression test.
 
 # Publication
 
