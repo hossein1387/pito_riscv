@@ -7,3 +7,9 @@
 [submodule "deps/common_cells"]
 	path = deps/common_cells
 	url = https://github.com/pulp-platform/common_cells.git
+[submodule "deps/axi"]
+	path = deps/axi
+	url = https://github.com/pulp-platform/axi.git
+[submodule "deps/common_verification"]
+	path = deps/common_verification
+	url = https://github.com/pulp-platform/common_verification.git
