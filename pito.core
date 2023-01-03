@@ -35,7 +35,7 @@ filesets:
             - vsrc/pito_mem_subsystem.sv
             - vsrc/pito_soc.sv
         depend :
-            - pulp-platform.org::axi:0.33.0
+            - pulp-platform.org::axi:0.38.0
     synth:
         file_type : systemVerilogSource
         files:
