@@ -96,8 +96,8 @@ localparam int unsigned AXI_ADDR_WIDTH       = 32;
 localparam int unsigned AXI_DATA_WIDTH       = 32;
 localparam int unsigned AXI_USER_WIDTH       = 10;
 localparam int unsigned AXI_BE_WIDTH         = AXI_DATA_WIDTH/8;
-localparam int unsigned AXI_ApplTime         = 0ns;
-localparam int unsigned AXI_TestTime         = 0ns;
+localparam int unsigned AXI_ApplTime         = 1ns;
+localparam int unsigned AXI_TestTime         = 6ns;
 
 typedef axi_test::axi_driver #(
     .AW(pito_pkg::AXI_ADDR_WIDTH),

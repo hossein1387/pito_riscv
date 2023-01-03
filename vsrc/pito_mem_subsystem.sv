@@ -28,12 +28,16 @@ module pito_mem_subsystem import rv32_pkg::*;import pito_pkg::*;
     output logic            pito_imem_req_o,
     output logic            pito_imem_we_o,
     output imem_be_t        pito_imem_be_o,
-    AXI_BUS.Master          m_axi
+    AXI_BUS.Slave           m_axi
 );
 `include "axi/assign.svh"
 `include "axi/typedef.svh"
 `include "common_cells/registers.svh"
 
+rv32_imem_addr_t pito_imem_addr, pito_dmem_addr;
+
+assign pito_imem_addr_o = pito_imem_addr>>>2;
+assign pito_dmem_addr_o = pito_dmem_addr>>>2;
 //=================================================================================
 //  Memory Regions  
 //=================================================================================
@@ -41,7 +45,7 @@ localparam NrAXIMasters = 1; // Actually masters, but slaves on the crossbar
 
 typedef enum int unsigned {
   IMEM = 0,
-  DMEM  = 1
+  DMEM = 1
 } axi_slaves_e;
 localparam NrAXISlaves = DMEM + 1;
 
@@ -74,8 +78,8 @@ soc_resp_t   [NrAXISlaves-1:0] periph_axi_resp;
 localparam axi_pkg::xbar_cfg_t XBarCfg = '{
   NoSlvPorts        : NrAXIMasters,
   NoMstPorts        : NrAXISlaves,
-  MaxMstTrans       : 4,
-  MaxSlvTrans       : 4,
+  MaxMstTrans       : 400,
+  MaxSlvTrans       : 400,
   FallThrough       : 1'b0,
   LatencyMode       : axi_pkg::CUT_MST_PORTS,
   AxiIdWidthSlvPorts: AxiIdWidth,
@@ -129,12 +133,14 @@ axi_xbar #(
 //  AXI Peripherals
 //=================================================================================
 
-logic pito_dmem_rvalid, pito_imem_rvalid;
+logic pito_imem_rvalid, pito_dmem_rvalid, dmem_gnt, imem_gnt;
   // One-cycle latency
-`FF(pito_dmem_rvalid, pito_dmem_req_o, 1'b0);
-`FF(pito_imem_rvalid, pito_imem_req_o, 1'b0);
+`FF(pito_imem_rvalid, pito_imem_req_o, 1'b1);
+`FF(pito_dmem_rvalid, pito_dmem_req_o, 1'b1);
 
-// Data memory
+// Instruction memory
+
+assign imem_gnt = 1'b1; // Always available
 
 axi_to_mem #(
   .AddrWidth   (AxiAddrWidth         ),
@@ -149,9 +155,9 @@ axi_to_mem #(
   .axi_req_i   (periph_axi_req[IMEM] ),
   .axi_resp_o  (periph_axi_resp[IMEM]),
   .mem_req_o   (pito_imem_req_o      ),
-  .mem_gnt_i   (pito_imem_req_o      ), // Always available
+  .mem_gnt_i   (imem_gnt             ), // Always available
   .mem_we_o    (pito_imem_we_o       ),
-  .mem_addr_o  (pito_imem_addr_o     ),
+  .mem_addr_o  (pito_imem_addr       ),
   .mem_strb_o  (pito_imem_be_o       ),
   .mem_wdata_o (pito_imem_wdata_o    ),
   .mem_rdata_i (pito_imem_rdata_i    ),
@@ -161,7 +167,11 @@ axi_to_mem #(
 );
 
 
-// Instruction memory
+// Data memory
+
+assign dmem_gnt = 1'b1; // Always available
+
+
 axi_to_mem #(
   .AddrWidth   (AxiAddrWidth         ),
   .DataWidth   (AxiDataWidth         ),
@@ -175,9 +185,9 @@ axi_to_mem #(
   .axi_req_i   (periph_axi_req[DMEM] ),
   .axi_resp_o  (periph_axi_resp[DMEM]),
   .mem_req_o   (pito_dmem_req_o      ),
-  .mem_gnt_i   (pito_dmem_req_o      ), // Always available
+  .mem_gnt_i   (dmem_gnt             ), // Always available
   .mem_we_o    (pito_dmem_we_o       ),
-  .mem_addr_o  (pito_dmem_addr_o     ),
+  .mem_addr_o  (pito_dmem_addr       ),
   .mem_strb_o  (pito_dmem_be_o       ),
   .mem_wdata_o (pito_dmem_wdata_o    ),
   .mem_rdata_i (pito_dmem_rdata_i    ),

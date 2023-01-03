@@ -38,7 +38,7 @@ module testbench_top import utils::*; ();
     ) axi_master_dv(clk);
     
 
-    axi_master_drv_t axi_master_drv = new(axi_master_dv);
+    pito_pkg::axi_master_drv_t axi_master_drv = new(axi_master_dv);
 
     `AXI_ASSIGN(axi_master, axi_master_dv)
     

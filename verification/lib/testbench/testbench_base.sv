@@ -24,10 +24,10 @@ class pito_testbench_base extends BaseObj;
     tb_config cfg;
     logic predictor_silent_mode;
     
-
-    axi_test::axi_ax_beat #(.AW(pito_pkg::AXI_ADDR_WIDTH), .IW(pito_pkg::AXI_ID_WIDTH  ), .UW(pito_pkg::AXI_USER_WIDTH)) aw_beat = new;
-    axi_test::axi_w_beat #(.DW(pito_pkg::AXI_DATA_WIDTH), .UW(pito_pkg::AXI_USER_WIDTH)) w_beat = new;
-    axi_test::axi_b_beat  #(.IW(pito_pkg::AXI_ID_WIDTH), .UW(pito_pkg::AXI_USER_WIDTH)) b_beat;
+    axi_master_drv_t::ax_beat_t aw_beat = new, ar_beat = new;
+    axi_master_drv_t::w_beat_t w_beat = new;
+    axi_master_drv_t::b_beat_t b_beat;
+    axi_master_drv_t::r_beat_t r_beat;
 
     function new (Logger logger, virtual pito_soc_ext_interface inf, pito_pkg::axi_master_drv_t axi_master_dv, int hart_mon_en[$]={}, logic predictor_silent_mode=0, logic rv_reg_tests=0);
         super.new(logger);
@@ -85,11 +85,15 @@ class pito_testbench_base extends BaseObj;
     //     end
     // endtask
 
-    task write_instr_to_ram(int backdoor, int log_to_console);
+    task write_instr_to_ram(input int backdoor, input int log_to_console, input int base_addr, input int wordsz);
         real percentile=0;
-        percentile = real'(this.instr_q.size())/real'(`PITO_INSTR_MEM_SIZE) * 100.0;
-        logger.print($sformatf("Writing %6d (%2.2f) instruction words to the Instruction RAM", this.instr_q.size(), percentile));
-        if (this.instr_q.size()>=`PITO_INSTR_MEM_SIZE) begin
+        int num_words = this.instr_q.size();
+        int axi_len = 255;
+        int axi_word_sz = 4;
+
+        percentile = real'(num_words)/real'(`PITO_INSTR_MEM_SIZE) * 100.0;
+        logger.print($sformatf("Writing %6d (%2.2f) instruction words to the Instruction RAM", num_words, percentile));
+        if (num_words>=`PITO_INSTR_MEM_SIZE) begin
             logger.print("Memory instruction is FULL. Aborting simulation");
             $finish();
         end
@@ -97,7 +101,7 @@ class pito_testbench_base extends BaseObj;
             logger.print($sformatf(" ADDR  INSTRUCTION          INSTR TYPE       OPCODE          DECODING"));
         end
         if (backdoor == 1) begin
-            for (int addr=0 ; addr<this.instr_q.size(); addr++) begin
+            for (int addr=0 ; addr<num_words; addr++) begin
                 `hdl_path_imem_init[addr] = this.instr_q[addr];
                 if(log_to_console) begin
                     logger.print($sformatf("[%4d]: 0x%8h     %s", addr, this.instr_q[addr], rv32_utils::get_instr_str(rv32i_dec.decode_instr(this.instr_q[addr]))));
@@ -105,45 +109,42 @@ class pito_testbench_base extends BaseObj;
             end
         end else begin
             @(posedge inf.clk);
-            aw_beat.ax_id  = 0;
-            aw_beat.ax_addr = 32'h0020_0000;
-            aw_beat.ax_len = instr_q.size();
-            aw_beat.ax_size = $clog2(4);
-            aw_beat.ax_burst = axi_pkg::BURST_INCR;
-
-            axi_master_drv.send_aw(
-            .ax_id    (aw_beat.ax_id    ),
-            .ax_addr  (aw_beat.ax_addr  ),
-            .ax_len   (aw_beat.ax_len   ),
-            .ax_size  (aw_beat.ax_size  ),
-            .ax_burst (aw_beat.ax_burst ),
-            .ax_lock  (aw_beat.ax_lock  ),
-            .ax_cache (aw_beat.ax_cache ),
-            .ax_prot  (aw_beat.ax_prot  ),
-            .ax_qos   (aw_beat.ax_qos   ),
-            .ax_region(aw_beat.ax_region),
-            .ax_atop  (aw_beat.ax_atop  ),
-            .ax_user  (aw_beat.ax_user  ));
-
-            for (int addr=0; addr<instr_q.size(); addr++) begin
-                @(posedge inf.clk);
-                w_beat.w_data = instr_q[addr];
-                w_beat.w_strb = '1;
-                if (addr == aw_beat.ax_len) begin
-                  w_beat.w_last = 1'b1;
+            fork
+                begin
+                    aw_beat.ax_addr = base_addr;
+                    for (int addr=0; addr<num_words; addr+=axi_len) begin
+                        logger.print($sformatf("preparing AW beat for addr=%0d ...", aw_beat.ax_addr));
+                        aw_beat.ax_id   = 0;
+                        aw_beat.ax_len  = axi_len;
+                        aw_beat.ax_size = $clog2(4);
+                        aw_beat.ax_burst= axi_pkg::BURST_INCR;
+                        axi_master_drv.send_aw(aw_beat);
+                        aw_beat.ax_addr += axi_len*axi_word_sz;
+                    end
                 end
-                logger.print($sformatf("preparing for writing at %0d ...", addr));
-                axi_master_drv.send_w(
-                    .w_data(w_beat.w_data),
-                    .w_strb(w_beat.w_strb),
-                    .w_last(w_beat.w_last),
-                    .w_user(w_beat.w_user)
-                );
-                logger.print($sformatf("Done writing at %0d ...", addr));
-                if(log_to_console) begin
-                    logger.print($sformatf("[%4d]: 0x%8h     %s", addr, instr_q[addr], rv32_utils::get_instr_str(rv32i_dec.decode_instr(instr_q[addr]))));
+                begin
+                    for (int wrd_num=0; wrd_num<num_words; wrd_num++) begin
+                        w_beat.w_data = instr_q[wrd_num];
+                        w_beat.w_strb = '1;
+                        w_beat.w_last = ((wrd_num+1) == num_words);
+                        logger.print($sformatf("preparing W beat %0d/%0d ...", wrd_num, num_words));
+                        axi_master_drv.send_w(w_beat);
+                        if (w_beat.w_last) begin
+                            logger.print($sformatf("Final W beat #%0d", wrd_num));
+                        end else begin
+                            logger.print($sformatf("Done writing at %0d ...", wrd_num));
+                        end
+                        if(log_to_console) begin
+                            logger.print($sformatf("[%4d]: 0x%8h     %s", wrd_num, instr_q[wrd_num], rv32_utils::get_instr_str(rv32i_dec.decode_instr(instr_q[wrd_num]))));
+                        end
+                    end
                 end
-            end
+                begin
+                    for (int wrd_num=0; wrd_num<num_words; wrd_num+=axi_len) begin
+                        axi_master_drv.recv_b(b_beat);
+                    end
+                end
+            join
 
             // inf.imem_we = 1'b1;
             // @(posedge inf.clk);
@@ -190,8 +191,6 @@ class pito_testbench_base extends BaseObj;
         logger.print_banner("Testbench Setup Phase");
         // Put DUT to reset and relax memory interface
         logger.print("Putting DUT to reset mode");
-        axi_master_drv.reset_master();
-
         inf.rst_n        = 1'b1;
         inf.dmem_we      = 1'b0;
         inf.dmem_be      = 4'b1111;
@@ -212,12 +211,13 @@ class pito_testbench_base extends BaseObj;
         inf.rst_n = 1'b0;
         @(posedge inf.clk);
 
-        this.write_instr_to_ram(0, 0);
-        this.write_data_to_ram(1, 0);
-
         @(posedge inf.clk);
         inf.rst_n = 1'b1;
         @(posedge inf.clk);
+
+        axi_master_drv.reset_master();
+        this.write_instr_to_ram(0, 0, 32'h0020_0000, 4);
+        this.write_data_to_ram(1, 1);
 
         logger.print("Setup Phase Done ...");
     endtask

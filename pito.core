@@ -115,7 +115,7 @@ targets:
                 xelab_options: [--debug, typical, -L, secureip, -L, unisims_ver, -L, unimacro_ver, -L, work.glbl, --timescale, 1ns/1ps]
             modelsim:
                 vlog_options : [-timescale=1ns/1ps]
-                vsim_options : [-t, 1ps, -suppress, vsim-3009 , -suppress, vopt-7033]
+                vsim_options : [-voptargs="+acc", -t, 1ps, -suppress, vsim-3009 , -suppress, vopt-7033 ]
         parameters: [firmware,rodata]
         toplevel: testbench_top
     sim-irq:
@@ -135,11 +135,11 @@ targets:
 parameters:
     firmware:
         datatype  : file
-        default   : /users/hemmat/MyRepos/pito_riscv/csrc/irq/build/irq_text.hex
+        default   : /users/hemmat/MyRepos/pito_riscv/csrc/uart/build/uart_text.hex
         paramtype : plusarg
     rodata:
         datatype  : file
-        default   : /users/hemmat/MyRepos/pito_riscv/csrc/irq/build/irq_data.hex
+        default   : /users/hemmat/MyRepos/pito_riscv/csrc/uart/build/uart_data.hex
         paramtype : plusarg
     TB_IRQ:
         datatype  : int
