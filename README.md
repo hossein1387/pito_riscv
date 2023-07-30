@@ -17,7 +17,7 @@ Then add `pito` to your fusesoc libraries:
     
     git clone https://github.com/hossein1387/pito_riscv.git
     cd pito_riscv
-    git submodule update --init
+    git submodule update --init --recursive
     fusesoc library add pito .
 
 Then run simulation (No GUI):
